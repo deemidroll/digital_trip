@@ -1,5 +1,5 @@
 require([
-    "vendor/three.js/build/three.js",
+    "js/three.min.js",
     "vendor/three.js/examples/js/Detector.js",
     "vendor/threex.windowresize.js",
     "bower_components/threex.keyboardstate/package.require.js"], function(){
@@ -20,17 +20,25 @@ var onRenderFcts= [];
 var winResize   = new THREEx.WindowResize(renderer, camera)
 
 // sphere
-var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true,}));
+var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff}));
 sphere.overdraw = true;
 scene.add(sphere);
 
 // polyhedron
-var polyhedron = new THREE.Mesh(new THREE.SphereGeometry(1, 3, 2), new THREE.MeshNormalMaterial({color: 0x000000, }));
+var polyhedron = new THREE.Mesh(new THREE.SphereGeometry(1, 3, 2), new THREE.MeshPhongMaterial({color: 0xffffff}));
 polyhedron.overdraw = true;
 polyhedron.position.x = -2;
 polyhedron.position.y = 2;
-polyhedron.position.z = 0;
+polyhedron.position.z = -2;
 scene.add(polyhedron);
+
+// lightning
+var sphereLight  = new THREE.DirectionalLight(0xBE463C, 2);
+sphereLight.position.set(0, 0, 1);
+scene.add( sphereLight );
+
+// var ambientLight= new THREE.AmbientLight( 0xffffff );
+// scene.add( ambientLight);
 
 // create keyboard instance
 var keyboard  = new THREEx.KeyboardState();
@@ -42,11 +50,11 @@ onRenderFcts.push(function(){
 
 // rotation
 onRenderFcts.push(function() {
-    sphere.rotation.x += 0.01;
-    sphere.rotation.y += 0.01;
     polyhedron.rotation.x += 0.01;
     polyhedron.rotation.y += 0.01;
 });
+
+// cont
 // add function in rendering loop
 onRenderFcts.push(function(delta, now){
 
@@ -56,14 +64,39 @@ onRenderFcts.push(function(delta, now){
     // set the speed
     var speed = 5;
     // only if spaceships is loaded
-    if( keyboard.pressed('down') ){
-        sphere.position.y  -= speed * delta;
-    }else if( keyboard.pressed('up') ){
-        sphere.position.y  += speed * delta;
-    }else if( keyboard.pressed('left') ){
-        sphere.position.x  -= speed * delta;
-    }else if( keyboard.pressed('right') ){
-        sphere.position.x  += speed * delta;
+    switch (true) {
+        case keyboard.pressed('up'): 
+            sphere.position.y += speed * delta;
+            if (keyboard.pressed('left')) {
+                sphere.position.x -= speed * delta;
+            } else if (keyboard.pressed('right')) {
+                sphere.position.x += speed * delta;
+            }
+        break
+        case keyboard.pressed('down'): 
+            sphere.position.y -= speed * delta;
+            if (keyboard.pressed('left')) {
+                sphere.position.x -= speed * delta;
+            } else if (keyboard.pressed('right')) {
+                sphere.position.x += speed * delta;
+            }
+        break
+        case keyboard.pressed('left'): 
+            sphere.position.x -= speed * delta;
+            if (keyboard.pressed('up')) {
+                sphere.position.y += speed * delta;
+            } else if (keyboard.pressed('down')) {
+                sphere.position.y -= speed * delta;
+            }
+        break
+        case keyboard.pressed('right'): 
+            sphere.position.x += speed * delta;
+            if (keyboard.pressed('up')) {
+                sphere.position.y += speed * delta;
+            } else if (keyboard.pressed('down')) {
+                sphere.position.y -= speed * delta;
+            }
+        break
     }
 });
 // Rendering Loop runner

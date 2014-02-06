@@ -9,7 +9,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // camera
-var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100);
+var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 50);
 camera.position.z = 9;
 
 // scene
@@ -19,24 +19,27 @@ var onRenderFcts= [];
 // handle window resize events
 var winResize   = new THREEx.WindowResize(renderer, camera)
 
+var getDistance = function (x1, y1, z1, x2, y2, z2) {
+    return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2));
+}
 // sphere
 var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff}));
 sphere.overdraw = true;
 scene.add(sphere);
 
 // polyhedron
-var spawnCoord = -110,
-    blurCoord = 3,
-    dieCoord = 10,
-    stonesCloseness = 10;
+var spawnCoord = -55,
+    // blurCoord = 3,
+    dieCoord = 7,
+    stonesCloseness = 7;
 
 var group = [];
 var generateStone = function () {
-    var geometry = new THREE.IcosahedronGeometry( 0.5, 0 );
-    var material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading});
-    var polyhedron = new THREE.Mesh( geometry, material );
-        polyhedron.position.x = Math.random() * 4 - 1;
-        polyhedron.position.y = Math.random() * 4 - 1;
+    var geometry = new THREE.IcosahedronGeometry(0.5, 0),
+        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
+        polyhedron = new THREE.Mesh( geometry, material );
+        polyhedron.position.x = Math.random() * 10 - 5;
+        polyhedron.position.y = Math.random() * 10 - 5;
         polyhedron.position.z = Math.random() * 4 + spawnCoord;
         polyhedron.rotation.x = Math.random();
         polyhedron.rotation.y = Math.random();
@@ -44,13 +47,22 @@ var generateStone = function () {
         scene.add( polyhedron );
 };
 
-// проверка - убрать
-// for (var i = 0; i < 9; i++) {
-//     generateStone();
-// }
-
-var getDistance = function (x1, y1, z1, x2, y2, z2) {
-    return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2));
+var fragments = [];
+var generateFragments = function (x, y, z, numb) {
+    var geometry = new THREE.TetrahedronGeometry(0.2, 0),
+        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
+        numb = numb || 1.5;
+    for (var i = 0; i < 1; i++) {
+    var tetrahedron = new THREE.Mesh( geometry, material );
+        tetrahedron.position.x = x + Math.random() * numb - 0.5 * numb;
+        tetrahedron.position.y = y + Math.random() * numb - 0.5 * numb;
+        tetrahedron.position.z = z + Math.random() * numb - 0.5 * numb;
+        // tetrahedron.position.z = z;
+        tetrahedron.rotation.x = Math.random();
+        tetrahedron.rotation.y = Math.random();
+        fragments.push(tetrahedron);
+        scene.add(tetrahedron);
+    }
 }
 
 // lightning
@@ -84,10 +96,11 @@ onRenderFcts.push(function() {
     } 
     if (getDistance(
         el.position.x, el.position.y, el.position.z,
-        sphere.position.x, sphere.position.y, sphere.position.z) < 1) {
+        sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
         scene.remove(el);
         // вызвать вспышку экрана
         // генерировать осколки
+        generateFragments(el.position.x, el.position.y, el.position.z);
     }
     });
 });
@@ -101,7 +114,24 @@ onRenderFcts.push(function() {
         generateStone();
     }
 });
+// fragments lifecicle
+onRenderFcts.push(function() {
+    if (fragments.length) {
+        fragments.forEach(function(el, ind, arr) {
+            el.rotation.y += 0.05;
+            el.rotation.x += 0.05;
+            el.position.x *= 1.1;
+            el.position.y *= 1.1;
+            el.position.z += 0.01;
+            if (el.position.z > dieCoord) {
+                scene.remove(el);
+                arr.splice(ind, 1);
+            }
+        });
+    }
+});
 
+// /////////////////////////////////////////////////
 // control
 // add function in rendering loop
 onRenderFcts.push(function(delta, now){

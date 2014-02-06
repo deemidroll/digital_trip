@@ -9,7 +9,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // camera
-var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100);
 camera.position.z = 9;
 
 // scene
@@ -25,17 +25,42 @@ sphere.overdraw = true;
 scene.add(sphere);
 
 // polyhedron
-var polyhedron = new THREE.Mesh(new THREE.SphereGeometry(1, 3, 2), new THREE.MeshPhongMaterial({color: 0xffffff}));
-polyhedron.overdraw = true;
-polyhedron.position.x = -2;
-polyhedron.position.y = 2;
-polyhedron.position.z = -2;
-scene.add(polyhedron);
+var spawnCoord = -110,
+    blurCoord = 3,
+    dieCoord = 10,
+    stonesCloseness = 10;
+
+var group = [];
+var generateStone = function () {
+    var geometry = new THREE.IcosahedronGeometry( 0.5, 0 );
+    var material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading});
+    var polyhedron = new THREE.Mesh( geometry, material );
+        polyhedron.position.x = Math.random() * 4 - 1;
+        polyhedron.position.y = Math.random() * 4 - 1;
+        polyhedron.position.z = Math.random() * 4 + spawnCoord;
+        polyhedron.rotation.x = Math.random();
+        polyhedron.rotation.y = Math.random();
+        group.push(polyhedron);
+        scene.add( polyhedron );
+};
+
+// проверка - убрать
+// for (var i = 0; i < 9; i++) {
+//     generateStone();
+// }
+
+var getDistance = function (x1, y1, z1, x2, y2, z2) {
+    return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2));
+}
 
 // lightning
-var sphereLight  = new THREE.DirectionalLight(0xBE463C, 2);
+var sphereLight  = new THREE.DirectionalLight(0xBE463C, 1);
 sphereLight.position.set(0, 0, 1);
 scene.add( sphereLight );
+
+var light = new THREE.PointLight( 0xff0000, 1, 100 );
+light.position.set( 0, 0, 1 );
+scene.add( light );
 
 // var ambientLight= new THREE.AmbientLight( 0xffffff );
 // scene.add( ambientLight);
@@ -48,13 +73,36 @@ onRenderFcts.push(function(){
     renderer.render(scene, camera);
 });
 
-// rotation
+// polyhedron life cicle, rotation and moving
 onRenderFcts.push(function() {
-    polyhedron.rotation.x += 0.01;
-    polyhedron.rotation.y += 0.01;
+    group.forEach(function(el, ind, arr){
+    el.rotation.y += 0.007;
+    el.rotation.x += 0.007;
+    el.position.z += 0.1;
+    if (el.position.z > dieCoord) {
+        scene.remove(el);
+    } 
+    if (getDistance(
+        el.position.x, el.position.y, el.position.z,
+        sphere.position.x, sphere.position.y, sphere.position.z) < 1) {
+        scene.remove(el);
+        // вызвать вспышку экрана
+        // генерировать осколки
+    }
+    });
+});
+// stones generation
+onRenderFcts.push(function() {
+    if (!group.length) {
+        generateStone();
+    }
+    var el = group[group.length -1];
+    if (getDistance(0, 0, spawnCoord, el.position.x, el.position.y, el.position.z) > stonesCloseness) {
+        generateStone();
+    }
 });
 
-// cont
+// control
 // add function in rendering loop
 onRenderFcts.push(function(delta, now){
 

@@ -27,6 +27,42 @@ var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.Mes
 sphere.overdraw = true;
 scene.add(sphere);
 
+var currentHelth = 100;
+var changeHelth = function(delta) {
+    var helth = currentHelth;
+    if (helth > 0) {
+        helth += delta;
+        if (helth < 0) {
+            helth = 0;
+            gameOver();
+        }
+        if (helth > 100) {
+            helth = 100;
+        }
+    }
+    currentHelth = helth;
+    $(function(){
+        $(".helth").animate({
+            width: helth + "%"
+        });
+    });
+}
+
+var gameOver = function() {
+    $(function(){
+        $(".game_over").fadeIn(500);
+    });
+    setTimeout(function(){
+        cancelAnimationFrame(id);
+    }, 500);
+}
+
+var hit = function() {
+    $(function(){
+        $(".hit").fadeIn(500).fadeOut(500);
+    });
+}
+
 // polyhedron
 var spawnCoord = -55,
     // blurCoord = 3,
@@ -52,7 +88,7 @@ var generateFragments = function (x, y, z, numb) {
     var geometry = new THREE.TetrahedronGeometry(0.2, 0),
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
         numb = numb || 1.5;
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 10; i++) {
     var tetrahedron = new THREE.Mesh( geometry, material );
         tetrahedron.position.x = x + Math.random() * numb - 0.5 * numb;
         tetrahedron.position.y = y + Math.random() * numb - 0.5 * numb;
@@ -98,7 +134,11 @@ onRenderFcts.push(function() {
         el.position.x, el.position.y, el.position.z,
         sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
         scene.remove(el);
+        arr.splice(ind, 1);
+        // изменить здоровье
+        changeHelth(-19);
         // вызвать вспышку экрана
+        hit();
         // генерировать осколки
         generateFragments(el.position.x, el.position.y, el.position.z);
     }
@@ -178,10 +218,11 @@ onRenderFcts.push(function(delta, now){
     }
 });
 // Rendering Loop runner
+var id;
 var lastTimeMsec= null;
     requestAnimationFrame(function animate(nowMsec){
         // keep looping
-        requestAnimationFrame( animate );
+        id = requestAnimationFrame( animate );
         // measure time
         lastTimeMsec    = lastTimeMsec || nowMsec-1000/60;
         var deltaMsec   = Math.min(200, nowMsec - lastTimeMsec);

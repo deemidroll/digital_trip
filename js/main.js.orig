@@ -1,5 +1,4 @@
 require([
-    "vendor/jquery.min.js",
     "js/three.min.js",
     "vendor/three.js/examples/js/Detector.js",
     "vendor/threex.windowresize.js",
@@ -8,9 +7,11 @@ require([
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
 // camera
 var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 50);
 camera.position.z = 9;
+
 // scene
 var scene = new THREE.Scene();
 // declare the rendering loop
@@ -21,27 +22,13 @@ var winResize   = new THREEx.WindowResize(renderer, camera)
 var getDistance = function (x1, y1, z1, x2, y2, z2) {
     return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2));
 }
-
-var genCoord = function(delta) {
-    var offset = delta || 2.5;
-    var x = Math.random() * offset * 2 - offset;
-    var absX = Math.abs(x);
-    if (absX <= offset && absX >= offset*0.33 ) {
-        if (x > 0) {
-            return offset; 
-        }
-        if (x < 0) {
-            return offset * -1;
-        }
-    } else {
-        return 0;
-    }
-};
 // sphere
 var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff}));
 sphere.overdraw = true;
 scene.add(sphere);
 
+<<<<<<< HEAD
+=======
 var currentHelth = 100;
 var changeHelth = function(delta) {
     var helth = currentHelth;
@@ -62,49 +49,28 @@ var changeHelth = function(delta) {
         });
     });
 }
-var currentScore = 0;
-var changeScore = function(delta) {
-    currentScore += delta;
-    $(function(){
-        $(".current_coins").text(currentScore);
-    });
-};
 
 var gameOver = function() {
     $(function(){
-        $(".total_coins").text(currentScore);
-        $(".game_over").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 500);
+        $(".game_over").fadeIn(500);
     });
-    setTimeout(function() {
+    setTimeout(function(){
         cancelAnimationFrame(id);
     }, 500);
-    // oneMoreTime();
-};
-
-// var restart = function () {
-    
-// };
-
-// var oneMoreTime = function () {
-//     $(function(){
-//         $(".one_more_time").click(function() {
-//             $(".game_over").fadeOut(100);
-//             restart();
-//         });
-//     });
-// };
+}
 
 var hit = function() {
     $(function(){
         $(".hit").fadeIn(500).fadeOut(500);
     });
-};
+}
 
+>>>>>>> gh-pages
 // polyhedron
 var spawnCoord = -55,
     // blurCoord = 3,
     dieCoord = 7,
-    stonesCloseness = 5;
+    stonesCloseness = 7;
 
 var group = [];
 var generateStone = function () {
@@ -117,7 +83,7 @@ var generateStone = function () {
         polyhedron.rotation.x = Math.random();
         polyhedron.rotation.y = Math.random();
         group.push(polyhedron);
-        scene.add(polyhedron);
+        scene.add( polyhedron );
 };
 
 var fragments = [];
@@ -125,7 +91,11 @@ var generateFragments = function (x, y, z, numb) {
     var geometry = new THREE.TetrahedronGeometry(0.2, 0),
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
         numb = numb || 1.5;
+<<<<<<< HEAD
+    for (var i = 0; i < 1; i++) {
+=======
     for (var i = 0; i < 10; i++) {
+>>>>>>> gh-pages
     var tetrahedron = new THREE.Mesh( geometry, material );
         tetrahedron.position.x = x + Math.random() * numb - 0.5 * numb;
         tetrahedron.position.y = y + Math.random() * numb - 0.5 * numb;
@@ -138,37 +108,16 @@ var generateFragments = function (x, y, z, numb) {
     }
 }
 
-var coins = [];
-var genCoins = function () {
-    var geometry = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 32, 1),
-        texture = THREE.ImageUtils.loadTexture("./img/avers.png");;
-        material = new THREE.MeshLambertMaterial({map:texture}),
-        cylinder = new THREE.Mesh( geometry, material );
-
-        cylinder.position.x = genCoord();
-        cylinder.position.y = genCoord();
-        cylinder.position.z = Math.random() * 4 + spawnCoord;
-        cylinder.rotation.x = 1.5;
-        cylinder.rotation.y = 0;
-        cylinder.rotation.z = 0;
-        coins.push(cylinder);
-        scene.add(cylinder);
-};
-
 // lightning
 var sphereLight  = new THREE.DirectionalLight(0xBE463C, 1);
 sphereLight.position.set(0, 0, 1);
-// scene.add( sphereLight );
+scene.add( sphereLight );
 
-var light = new THREE.PointLight(0xffffff, 1, 100);
-light.position.set(0, 0, 1);
-scene.add(light);
+var light = new THREE.PointLight( 0xff0000, 1, 100 );
+light.position.set( 0, 0, 1 );
+scene.add( light );
 
-onRenderFcts.push(function() {
-
-});
-
-var ambientLight= new THREE.AmbientLight(0xffffff);
+// var ambientLight= new THREE.AmbientLight( 0xffffff );
 // scene.add( ambientLight);
 
 // create keyboard instance
@@ -192,10 +141,15 @@ onRenderFcts.push(function() {
         el.position.x, el.position.y, el.position.z,
         sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
         scene.remove(el);
+<<<<<<< HEAD
+        // вызвать вспышку экрана
+=======
         arr.splice(ind, 1);
+        // изменить здоровье
         changeHelth(-19);
         // вызвать вспышку экрана
         hit();
+>>>>>>> gh-pages
         // генерировать осколки
         generateFragments(el.position.x, el.position.y, el.position.z);
     }
@@ -215,38 +169,14 @@ onRenderFcts.push(function() {
 onRenderFcts.push(function() {
     if (fragments.length) {
         fragments.forEach(function(el, ind, arr) {
-            // el.rotation.y += 0.05;
-            // el.rotation.x += 0.05;
+            el.rotation.y += 0.05;
+            el.rotation.x += 0.05;
             el.position.x *= 1.1;
             el.position.y *= 1.1;
-            el.position.z += 0.1;
+            el.position.z += 0.01;
             if (el.position.z > dieCoord) {
                 scene.remove(el);
                 arr.splice(ind, 1);
-            }
-        });
-    }
-});
-
-//coins generation
-onRenderFcts.push(function() {
-    if (!coins.length) {
-        genCoins();
-    }
-    if (coins.length) {
-        coins.forEach(function(el, ind, arr) {
-            el.rotation.z += 0.05;
-            el.position.z += 0.1;
-            if (el.position.z > dieCoord) {
-                scene.remove(el);
-                arr.splice(ind, 1);
-            }
-            if (getDistance(
-                el.position.x, el.position.y, el.position.z,
-                sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
-                scene.remove(el);
-                arr.splice(ind, 1);
-                changeScore(10);
             }
         });
     }
@@ -297,15 +227,20 @@ onRenderFcts.push(function(delta, now){
             }
         break
     }
-    light.position.x = sphere.position.x;
-    light.position.y = sphere.position.y;
 });
 // Rendering Loop runner
+<<<<<<< HEAD
+var lastTimeMsec= null;
+    requestAnimationFrame(function animate(nowMsec){
+        // keep looping
+        requestAnimationFrame( animate );
+=======
 var id;
 var lastTimeMsec= null;
     requestAnimationFrame(function animate(nowMsec){
         // keep looping
         id = requestAnimationFrame( animate );
+>>>>>>> gh-pages
         // measure time
         lastTimeMsec    = lastTimeMsec || nowMsec-1000/60;
         var deltaMsec   = Math.min(200, nowMsec - lastTimeMsec);

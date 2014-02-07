@@ -1,4 +1,9 @@
 body {
+<<<<<<< HEAD
+    margin: 0px;
+    background-color: #000000;
+    overflow: hidden;
+=======
     font-family: Helvetica sans-serif;
     margin: 0px;
     background-color: #000000;
@@ -81,5 +86,5 @@ body {
 .score {
     height: 30px;
     left: 30px;
-    font-size: 2em;
+>>>>>>> gh-pages
 }

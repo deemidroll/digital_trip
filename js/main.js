@@ -16,7 +16,7 @@ var scene = new THREE.Scene();
 // declare the rendering loop
 var onRenderFcts= [];
 // handle window resize events
-var winResize   = new THREEx.WindowResize(renderer, camera)
+var winResize   = new THREEx.WindowResize(renderer, camera);
 
 var getDistance = function (x1, y1, z1, x2, y2, z2) {
     return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2));
@@ -37,10 +37,6 @@ var genCoord = function(delta) {
         return 0;
     }
 };
-// sphere
-var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff}));
-sphere.overdraw = true;
-scene.add(sphere);
 
 var currentHelth = 100;
 var changeHelth = function(delta) {
@@ -62,6 +58,7 @@ var changeHelth = function(delta) {
         });
     });
 }
+
 var currentScore = 0;
 var changeScore = function(delta) {
     currentScore += delta;
@@ -154,6 +151,11 @@ var genCoins = function () {
         coins.push(cylinder);
         scene.add(cylinder);
 };
+
+// sphere
+var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff}));
+sphere.overdraw = true;
+scene.add(sphere);
 
 // lightning
 var sphereLight  = new THREE.DirectionalLight(0xBE463C, 1);
@@ -252,6 +254,9 @@ onRenderFcts.push(function() {
     }
 });
 
+onRenderFcts.push(function() {
+    moveSphere();
+});
 // /////////////////////////////////////////////////
 // control
 // add function in rendering loop
@@ -265,41 +270,74 @@ onRenderFcts.push(function(delta, now){
     // only if spaceships is loaded
     switch (true) {
         case keyboard.pressed('up'): 
-            sphere.position.y += speed * delta;
+            changeDestPoint(1, 0);
             if (keyboard.pressed('left')) {
-                sphere.position.x -= speed * delta;
+                changeDestPoint(0, -1);
             } else if (keyboard.pressed('right')) {
-                sphere.position.x += speed * delta;
+                changeDestPoint(0, 1);
             }
         break
-        case keyboard.pressed('down'): 
-            sphere.position.y -= speed * delta;
+        case keyboard.pressed('down'):
+            changeDestPoint(-1, 0); 
             if (keyboard.pressed('left')) {
-                sphere.position.x -= speed * delta;
+                changeDestPoint(0, -1);
             } else if (keyboard.pressed('right')) {
-                sphere.position.x += speed * delta;
+                changeDestPoint(0, 1);
             }
         break
         case keyboard.pressed('left'): 
-            sphere.position.x -= speed * delta;
+            changeDestPoint(0, -1);
             if (keyboard.pressed('up')) {
-                sphere.position.y += speed * delta;
+                changeDestPoint(1, 0);
             } else if (keyboard.pressed('down')) {
-                sphere.position.y -= speed * delta;
+                changeDestPoint(-1, 0);
             }
         break
         case keyboard.pressed('right'): 
-            sphere.position.x += speed * delta;
+            changeDestPoint(0, 1);
             if (keyboard.pressed('up')) {
-                sphere.position.y += speed * delta;
+                changeDestPoint(1, 0);
             } else if (keyboard.pressed('down')) {
-                sphere.position.y -= speed * delta;
+                changeDestPoint(-1, 0);
             }
         break
     }
     light.position.x = sphere.position.x;
     light.position.y = sphere.position.y;
 });
+
+var destPoint = {x: 0, y: 0};
+var changeDestPoint = function(dy, dx) {
+    var newPos = dx * 2.5;
+
+    // destPoint.x = Math.min(newPos, 2.5);
+    // destPoint.x = Math.max(newPos, -2.5);
+
+    if (destPoint.x < 2.5 && dx > 0) {
+        destPoint.x += dx * 2.5;
+    }
+    if (destPoint.x > -2.5 && dx < 0) {
+        destPoint.x += dx * 2.5;
+    }
+    if (destPoint.y < 2.5 && dy > 0) {
+        destPoint.y += dy * 2.5;
+    }
+    if (destPoint.y > -2.5 && dy < 0) {
+        destPoint.y += dy * 2.5;
+    }
+};
+
+var moveSphere = function() {
+    var moveOnAix = function(aix) {
+        var dx = destPoint[aix] - sphere.position[aix];
+        if (Math.abs(dx) > 0.01) {
+            sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
+        }
+    };
+    moveOnAix("x");
+    moveOnAix("y");
+};
+
 // Rendering Loop runner
 var id;
 var lastTimeMsec= null;

@@ -256,55 +256,39 @@ onRenderFcts.push(function() {
 
 onRenderFcts.push(function() {
     moveSphere();
+    light.position.x = sphere.position.x
+    light.position.y = sphere.position.y;
 });
 // /////////////////////////////////////////////////
 // control
 // add function in rendering loop
-onRenderFcts.push(function(delta, now){
+// var body = document.getElementsByTagName("body");
+// onRenderFcts.push(function(delta, now) {
+//     body.onkeyup = function(e) {
+//         e = e || event;
+//         var chr = getChar(e);
+//         console.log(chr);
+// }
+// });
 
-    // only if the sphere is loaded
+// onRenderFcts.push(function() {
+//     // only if the sphere is loaded
+//     if( sphere === null )  return;
+//     if (keyboard.pressed('up')) changeDestPoint(1, 0);
+//     if (keyboard.pressed('down')) changeDestPoint(-1, 0);
+//     if (keyboard.pressed('left')) changeDestPoint(0, -1);
+//     if (keyboard.pressed('right')) changeDestPoint(0, 1);
+// });
+
+var intervalID = setInterval(function() {
     if( sphere === null )  return;
+    if (keyboard.pressed('up')) changeDestPoint(1, 0);
+    if (keyboard.pressed('down')) changeDestPoint(-1, 0);
+    if (keyboard.pressed('left')) changeDestPoint(0, -1);
+    if (keyboard.pressed('right')) changeDestPoint(0, 1);
+}, 100);
+// clearInterval(intervalID);
 
-    // set the speed
-    var speed = 5;
-    // only if spaceships is loaded
-    switch (true) {
-        case keyboard.pressed('up'): 
-            changeDestPoint(1, 0);
-            if (keyboard.pressed('left')) {
-                changeDestPoint(0, -1);
-            } else if (keyboard.pressed('right')) {
-                changeDestPoint(0, 1);
-            }
-        break
-        case keyboard.pressed('down'):
-            changeDestPoint(-1, 0); 
-            if (keyboard.pressed('left')) {
-                changeDestPoint(0, -1);
-            } else if (keyboard.pressed('right')) {
-                changeDestPoint(0, 1);
-            }
-        break
-        case keyboard.pressed('left'): 
-            changeDestPoint(0, -1);
-            if (keyboard.pressed('up')) {
-                changeDestPoint(1, 0);
-            } else if (keyboard.pressed('down')) {
-                changeDestPoint(-1, 0);
-            }
-        break
-        case keyboard.pressed('right'): 
-            changeDestPoint(0, 1);
-            if (keyboard.pressed('up')) {
-                changeDestPoint(1, 0);
-            } else if (keyboard.pressed('down')) {
-                changeDestPoint(-1, 0);
-            }
-        break
-    }
-    light.position.x = sphere.position.x;
-    light.position.y = sphere.position.y;
-});
 
 var destPoint = {x: 0, y: 0};
 var changeDestPoint = function(dy, dx) {

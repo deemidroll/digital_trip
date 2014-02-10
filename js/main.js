@@ -1,32 +1,232 @@
 require([
     "vendor/jquery.min.js",
-    "js/three.min.js",
+    "vendor/three.js/build/three.min.js",
     "vendor/three.js/examples/js/Detector.js",
     "vendor/threex.windowresize.js",
-    "bower_components/threex.keyboardstate/package.require.js"], function(){
+    "bower_components/threex.keyboardstate/package.require.js"], function() {
+var renderer, scene, camera;
 // renderer
-var renderer = new THREE.WebGLRenderer();
+renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+var el = document.body.appendChild(renderer.domElement);
 // camera
-var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 50);
+camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 50);
 camera.position.z = 9;
 // scene
-var scene = new THREE.Scene();
+scene = new THREE.Scene();
 // declare the rendering loop
 var onRenderFcts= [];
 // handle window resize events
 var winResize   = new THREEx.WindowResize(renderer, camera);
 
+// stats
+var currentHelth = 100,
+    currentScore = 0;
+
+// serv vars
+var spawnCoord = -55,
+    // blurCoord = 3,
+    opacityCoord = 2,
+    dieCoord = 7,
+    stonesCloseness = 5,
+    speed = 1;
+
+// collection
+var stones = [],
+    fragments = [],
+    coins = [];
+
+// coordinates of sphere destination point
+var destPoint = {x: 0, y: 0};
+
+// sphere
+var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff}));
+sphere.overdraw = true;
+scene.add(sphere);
+
+// lightning 0xBE463C
+var sphereLight  = new THREE.PointLight(0xffffff, 0.25, 100);
+sphereLight.position.set(0, 0, 1);
+scene.add(sphereLight);
+
+var light = new THREE.PointLight(0xff0000, 1.5, 7.5);
+light.position.set(0, 0, 1);
+scene.add(light);
+
+var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.25 );
+directionalLight.position.set(0, 0, 1);
+scene.add(directionalLight);
+
+// create keyboard instance
+var keyboard  = new THREEx.KeyboardState();
+
+// change IcosahedronGeometry prototype
+THREE.IcosahedronGeometry = function ( radius, detail ) {
+    this.radius = radius;
+    this.detail = detail;
+    var t = ( 1 + Math.sqrt( 5 ) ) / 2;
+    var vertices = [
+        [ -1,  t,  0 ], [  1, t, 0 ], [ -1, -t,  0 ], [  1, -t,  0 ],
+        [  0, -1,  t ], [  0, 1, t ], [  0, -1, -t ], [  0,  1, -t ],
+        [  t,  0, -1 ], [  t, 0, 1 ], [ -t,  0, -1 ], [ -t,  0,  1 ]
+    ];
+    vertices.map(function(item, i, arr) {
+        for (var j = 0; j < 2; j++) {
+            item[j] *= (Math.random());
+        }
+    });
+    var faces = [
+        [ 0, 11,  5 ], [ 0,  5,  1 ], [  0,  1,  7 ], [  0,  7, 10 ], [  0, 10, 11 ],
+        [ 1,  5,  9 ], [ 5, 11,  4 ], [ 11, 10,  2 ], [ 10,  7,  6 ], [  7,  1,  8 ],
+        [ 3,  9,  4 ], [ 3,  4,  2 ], [  3,  2,  6 ], [  3,  6,  8 ], [  3,  8,  9 ],
+        [ 4,  9,  5 ], [ 2,  4, 11 ], [  6,  2, 10 ], [  8,  6,  7 ], [  9,  8,  1 ]
+    ];
+    THREE.PolyhedronGeometry.call( this, vertices, faces, radius, detail );
+
+};
+THREE.IcosahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
+
+//////////////////////////////////////////////
+// SPEED
+var keyboardControl = setInterval(function() {
+    speed += 0.1;
+}, 5000);
+//////////////////////////////////////////////
+// ON RENDER 
+//////////////////////////////////////////////
+// render the scene
+onRenderFcts.push(function(){
+    renderer.render(scene, camera);
+});
+
+// stone life cicle, rotation and moving
+onRenderFcts.push(function() {
+    stones.forEach(function(el, ind, arr){
+    el.rotation.y += 0.007;
+    el.rotation.x += 0.007;
+    el.position.z += 0.1 * speed;
+    if (el.position.z > dieCoord) {
+        scene.remove(el);
+    } 
+    if (el.position.z > opacityCoord) {
+        el.material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, transparent: true, opacity: 0.75});
+    }
+    if (getDistance(
+        el.position.x, el.position.y, el.position.z,
+        sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
+        scene.remove(el);
+        arr.splice(ind, 1);
+        currentHelth = changeHelth(currentHelth, -19, id);
+        // вызвать вспышку экрана
+        hit();
+        // генерировать осколки
+        generateFragments(scene, fragments, el.position.x, el.position.y, el.position.z);
+    }
+    });
+});
+// stones generation
+onRenderFcts.push(function() {
+    if (!stones.length) {
+        generateStone(scene, stones, spawnCoord);
+    }
+    var el = stones[stones.length -1];
+    if (getDistance(0, 0, spawnCoord, el.position.x, el.position.y, el.position.z) > stonesCloseness) {
+        generateStone(scene, stones, spawnCoord);
+    }
+});
+// fragments lifecicle
+onRenderFcts.push(function() {
+    if (fragments.length) {
+        fragments.forEach(function(el, ind, arr) {
+            // el.rotation.y += 0.05;
+            // el.rotation.x += 0.05;
+            el.position.x *= 1.1;
+            el.position.y *= 1.1;
+            el.position.z += 0.1 * speed;
+            if (el.position.z > dieCoord) {
+                scene.remove(el);
+                arr.splice(ind, 1);
+            }
+        });
+    }
+});
+//coins generation
+onRenderFcts.push(function() {
+    if (!coins.length) {
+        genCoins(scene, coins, spawnCoord);
+    }
+    if (coins.length) {
+        coins.forEach(function(el, ind, arr) {
+            el.rotation.z += 0.05;
+            el.position.z += 0.1 * speed;
+            if (el.position.z > dieCoord) {
+                scene.remove(el);
+                arr.splice(ind, 1);
+            }
+            if (el.position.z > opacityCoord) {
+                el.material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, transparent: true, opacity: 0.5});
+            }
+            if (getDistance(
+                el.position.x, el.position.y, el.position.z,
+                sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
+                scene.remove(el);
+                arr.splice(ind, 1);
+                currentScore = changeScore(currentScore, 10);
+            }
+        });
+    }
+});
+//sphere moving
+onRenderFcts.push(function() {
+    moveSphere(sphere, destPoint);
+    light.position.x = sphere.position.x
+    light.position.y = sphere.position.y;
+    sphereLight.position.x = sphere.position.x
+    sphereLight.position.y = sphere.position.y;
+});
+///////////////////////////////////////////////////
+// control
+// var keyboardControl = setInterval(function() {
+//     if (keyboard.pressed('up')) changeDestPoint(1, 0, destPoint);
+//     if (keyboard.pressed('down')) changeDestPoint(-1, 0, destPoint);
+//     if (keyboard.pressed('left')) changeDestPoint(0, -1, destPoint);
+//     if (keyboard.pressed('right')) changeDestPoint(0, 1, destPoint);
+// }, 100);
+$(function() {
+    $(document).keydown(function() {
+        var k = event.keyCode;
+        if (k === 38) changeDestPoint(1, 0, destPoint);
+        if (k === 40) changeDestPoint(-1, 0, destPoint);
+        if (k === 37) changeDestPoint(0, -1, destPoint);
+        if (k === 39) changeDestPoint(0, 1, destPoint);
+    });
+});
+// Rendering Loop runner
+var id;
+var lastTimeMsec= null;
+    requestAnimationFrame(function animate(nowMsec) {
+        // keep looping
+        id = requestAnimationFrame(animate);
+        // measure time
+        lastTimeMsec    = lastTimeMsec || nowMsec-1000/60;
+        var deltaMsec   = Math.min(200, nowMsec - lastTimeMsec);
+        lastTimeMsec    = nowMsec;
+        // call each update function
+        onRenderFcts.forEach(function(onRenderFct) {
+            onRenderFct(deltaMsec/1000, nowMsec/1000);
+        });
+    });
+
+// auxiliary functions
 var getDistance = function (x1, y1, z1, x2, y2, z2) {
     return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2));
-}
+};
 
 var genCoord = function(delta) {
     var offset = delta || 2.5;
     var x = Math.random() * offset * 2 - offset;
     var absX = Math.abs(x);
-    if (absX <= offset && absX >= offset*0.33 ) {
+    if (absX <= offset && absX >= offset * 0.33 ) {
         if (x > 0) {
             return offset; 
         }
@@ -38,8 +238,7 @@ var genCoord = function(delta) {
     }
 };
 
-var currentHelth = 100;
-var changeHelth = function(delta) {
+var changeHelth = function(currentHelth, delta) {
     var helth = currentHelth;
     if (helth > 0) {
         helth += delta;
@@ -57,14 +256,15 @@ var changeHelth = function(delta) {
             width: helth + "%"
         });
     });
-}
+    return currentHelth;
+};
 
-var currentScore = 0;
-var changeScore = function(delta) {
+var changeScore = function(currentScore, delta) {
     currentScore += delta;
     $(function(){
         $(".current_coins").text(currentScore);
     });
+    return currentScore;
 };
 
 var gameOver = function() {
@@ -78,34 +278,15 @@ var gameOver = function() {
     // oneMoreTime();
 };
 
-// var restart = function () {
-    
-// };
-
-// var oneMoreTime = function () {
-//     $(function(){
-//         $(".one_more_time").click(function() {
-//             $(".game_over").fadeOut(100);
-//             restart();
-//         });
-//     });
-// };
-
 var hit = function() {
     $(function(){
         $(".hit").fadeIn(500).fadeOut(500);
     });
 };
 
-// polyhedron
-var spawnCoord = -55,
-    // blurCoord = 3,
-    dieCoord = 7,
-    stonesCloseness = 5;
-
-var group = [];
-var generateStone = function () {
-    var geometry = new THREE.IcosahedronGeometry(0.5, 0),
+var generateStone = function (scene, arr, spawnCoord) {
+    var radius = Math.min(Math.random() + 0.25, 0.5);
+    var geometry = new THREE.IcosahedronGeometry(radius, 0),
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
         polyhedron = new THREE.Mesh( geometry, material );
         polyhedron.position.x = Math.random() * 10 - 5;
@@ -113,12 +294,11 @@ var generateStone = function () {
         polyhedron.position.z = Math.random() * 4 + spawnCoord;
         polyhedron.rotation.x = Math.random();
         polyhedron.rotation.y = Math.random();
-        group.push(polyhedron);
+        arr.push(polyhedron);
         scene.add(polyhedron);
 };
 
-var fragments = [];
-var generateFragments = function (x, y, z, numb) {
+var generateFragments = function (scene, arr, x, y, z, numb) {
     var geometry = new THREE.TetrahedronGeometry(0.2, 0),
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
         numb = numb || 1.5;
@@ -130,13 +310,12 @@ var generateFragments = function (x, y, z, numb) {
         // tetrahedron.position.z = z;
         tetrahedron.rotation.x = Math.random();
         tetrahedron.rotation.y = Math.random();
-        fragments.push(tetrahedron);
+        arr.push(tetrahedron);
         scene.add(tetrahedron);
     }
-}
+};
 
-var coins = [];
-var genCoins = function () {
+var genCoins = function (scene, arr, spawnCoord) {
     var geometry = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 32, 1),
         texture = THREE.ImageUtils.loadTexture("./img/avers.png");;
         material = new THREE.MeshLambertMaterial({map:texture}),
@@ -148,150 +327,11 @@ var genCoins = function () {
         cylinder.rotation.x = 1.5;
         cylinder.rotation.y = 0;
         cylinder.rotation.z = 0;
-        coins.push(cylinder);
+        arr.push(cylinder);
         scene.add(cylinder);
 };
 
-// sphere
-var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff}));
-sphere.overdraw = true;
-scene.add(sphere);
-
-// lightning
-var sphereLight  = new THREE.DirectionalLight(0xBE463C, 1);
-sphereLight.position.set(0, 0, 1);
-// scene.add( sphereLight );
-
-var light = new THREE.PointLight(0xffffff, 1, 100);
-light.position.set(0, 0, 1);
-scene.add(light);
-
-onRenderFcts.push(function() {
-
-});
-
-var ambientLight= new THREE.AmbientLight(0xffffff);
-// scene.add( ambientLight);
-
-// create keyboard instance
-var keyboard  = new THREEx.KeyboardState();
-
-// render the scene
-onRenderFcts.push(function(){
-    renderer.render(scene, camera);
-});
-
-// polyhedron life cicle, rotation and moving
-onRenderFcts.push(function() {
-    group.forEach(function(el, ind, arr){
-    el.rotation.y += 0.007;
-    el.rotation.x += 0.007;
-    el.position.z += 0.1;
-    if (el.position.z > dieCoord) {
-        scene.remove(el);
-    } 
-    if (getDistance(
-        el.position.x, el.position.y, el.position.z,
-        sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
-        scene.remove(el);
-        arr.splice(ind, 1);
-        changeHelth(-19);
-        // вызвать вспышку экрана
-        hit();
-        // генерировать осколки
-        generateFragments(el.position.x, el.position.y, el.position.z);
-    }
-    });
-});
-// stones generation
-onRenderFcts.push(function() {
-    if (!group.length) {
-        generateStone();
-    }
-    var el = group[group.length -1];
-    if (getDistance(0, 0, spawnCoord, el.position.x, el.position.y, el.position.z) > stonesCloseness) {
-        generateStone();
-    }
-});
-// fragments lifecicle
-onRenderFcts.push(function() {
-    if (fragments.length) {
-        fragments.forEach(function(el, ind, arr) {
-            // el.rotation.y += 0.05;
-            // el.rotation.x += 0.05;
-            el.position.x *= 1.1;
-            el.position.y *= 1.1;
-            el.position.z += 0.1;
-            if (el.position.z > dieCoord) {
-                scene.remove(el);
-                arr.splice(ind, 1);
-            }
-        });
-    }
-});
-
-//coins generation
-onRenderFcts.push(function() {
-    if (!coins.length) {
-        genCoins();
-    }
-    if (coins.length) {
-        coins.forEach(function(el, ind, arr) {
-            el.rotation.z += 0.05;
-            el.position.z += 0.1;
-            if (el.position.z > dieCoord) {
-                scene.remove(el);
-                arr.splice(ind, 1);
-            }
-            if (getDistance(
-                el.position.x, el.position.y, el.position.z,
-                sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
-                scene.remove(el);
-                arr.splice(ind, 1);
-                changeScore(10);
-            }
-        });
-    }
-});
-
-onRenderFcts.push(function() {
-    moveSphere();
-    light.position.x = sphere.position.x
-    light.position.y = sphere.position.y;
-});
-// /////////////////////////////////////////////////
-// control
-// add function in rendering loop
-// var body = document.getElementsByTagName("body");
-// onRenderFcts.push(function(delta, now) {
-//     body.onkeyup = function(e) {
-//         e = e || event;
-//         var chr = getChar(e);
-//         console.log(chr);
-// }
-// });
-
-// onRenderFcts.push(function() {
-//     // only if the sphere is loaded
-//     if( sphere === null )  return;
-//     if (keyboard.pressed('up')) changeDestPoint(1, 0);
-//     if (keyboard.pressed('down')) changeDestPoint(-1, 0);
-//     if (keyboard.pressed('left')) changeDestPoint(0, -1);
-//     if (keyboard.pressed('right')) changeDestPoint(0, 1);
-// });
-
-var intervalID = setInterval(function() {
-    if( sphere === null )  return;
-    if (keyboard.pressed('up')) changeDestPoint(1, 0);
-    if (keyboard.pressed('down')) changeDestPoint(-1, 0);
-    if (keyboard.pressed('left')) changeDestPoint(0, -1);
-    if (keyboard.pressed('right')) changeDestPoint(0, 1);
-}, 100);
-// clearInterval(intervalID);
-
-
-var destPoint = {x: 0, y: 0};
-var changeDestPoint = function(dy, dx) {
+var changeDestPoint = function(dy, dx, destPoint) {
     var newPos = dx * 2.5;
 
     // destPoint.x = Math.min(newPos, 2.5);
@@ -311,7 +351,7 @@ var changeDestPoint = function(dy, dx) {
     }
 };
 
-var moveSphere = function() {
+var moveSphere = function(sphere, destPoint) {
     var moveOnAix = function(aix) {
         var dx = destPoint[aix] - sphere.position[aix];
         if (Math.abs(dx) > 0.01) {
@@ -321,20 +361,4 @@ var moveSphere = function() {
     moveOnAix("x");
     moveOnAix("y");
 };
-
-// Rendering Loop runner
-var id;
-var lastTimeMsec= null;
-    requestAnimationFrame(function animate(nowMsec){
-        // keep looping
-        id = requestAnimationFrame( animate );
-        // measure time
-        lastTimeMsec    = lastTimeMsec || nowMsec-1000/60;
-        var deltaMsec   = Math.min(200, nowMsec - lastTimeMsec);
-        lastTimeMsec    = nowMsec;
-        // call each update function
-        onRenderFcts.forEach(function(onRenderFct){
-            onRenderFct(deltaMsec/1000, nowMsec/1000);
-        });
-    });
 });

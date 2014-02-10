@@ -83,3 +83,9 @@ body {
     left: 30px;
     font-size: 2em;
 }
+
+#disp {
+    position: absolute;
+    top: 0;
+    left: 0;
+}

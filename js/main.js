@@ -3,7 +3,14 @@ require([
     "vendor/three.js/build/three.min.js",
     "vendor/three.js/examples/js/Detector.js",
     "vendor/threex.windowresize.js",
-    "bower_components/threex.keyboardstate/package.require.js"], function() {
+    // "vendor/three.js/examples/CopyShader.js",
+    // "vendor/three.js/examples/HorizontalBlurShader.js",
+    // "vendor/three.js/examples/VerticalBlurShader.js",
+    // "vendor/three.js/examples/EffectComposer.js",
+    // "vendor/three.js/examples/MaskPass.js",
+    // "vendor/three.js/examples/RenderPass.js",
+    // "vendor/three.js/examples/ShaderPass.js",
+    "../bower_components/threex.keyboardstate/package.require.js"], function() {
 var renderer, scene, camera;
 // renderer
 renderer = new THREE.WebGLRenderer();
@@ -11,7 +18,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 var el = document.body.appendChild(renderer.domElement);
 // camera
 camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 50);
-camera.position.z = 9;
+camera.position.x = 0;
+camera.position.y = 1;
+camera.position.z = 10;
 // scene
 scene = new THREE.Scene();
 // declare the rendering loop
@@ -153,7 +162,11 @@ onRenderFcts.push(function() {
 //coins generation
 onRenderFcts.push(function() {
     if (!coins.length) {
-        genCoins(scene, coins, spawnCoord);
+        x = genCoord();
+        y = genCoord();
+        for (var i = 0; i < 10; i++) {
+            genCoins(scene, coins, spawnCoord - i * 5, x, y, i * 0.25);
+        }
     }
     if (coins.length) {
         coins.forEach(function(el, ind, arr) {
@@ -171,7 +184,7 @@ onRenderFcts.push(function() {
                 sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
                 scene.remove(el);
                 arr.splice(ind, 1);
-                currentScore = changeScore(currentScore, 10);
+                currentScore = changeScore(currentScore, 1);
             }
         });
     }
@@ -315,27 +328,24 @@ var generateFragments = function (scene, arr, x, y, z, numb) {
     }
 };
 
-var genCoins = function (scene, arr, spawnCoord) {
-    var geometry = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 32, 1),
+var genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
+    var geometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 32, 1),
         texture = THREE.ImageUtils.loadTexture("./img/avers.png");;
         material = new THREE.MeshLambertMaterial({map:texture}),
         cylinder = new THREE.Mesh( geometry, material );
 
-        cylinder.position.x = genCoord();
-        cylinder.position.y = genCoord();
-        cylinder.position.z = Math.random() * 4 + spawnCoord;
+        cylinder.position.x = x;
+        cylinder.position.y = y;
+        cylinder.position.z = Math.random() * 4 + spawnCoord;;
         cylinder.rotation.x = 1.5;
         cylinder.rotation.y = 0;
-        cylinder.rotation.z = 0;
+        cylinder.rotation.z = zAngle;
         arr.push(cylinder);
         scene.add(cylinder);
 };
 
 var changeDestPoint = function(dy, dx, destPoint) {
     var newPos = dx * 2.5;
-
-    // destPoint.x = Math.min(newPos, 2.5);
-    // destPoint.x = Math.max(newPos, -2.5);
 
     if (destPoint.x < 2.5 && dx > 0) {
         destPoint.x += dx * 2.5;
@@ -352,13 +362,236 @@ var changeDestPoint = function(dy, dx, destPoint) {
 };
 
 var moveSphere = function(sphere, destPoint) {
+
     var moveOnAix = function(aix) {
         var dx = destPoint[aix] - sphere.position[aix];
         if (Math.abs(dx) > 0.01) {
             sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
         }
     };
+
     moveOnAix("x");
     moveOnAix("y");
 };
+video=document.getElementById('video')
+canvas=document.getElementById('canvas2')
+console.log(canvas);
+_=canvas.getContext('2d')
+ccanvas=document.getElementById('comp')
+c_=ccanvas.getContext('2d')
+navigator.webkitGetUserMedia({audio:true,video:true},function(stream){
+    s=stream
+    video.src=window.webkitURL.createObjectURL(stream)
+    video.addEventListener('play',
+        function(){setInterval(dump,1000/25)}
+    )
+},function(){
+    console.log('OOOOOOOH! DEEEEENIED!')
+})
+compression=5
+width=height=0
+function dump(){
+    if(canvas.width!=video.videoWidth){
+        width=Math.floor(video.videoWidth/compression)
+        height=Math.floor(video.videoHeight/compression)
+        canvas.width=ccanvas.width=width
+        canvas.height=ccanvas.height=height
+    }
+    _.drawImage(video,width,0,-width,height)
+    draw=_.getImageData(0,0,width,height)
+    //c_.putImageData(draw,0,0)
+    skinfilter()
+    test()  
+}
+huemin=0.0
+huemax=0.10
+satmin=0.0
+satmax=1.0
+valmin=0.4
+valmax=1.0
+function skinfilter(){
+    
+    skin_filter=_.getImageData(0,0,width,height)
+    var total_pixels=skin_filter.width*skin_filter.height
+    var index_value=total_pixels*4
+    
+    var count_data_big_array=0;
+    for (var y=0 ; y<height ; y++)
+    {
+        for (var x=0 ; x<width ; x++)
+        {
+            index_value = x+y*width
+            r = draw.data[count_data_big_array]
+                    g = draw.data[count_data_big_array+1]
+                    b = draw.data[count_data_big_array+2]
+                    a = draw.data[count_data_big_array+3]
+
+                    hsv = rgb2Hsv(r,g,b);
+                    //When the hand is too lose (hsv[0] > 0.59 && hsv[0] < 1.0)
+            //Skin Range on HSV values
+            if(((hsv[0] > huemin && hsv[0] < huemax)||(hsv[0] > 0.59 && hsv[0] < 1.0))&&(hsv[1] > satmin && hsv[1] < satmax)&&(hsv[2] > valmin && hsv[2] < valmax)){
+
+                    skin_filter[count_data_big_array]=r
+                skin_filter[count_data_big_array+1]=g
+                skin_filter[count_data_big_array+2]=b
+                skin_filter[count_data_big_array+3]=a
+                }else{
+
+                    skin_filter.data[count_data_big_array]=
+                skin_filter.data[count_data_big_array+1]=
+                skin_filter.data[count_data_big_array+2]=0
+                skin_filter.data[count_data_big_array+3]=0
+                }
+
+                    count_data_big_array=index_value*4;
+        }
+    }
+    draw=skin_filter
+}
+
+function rgb2Hsv(r, g, b){
+    
+    r = r/255
+    g = g/255
+    b = b/255;
+
+    var max = Math.max(r, g, b)
+    var min = Math.min(r, g, b);
+
+    var h, s, v = max;
+
+    var d = max - min;
+
+    s = max == 0 ? 0 : d / max;
+
+    if(max == min){
+        h = 0; // achromatic
+    }else{
+
+        switch(max){
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return [h, s, v];
+}
+
+last=false
+thresh=150
+down=false
+wasdown=false
+function test(){
+    delt=_.createImageData(width,height)
+    if(last!==false){
+        var totalx=0,totaly=0,totald=0,totaln=delt.width*delt.height
+        ,dscl=0
+        ,pix=totaln*4;while(pix-=4){
+            var d=Math.abs(
+                draw.data[pix]-last.data[pix]
+            )+Math.abs(
+                draw.data[pix+1]-last.data[pix+1]
+            )+Math.abs(
+                draw.data[pix+2]-last.data[pix+2]
+            )
+            if(d>thresh){
+                delt.data[pix]=160
+                delt.data[pix+1]=255
+                    delt.data[pix+2]=
+                delt.data[pix+3]=255
+                totald+=1
+                totalx+=((pix/4)%width)
+                totaly+=(Math.floor((pix/4)/delt.height))
+            }
+            else{
+                delt.data[pix]=
+                    delt.data[pix+1]=
+                    delt.data[pix+2]=0
+                delt.data[pix+3]=0
+            }
+        }
+    }
+    //slide.setAttribute('style','display:initial')
+    //slide.value=(totalx/totald)/width
+    if(totald){
+        down={
+            x:totalx/totald,
+            y:totaly/totald,
+            d:totald
+        }
+        handledown()
+    }
+    //console.log(totald)
+    last=draw
+    c_.putImageData(delt,0,0)
+}
+movethresh=2
+brightthresh=300
+overthresh=1000
+function calibrate(){
+    wasdown={
+        x:down.x,
+        y:down.y,
+        d:down.d
+    }
+}
+avg=0
+state=0//States: 0 waiting for gesture, 1 waiting for next move after gesture, 2 waiting for gesture to end
+function handledown(){
+    avg=0.9*avg+0.1*down.d
+    var davg=down.d-avg,good=davg>brightthresh
+    // console.log(davg)
+    switch(state){
+        case 0:
+            if(good){//Found a gesture, waiting for next move
+                state=1
+                calibrate()
+            }
+            break
+        case 2://Wait for gesture to end
+            if(!good){//Gesture ended
+                state=0
+            }
+            break;
+        case 1://Got next move, do something based on direction
+            var dx=down.x-wasdown.x,dy=down.y-wasdown.y
+            var dirx=Math.abs(dy)<Math.abs(dx)//(dx,dy) is on a bowtie
+            console.log(good,davg)
+            if(dx<-movethresh&&dirx){
+                console.log('right')
+                changeDestPoint(0, 1, destPoint);
+                
+            }
+            else if(dx>movethresh&&dirx){
+                console.log('left')
+                changeDestPoint(0, -1, destPoint);
+                
+            }
+            if(dy>movethresh&&!dirx){
+                if(davg>overthresh){
+                    console.log('over up')
+                    // changeDestPoint(1, 0, destPoint);
+                }
+                else{
+                    console.log('up')
+                    changeDestPoint(1, 0, destPoint);
+                }
+            }
+            else if(dy<-movethresh&&!dirx){
+                if(davg>overthresh){
+                    console.log('over down')
+                    // changeDestPoint(-1, 0, destPoint);
+                }
+                else{
+                    console.log('down')
+                    changeDestPoint(-1, 0, destPoint);
+                }
+            }
+            state=2
+            break
+    }
+}
+
 });

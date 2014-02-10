@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Index page</title>
     <link rel="stylesheet" type="text/css" href="css/style.css" />
-    <script src="vendor/require.js/require.js"></script>
+    <script data-main="../js/main.js" src="vendor/require.js/require.js"></script>
 </head>
 <body>
     <div class="helthbar">
@@ -28,6 +28,8 @@
             <div class="one_more_time">one more time</div>
         </div>
     </div>
-    <script src="js/main.js"></script>
+    <div id="disp"><canvas id="comp"></canvas></div>
+    <video id="video" autoplay style="display:none"></video>
+    <canvas id="canvas2" style="width:300px;display:none;" width="128" height="96"></canvas>
 </body>
 </html>

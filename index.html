@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Index page</title>
+    <title>digital trip</title>
     <link rel="stylesheet" type="text/css" href="css/style.css" />
-    <script data-main="../js/main.js" src="vendor/require.js/require.js"></script>
 </head>
 <body>
     <div class="helthbar">
@@ -29,7 +28,27 @@
         </div>
     </div>
     <div id="disp"><canvas id="comp"></canvas></div>
-    <video id="video" autoplay style="display:none"></video>
+    <video id="video" autoplay width="300" style="display:none"></video>
     <canvas id="canvas2" style="width:300px;display:none;" width="128" height="96"></canvas>
+    <script src="vendor/jquery.min.js"></script>
+    <script src="vendor/three.js/build/three.min.js"></script>
+    <script src="vendor/three.js/examples/js/Detector.js"></script>
+    <script src="vendor/threex.windowresize.js"></script>
+    <!-- scripts for blur.js -->
+    <script src="vendor/three.js/examples/CopyShader.js"></script>
+    <script src="vendor/three.js/examples/HorizontalBlurShader.js"></script>
+    <script src="vendor/three.js/examples/VerticalBlurShader.js"></script>
+    <script src="vendor/three.js/examples/EffectComposer.js"></script>
+    <script src="vendor/three.js/examples/RenderPass.js"></script>
+    <script src="vendor/three.js/examples/MaskPass.js"></script>
+    <script src="vendor/three.js/examples/ShaderPass.js"></script>
+    <!-- end of scripts for blur.js -->
+    <script src="js/threeInit.js"></script>
+    <script src="js/util.js"></script>
+    <script src="js/control.js"></script>
+    <script src="js/gesture.js"></script>
+    <script src="js/blur.js"></script>
+    <script src="js/bonuses.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

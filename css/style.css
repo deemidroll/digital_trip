@@ -8,6 +8,7 @@ body {
 
 .helthbar, .stngs, .score, .bonus{
     position: absolute;
+    opacity: 0.5;
 }
 
 .hit, .game_over {
@@ -73,9 +74,9 @@ body {
 }
 
 .bonus {
-    width: 90px;
     height: 30px;
     right: 30px;
+    font-size: 2em;
 }
 
 .score {
@@ -85,6 +86,7 @@ body {
 }
 
 #disp {
+    display: none;
     position: absolute;
     top: 0;
     left: 0;

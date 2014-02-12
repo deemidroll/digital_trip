@@ -3,11 +3,11 @@ var currentHelth = 100,
     currentScore = 0;
 
 // service variables
-var spawnCoord = -55,
+var spawnCoord = -100,
     // blurCoord = 3,
     opacityCoord = 2,
     dieCoord = 7,
-    stonesCloseness = 5;
+    stonesCloseness = 20;
 
 // SPEED
 var speed = {
@@ -87,9 +87,15 @@ onRenderFcts.push(function() {
     if (el.position.z > opacityCoord) {
         el.material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, transparent: true, opacity: 0.75});
     }
-    if (getDistance(
-        el.position.x, el.position.y, el.position.z,
-        sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
+    var distanceBerweenCenters = getDistance(el.position.x,
+        el.position.y,
+        el.position.z,
+        sphere.position.x,
+        sphere.position.y,
+        sphere.position.z),
+        radiusesSum = sphere.geometry.radius + el.geometry.radius;
+                
+    if (distanceBerweenCenters < radiusesSum) {
         scene.remove(el);
         arr.splice(ind, 1);
         currentHelth = changeHelth(currentHelth, -19);
@@ -169,11 +175,20 @@ onRenderFcts.push(function(){
     if (!bonuses.length) {
         x = genCoord();
         y = genCoord();
-        genBonus(scene, bonuses, -110, x, y);
+        genBonus(scene, bonuses, -110, x, y, listOfModels);
     }
     if (bonuses.length) {
         bonuses.forEach(function(el, ind, arr) {
-            el.rotation.z += 0.05;
+            if (el.type === 0) {
+                el.rotation.z += 0.05;
+            }
+            if (el.type === 1) {
+                el.rotation.z += 0.05;
+            }
+            if (el.type === 2) {
+                el.rotation.y += 0.05;
+            }
+            // el.rotation.z += 0.05;
             el.position.z += 0.1 * speed.getValue();
             if (el.position.z > dieCoord) {
                 scene.remove(el);
@@ -192,3 +207,5 @@ onRenderFcts.push(function(){
         });
     }
 });
+var arr1 = [];
+genBonus(scene, arr1, 1, 0, 0, listOfModels);

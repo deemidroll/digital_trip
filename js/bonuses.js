@@ -1,32 +1,28 @@
-var genBonus = function (scene, arr, spawnCoord, x, y, zAngle) {
+var genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
     var type = Math.round(Math.random() * 2);
-    var type = 2;
+    // var type = 1;
     var geometry, material;
-    if (type === 0) {
-        geometry = new THREE.CylinderGeometry(0.6, 0.6, 0.1, 32, 1);
-        material = new THREE.MeshLambertMaterial({color: 0x8b00ff});
-    }
-    if (type === 1) {
-        geometry = new THREE.CylinderGeometry(0.6, 0.6, 0.1, 32, 1);
-        material = new THREE.MeshLambertMaterial({color: 0x00ff00});
-    }
-    if (type === 2) {
-        geometry = new THREE.CylinderGeometry(0.6, 0.6, 0.1, 32, 1);
-        material = new THREE.MeshLambertMaterial({color: 0xff00ff});
-    }
 
-        bonus = new THREE.Mesh( geometry, material );
-        bonus.position.x = x;
-        bonus.position.y = y;
-        bonus.position.z = Math.random() * 4 + spawnCoord;;
-        bonus.rotation.x = 1.5;
-        bonus.rotation.y = 0;
-        bonus.rotation.z = zAngle || 0;
+    geometry = listOfModels[type].geometry;
+    material = listOfModels[type].material;
 
-        bonus.type = type;
+    bonus = new THREE.Mesh( geometry, material );
+    bonus.position.x = x;
+    bonus.position.y = y;
+    bonus.position.z = Math.random() * 4 + spawnCoord;
 
-        arr.push(bonus);
-        scene.add(bonus);
+    bonus.scale.x = listOfModels[type].scale.x || 1;
+    bonus.scale.y = listOfModels[type].scale.y || 1;
+    bonus.scale.z = listOfModels[type].scale.z || 1;
+
+    bonus.rotation.x = listOfModels[type].rotation.x || 0;
+    bonus.rotation.y = listOfModels[type].rotation.y || 0;
+    bonus.rotation.z = listOfModels[type].rotation.z || 0;
+
+    bonus.type = type;
+
+    arr.push(bonus);
+    scene.add(bonus);
 };
 
 var useBonuses = function (type) {
@@ -55,10 +51,7 @@ var catchBonus = function (type) {
         showBonuses(caughtBonuses);
         console.log(caughtBonuses);
 };
-String.prototype.repeat = function( num )
-{
-    return new Array( num + 1 ).join( this );
-}
+
 var showBonuses = function (arr) {
     var n = arr.length;
     $(function(){

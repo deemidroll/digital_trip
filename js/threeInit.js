@@ -6,7 +6,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // camera
-camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 50);
+camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 90);
 camera.position.x = 0;
 camera.position.y = 1;
 camera.position.z = 10;
@@ -43,11 +43,13 @@ THREE.IcosahedronGeometry = function ( radius, detail ) {
         [  0, -1,  t ], [  0, 1, t ], [  0, -1, -t ], [  0,  1, -t ],
         [  t,  0, -1 ], [  t, 0, 1 ], [ -t,  0, -1 ], [ -t,  0,  1 ]
     ];
-    vertices.map(function(item, i, arr) {
-        for (var j = 0; j < 2; j++) {
-            item[j] *= (Math.random());
-        }
+
+    vertices = vertices.map(function(el) {
+        return el.map(function(el) {
+            return el * Math.random();
+        });
     });
+
     var faces = [
         [ 0, 11,  5 ], [ 0,  5,  1 ], [  0,  1,  7 ], [  0,  7, 10 ], [  0, 10, 11 ],
         [ 1,  5,  9 ], [ 5, 11,  4 ], [ 11, 10,  2 ], [ 10,  7,  6 ], [  7,  1,  8 ],
@@ -58,7 +60,10 @@ THREE.IcosahedronGeometry = function ( radius, detail ) {
 
 };
 THREE.IcosahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
-
+// add method repeat
+String.prototype.repeat = function(num) {
+    return new Array( num + 1 ).join( this );
+}
 // Rendering Loop runner
 var id;
 var lastTimeMsec= null;

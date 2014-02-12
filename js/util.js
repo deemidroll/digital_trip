@@ -69,8 +69,14 @@ var gameOver = function() {
     setTimeout(function() {
         cancelAnimationFrame(id);
     }, 500);
-    // oneMoreTime();
+    oneMoreTime();
 };
+
+var oneMoreTime = function() {
+    $('.one_more_time').click(function() {
+        location.reload();
+    });
+}
 
 var hit = function() {
     $(function(){
@@ -79,7 +85,7 @@ var hit = function() {
 };
 
 var generateStone = function (scene, arr, spawnCoord) {
-    var radius = Math.min(Math.random() + 0.25, 0.5);
+    var radius = Math.min(Math.random() + 1, 1.5);
     var geometry = new THREE.IcosahedronGeometry(radius, 0),
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
         stone = new THREE.Mesh( geometry, material );
@@ -146,15 +152,12 @@ var changeDestPoint = function(dy, dx, destPoint) {
 
 var moveSphere = function(sphere, destPoint) {
 
-    var moveOnAix = function(aix) {
+    ["x", "y"].forEach(function(aix) {
         var dx = destPoint[aix] - sphere.position[aix];
         if (Math.abs(dx) > 0.01) {
             sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
         }
-    };
-
-    moveOnAix("x");
-    moveOnAix("y");
+    });
 };
 
 var makeFun = function(time) {

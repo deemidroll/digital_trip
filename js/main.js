@@ -3,7 +3,7 @@ var currentHelth = 100,
     currentScore = 0;
 
 // service variables
-var spawnCoord = -100,
+var spawnCoord = -200,
     // blurCoord = 3,
     opacityCoord = 2,
     dieCoord = 7,
@@ -11,7 +11,7 @@ var spawnCoord = -100,
 
 // SPEED
 var speed = {
-    value: 2,
+    value: 6,
     changer: 0,
     step: 0.1
 };
@@ -43,37 +43,36 @@ var caughtBonuses = [];
 // coordinates of sphere destination point
 var destPoint = {x: 0, y: 0};
 
-// sphere
-var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff}));
-sphere.overdraw = true;
-sphere.isInvulnerability = false;
-scene.add(sphere);
-
 //////////////////////////////////////////////
 // ON RENDER 
 //////////////////////////////////////////////
 
 // render the scene
-onRenderFcts.push(function(){
+onRenderFcts.push(function() {
     renderer.render(scene, camera);
 });
+var lens = 23;
+onRenderFcts.push(function() {
 
-onRenderFcts.push(function(){
     if (speed.getChanger() > 0) {
-        camera.position.z = Math.min(camera.position.z += 0.1, 12);
+        camera.position.z = Math.max(camera.position.z -= 0.1, 8);
+        lens = Math.max(lens -= 0.3, 17)
         composer.render();
     } else if (speed.getChanger() < 0) {
-        camera.position.z = Math.max(camera.position.z -= 0.1, 8);
+        camera.position.z = Math.min(camera.position.z += 0.05, 11);
+        lens = Math.min(lens += 0.3, 29);
         composer.render();
     } else {
-        var delta = 10 - camera.position.z;
-        if (delta < 0) {
-            camera.position.z = Math.max(camera.position.z -= 0.1, 10);
-        } else {
+        var delta = 23 - lens;
+        if (delta > 0) {
             camera.position.z = Math.min(camera.position.z += 0.1, 10);
+            lens = Math.min(lens += 0.3, 23);
+        } else {
+            camera.position.z = Math.max(camera.position.z -= 0.05, 10);
+            lens = Math.max(lens -= 0.3, 23);
         }
     }
-
+    camera.setLens(lens);
 });
 // stone life cicle, rotation and moving
 onRenderFcts.push(function() {
@@ -100,7 +99,9 @@ onRenderFcts.push(function() {
         arr.splice(ind, 1);
         currentHelth = changeHelth(currentHelth, -19);
         // вызвать вспышку экрана
-        hit();
+        if (sphere.isInvulnerability === false) {
+            hit();
+        }
         // генерировать осколки
         generateFragments(scene, fragments, el.position.x, el.position.y, el.position.z);
     }
@@ -165,13 +166,14 @@ onRenderFcts.push(function() {
 // sphere moving
 onRenderFcts.push(function() {
     moveSphere(sphere, destPoint);
-    light.position.x = sphere.position.x
-    light.position.y = sphere.position.y;
+    sphereLightning.position.x = sphere.position.x
+    sphereLightning.position.y = sphere.position.y;
     sphereLight.position.x = sphere.position.x
     sphereLight.position.y = sphere.position.y;
+    // sphere.material.color = sphereLightning.color;
 });
 // bonuses lifecicle
-onRenderFcts.push(function(){
+onRenderFcts.push(function() {
     if (!bonuses.length) {
         x = genCoord();
         y = genCoord();
@@ -188,7 +190,6 @@ onRenderFcts.push(function(){
             if (el.type === 2) {
                 el.rotation.y += 0.05;
             }
-            // el.rotation.z += 0.05;
             el.position.z += 0.1 * speed.getValue();
             if (el.position.z > dieCoord) {
                 scene.remove(el);
@@ -200,6 +201,7 @@ onRenderFcts.push(function(){
             if (getDistance(
                 el.position.x, el.position.y, el.position.z,
                 sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
+                blink(0xffffff, 60);
                 scene.remove(el);
                 arr.splice(ind, 1);
                 catchBonus(el.type);
@@ -207,5 +209,3 @@ onRenderFcts.push(function(){
         });
     }
 });
-var arr1 = [];
-genBonus(scene, arr1, 1, 0, 0, listOfModels);

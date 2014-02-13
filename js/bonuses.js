@@ -1,6 +1,6 @@
 var genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
     var type = Math.round(Math.random() * 2);
-    // var type = 1;
+    // var type = 2;
     var geometry, material;
 
     geometry = listOfModels[type].geometry;
@@ -42,14 +42,13 @@ var catchBonus = function (type) {
                 var refreshBonus = setTimeout(function() {
                     caughtBonuses.length = 0;
                     clearTimeout(refreshBonus);
-                }, 3000);
+                }, 100);
             }
         } else {
             caughtBonuses.length = 0;
             caughtBonuses.push(type);
         }
         showBonuses(caughtBonuses);
-        console.log(caughtBonuses);
 };
 
 var showBonuses = function (arr) {
@@ -62,7 +61,7 @@ var showBonuses = function (arr) {
         });
     });
     if (n === 3) {
-        $(".bonus").fadeOut(3000, function(){
+        $(".bonus").fadeOut(300, function(){
             $(".bonus").text("").fadeIn(100);
         });
     }

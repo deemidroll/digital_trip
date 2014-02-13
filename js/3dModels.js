@@ -27,5 +27,3 @@ var listOfModels = [{
 listOfModels.map(function(el) {
     loadModel(el);
 });
-
-console.log(listOfModels);

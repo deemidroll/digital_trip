@@ -42,15 +42,49 @@ var changeHelth = function(currentHelth, delta) {
     return currentHelth;
 };
 
-var dontFeelPain = function (time) { 
+var invulnerTimeout;
+var dontFeelPain = function (time) {
+    clearTimeout(invulnerTimeout);
     sphere.isInvulnerability = true;
-    sphere.material = new THREE.MeshPhongMaterial({color: 0xff0000})
-    var invulner = setTimeout(function() {
+    scene.add(shield);
+    invulnerTimeout = setTimeout(function() {
         sphere.isInvulnerability = false;
-        sphere.material = new THREE.MeshPhongMaterial({color: 0xffffff});
-        clearTimeout(invulner);
+        scene.remove(shield);
+        clearTimeout(invulnerTimeout);
     }, time || 10000);
 };
+
+////////////////////////////////////////////
+// использовать очередь функций 
+var blink = function (color, frames) {
+    var defClr = {r: 1, g: 0, b: 0},
+        clr = new THREE.Color(color),
+        framesLeft = frames;
+        dr = (defClr.r - clr.r)/frames*0.5,
+        dg = (defClr.g - clr.g)/frames*0.5,
+        db = (defClr.b - clr.b)/frames*0.5,
+        r = sphereLightning.color.r,
+        g = sphereLightning.color.g,
+        b = sphereLightning.color.b;
+
+        onRenderFcts.push(function() {
+            if (framesLeft > frames/2) {
+                sphere.material.color.setRGB(r-=dr, g-=dg, b-=db);
+                sphereLightning.color.setRGB(r-=dr, g-=dg, b-=db);
+                sphereLight.color.setRGB(r-=dr, g-=dg, b-=db);
+            }
+            if (framesLeft < frames/2) {
+                sphere.material.color.setRGB(r+=dr, g+=dg, b+=db);
+                sphereLightning.color.setRGB(r+=dr, g+=dg, b+=db);
+                sphereLight.color.setRGB(r+=dr, g+=dg, b+=db);
+            }
+            if (framesLeft === 0) {
+                onRenderFcts.splice(onRenderFcts.length - 1, 1);
+            }
+            framesLeft -= 1;
+        });
+};
+////////////////////////////////////////////
 
 var changeScore = function(currentScore, delta) {
     currentScore += delta;
@@ -64,11 +98,11 @@ var changeScore = function(currentScore, delta) {
 var gameOver = function() {
     $(function(){
         $(".total_coins").text(currentScore);
-        $(".game_over").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 500);
+        $(".game_over").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 1000);
     });
     setTimeout(function() {
         cancelAnimationFrame(id);
-    }, 500);
+    }, 300);
     oneMoreTime();
 };
 
@@ -80,14 +114,14 @@ var oneMoreTime = function() {
 
 var hit = function() {
     $(function(){
-        $(".hit").fadeIn(500).fadeOut(500);
+        $(".hit").fadeIn(0).fadeOut(1000);
     });
 };
 
 var generateStone = function (scene, arr, spawnCoord) {
     var radius = Math.min(Math.random() + 1, 1.5);
     var geometry = new THREE.IcosahedronGeometry(radius, 0),
-        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
+        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: 0x999999}),
         stone = new THREE.Mesh( geometry, material );
         stone.position.x = Math.random() * 10 - 5;
         stone.position.y = Math.random() * 10 - 5;

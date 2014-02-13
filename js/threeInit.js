@@ -6,32 +6,51 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // camera
-camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 90);
+camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 150);
 camera.position.x = 0;
 camera.position.y = 1;
 camera.position.z = 10;
 
+camera.lens = 23;
+
+console.log(camera);
 // scene
 scene = new THREE.Scene();
 
 // declare the rendering loop
-var onRenderFcts= [];
+var onRenderFcts = [];
 
 // handle window resize events
 var winResize   = new THREEx.WindowResize(renderer, camera);
 
+// sphere
+var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
+sphere.overdraw = true;
+sphere.isInvulnerability = false;
+scene.add(sphere);
+
 // lightning 0xBE463C
-var sphereLight  = new THREE.PointLight(0xffffff, 0.25, 100);
-sphereLight.position.set(0, 0, 1);
+var light  = new THREE.PointLight(0xffffff, 0.75, 100);
+light.position.set(0, 0, -1);
+scene.add(light);
+
+var sphereLight = new THREE.PointLight(0xff0000, 1.75, 7.5);
+sphereLight.position.set(0, 0, 0);
 scene.add(sphereLight);
 
-var light = new THREE.PointLight(0xff0000, 1.5, 7.5);
-light.position.set(0, 0, 1);
-scene.add(light);
+var sphereLightning = new THREE.PointLight(0xff0000, 0.75, 7.5);
+sphereLightning.position.set(0, 0, 2);
+scene.add(sphereLightning);
 
 var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.25 );
 directionalLight.position.set(0, 0, 1);
 scene.add(directionalLight);
+
+// shield
+var shield = new THREE.Mesh(new THREE.CubeGeometry(1.3, 1.3, 1.3, 2, 2, 2), new THREE.MeshPhongMaterial({color: 0xffffff, transparent: true, opacity: 0.5}));
+shield.material.color = sphere.material.color;
+shield.position = sphere.position;
+// scene.add(shield);
 
 // change IcosahedronGeometry prototype
 THREE.IcosahedronGeometry = function ( radius, detail ) {

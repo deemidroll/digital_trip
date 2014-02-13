@@ -12,12 +12,18 @@ $(function() {
         if (k === 16) {
             speed.setChanger(1);
         }
+        if (k === 17) {
+            speed.setChanger(-1);
+        }
     });
 
     $(document).keyup(function() {
         var k = event.keyCode;
         // speedDown
         if (k === 16) {
+            speed.setChanger(0);
+        }
+        if (k === 17) {
             speed.setChanger(0);
         }
     });

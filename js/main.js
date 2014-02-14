@@ -7,7 +7,7 @@ var spawnCoord = -200,
     // blurCoord = 3,
     opacityCoord = 2,
     dieCoord = 7,
-    stonesCloseness = 20;
+    stonesCloseness = 18;
 
 // SPEED
 var speed = {
@@ -74,11 +74,12 @@ onRenderFcts.push(function() {
     }
     camera.setLens(lens);
 });
-// stone life cicle, rotation and moving
+// stones lifecicle, rotation and moving
 onRenderFcts.push(function() {
     stones.forEach(function(el, ind, arr){
     el.rotation.y += 0.007;
     el.rotation.x += 0.007;
+    // el.position.z *= 1.000001;
     el.position.z += 0.1 * speed.getValue();
     if (el.position.z > dieCoord) {
         scene.remove(el);
@@ -111,6 +112,7 @@ onRenderFcts.push(function() {
 onRenderFcts.push(function() {
     if (!stones.length) {
         generateStone(scene, stones, spawnCoord);
+        console.log(stones[0]);
     }
     var el = stones[stones.length -1];
     if (getDistance(0, 0, spawnCoord, el.position.x, el.position.y, el.position.z) > stonesCloseness) {
@@ -125,7 +127,7 @@ onRenderFcts.push(function() {
             // el.rotation.x += 0.05;
             el.position.x *= 1.1;
             el.position.y *= 1.1;
-            el.position.z += 0.1 * speed.getValue();
+            el.position.z += 0.001 * speed.getValue();
             if (el.position.z > dieCoord) {
                 scene.remove(el);
                 arr.splice(ind, 1);

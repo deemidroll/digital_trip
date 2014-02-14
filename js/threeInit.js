@@ -3,6 +3,7 @@ var renderer, scene, camera;
 // renderer
 renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.physicallyBasedShading = true;
 document.body.appendChild(renderer.domElement);
 
 // camera
@@ -11,9 +12,8 @@ camera.position.x = 0;
 camera.position.y = 1;
 camera.position.z = 10;
 
-camera.lens = 23;
+// camera.lens = 23;
 
-console.log(camera);
 // scene
 scene = new THREE.Scene();
 

@@ -9,7 +9,7 @@ var genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
     bonus = new THREE.Mesh( geometry, material );
     bonus.position.x = x;
     bonus.position.y = y;
-    bonus.position.z = Math.random() * 4 + spawnCoord;
+    bonus.position.z = spawnCoord * 2;
 
     bonus.scale.x = listOfModels[type].scale.x || 1;
     bonus.scale.y = listOfModels[type].scale.y || 1;

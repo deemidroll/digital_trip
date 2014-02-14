@@ -17,8 +17,8 @@
 {
 "DbgIndex" : 0,
 "DbgName"  : "Mat.11",
-"colorDiffuse"  : [0.4980, 0.4980, 0.4980],
-"colorAmbient"  : [0.0000, 0.0000, 0.0000],
+"colorDiffuse"  : [0.5000, 0.5000, 0.5000],
+"colorAmbient"  : [1.0000, 1.0000, 1.0000],
 "colorSpecular"  : [1.0000, 1.0000, 1.0000],
 "transparency"  : 1.0,
 "specularCoef"  : 63.0,

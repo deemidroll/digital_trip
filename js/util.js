@@ -119,12 +119,28 @@ var hit = function() {
 };
 
 var generateStone = function (scene, arr, spawnCoord) {
-    var radius = Math.min(Math.random() + 1, 1.5);
+    var radius, color, x, y,
+        part = Math.random();
+    if (part > 0.5) {
+        x = Math.random() * 10 - 5,
+        y = Math.random() * 10 - 5;
+    } else {
+        x = Math.random() * 30 - 15,
+        y = Math.random() * 30 - 15;
+    }
+        if (Math.abs(x) > 5 || Math.abs(y) > 5) {
+            radius = Math.random() + 1.5;
+            color = 0x555555;
+        } else {
+            radius = Math.min(Math.random() + 1, 1.5);
+            color = 0x999999;
+        }
+
     var geometry = new THREE.IcosahedronGeometry(radius, 0),
-        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: 0x999999}),
+        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: color}),
         stone = new THREE.Mesh( geometry, material );
-        stone.position.x = Math.random() * 10 - 5;
-        stone.position.y = Math.random() * 10 - 5;
+        stone.position.x = x;
+        stone.position.y = y;
         stone.position.z = Math.random() * 4 + spawnCoord;
         stone.rotation.x = Math.random();
         stone.rotation.y = Math.random();
@@ -133,14 +149,14 @@ var generateStone = function (scene, arr, spawnCoord) {
 };
 
 var generateFragments = function (scene, arr, x, y, z, numb) {
-    var geometry = new THREE.TetrahedronGeometry(0.2, 0),
+    var geometry = new THREE.IcosahedronGeometry(0.5, 0),
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
-        numb = numb || 1.5;
-    for (var i = 0; i < 10; i++) {
-    var fragment = new THREE.Mesh( geometry, material );
+        numb = numb || 2;
+    for (var i = 0; i < 5; i++) {
+        var fragment = new THREE.Mesh( geometry, material );
         fragment.position.x = x + Math.random() * numb - 0.5 * numb;
         fragment.position.y = y + Math.random() * numb - 0.5 * numb;
-        fragment.position.z = z + Math.random() * numb - 0.5 * numb;
+        // fragment.position.z = z + Math.random() * numb - 0.5 * numb;
         // fragment.position.z = z;
         fragment.rotation.x = Math.random();
         fragment.rotation.y = Math.random();
@@ -151,10 +167,8 @@ var generateFragments = function (scene, arr, x, y, z, numb) {
 
 var genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
     var geometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 32, 1),
-        // texture = THREE.ImageUtils.loadTexture("./img/avers.png"),
-        // material = new THREE.MeshLambertMaterial({map:texture}),
-        // texture or color
-        material = new THREE.MeshLambertMaterial({color: 0xffd700}),
+        material = new THREE.MeshPhongMaterial({color: 0xcfb53b, specular: 0xcfb53b, shininess: 1}),
+        // material = new THREE.MeshPhongMaterial({color: 0xffd700, emissive:0xffd700}),
         coin = new THREE.Mesh( geometry, material );
 
         coin.position.x = x;

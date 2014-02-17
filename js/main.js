@@ -183,6 +183,7 @@ onRenderFcts.push(function() {
     }
     if (bonuses.length) {
         bonuses.forEach(function(el, ind, arr) {
+            
             if (el.type === 0) {
                 el.rotation.z += 0.05;
             }
@@ -203,7 +204,7 @@ onRenderFcts.push(function() {
             if (getDistance(
                 el.position.x, el.position.y, el.position.z,
                 sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
-                blink.doBlink("green", 60);
+
                 scene.remove(el);
                 arr.splice(ind, 1);
                 catchBonus(el.type);
@@ -213,33 +214,18 @@ onRenderFcts.push(function() {
 });
 
 onRenderFcts.push(function() {
-            var r = sphere.material.color.r,
-                g = sphere.material.color.g,
-                b = sphere.material.color.b,
-                frames = 60,
-                dr = blink.dr,
-                dg = blink.dg,
-                db = blink.db;
-            if (blink.framesLeft === frames) {
+            if (blink.framesLeft === 0) {
+                return;
+            }
+            if (blink.framesLeft === blink.frames) {
                 sphereLight.color.r = sphere.material.color.r = blink.color.r;
                 sphereLight.color.g = sphere.material.color.g = blink.color.g;
                 sphereLight.color.b = sphere.material.color.b = blink.color.b;
-                // sphereLightning.color.setRGB(r-=dr * frames, g-=dg * frames, b-=db * frames);
-                // sphereLight.color.setRGB(r-=dr * frames, g-=dg * frames, b-=db * frames);
             }
-            if (blink.framesLeft < frames) {
-                sphereLight.color.r = sphere.material.color.r += dr;
-                sphereLight.color.g = sphere.material.color.g += dg;
-                sphereLight.color.b = sphere.material.color.b += db;
-                // sphere.material.color.setRGB(r+=dr, g+=dg, b+=db);
-                // sphereLightning.color.setRGB(r+=dr, g+=dg, b+=db);
-                // sphereLight.color.setRGB(r+=dr, g+=dg, b+=db);
-            }
-            if (blink.framesLeft === 0) {
-                // sphere.material.color.setRGB(1,0,0);
-                // sphereLightning.color.setRGB(1,0,0);
-                // sphereLight.color.setRGB(1,0,0);
-                return;
+            if (blink.framesLeft < blink.frames) {
+                sphereLight.color.r = sphere.material.color.r += blink.dr;
+                sphereLight.color.g = sphere.material.color.g += blink.dg;
+                sphereLight.color.b = sphere.material.color.b += blink.db;
             }
             blink.framesLeft -= 1;
         });

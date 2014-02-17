@@ -71,9 +71,9 @@ blink.doBlink = function (color, frames) {
         blink.color = new THREE.Color(color);
         blink.frames = frames;
         blink.framesLeft = frames;
-        blink.dr = (defClr.r - blink.color.r)/frames*0.5;
-        blink.dg = (defClr.g - blink.color.g)/frames*0.5;
-        blink.db = (defClr.b - blink.color.b)/frames*0.5;
+        blink.dr = (defClr.r - blink.color.r)/frames;
+        blink.dg = (defClr.g - blink.color.g)/frames;
+        blink.db = (defClr.b - blink.color.b)/frames;
 };
 ////////////////////////////////////////////
 

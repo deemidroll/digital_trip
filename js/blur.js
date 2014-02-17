@@ -10,3 +10,5 @@ composer.addPass( hblur );
 vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
 vblur.renderToScreen = true;
 composer.addPass( vblur );
+
+var winResize2   = new THREEx.WindowResize(composer, camera);

@@ -3,7 +3,7 @@
         .effectsStackBuilder()
             .spawnerSteadyRate(15)
             .position(Fireworks.createShapePoint(0, 0, 0))
-            .velocity(Fireworks.createShapePoint(0, 0, 5))
+            .velocity(Fireworks.createShapePoint(0, 0, 3))
             .lifeTime(0.3, 0.5)
             .randomVelocityDrift(Fireworks.createVector(10, 10, 10))
             .renderToThreejsParticleSystem({
@@ -16,13 +16,13 @@
                     // init colors
                     geometry.colors = new Array(emitter.nParticles())
                     for( var i = 0; i < emitter.nParticles(); i++ ){
-                        geometry.colors[i]  = sphere.material.color;
+                        geometry.colors[i]  = new THREE.Color();
                     }
                     
                     var texture = Fireworks.ProceduralTextures.buildTexture();
                     var material    = new THREE.ParticleBasicMaterial({
                         color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
-                        size        : 2.5,
+                        size        : 1.5,
                         sizeAttenuation : true,
                         vertexColors    : true,
                         map     : texture,
@@ -36,7 +36,7 @@
                     
                     scene.add(particleSystem);
                     particleSystem.position = sphere.position;
-                    // particleSystem.material.color = sphere.material.color;
+                    particleSystem.material.color = sphere.material.color;
                     return particleSystem;
                 }
             }).back()

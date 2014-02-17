@@ -21,6 +21,8 @@ var genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
 
     bonus.type = type;
 
+    console.log(bonus);
+
     arr.push(bonus);
     scene.add(bonus);
 };

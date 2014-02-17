@@ -183,7 +183,7 @@ onRenderFcts.push(function() {
     }
     if (bonuses.length) {
         bonuses.forEach(function(el, ind, arr) {
-            
+
             if (el.type === 0) {
                 el.rotation.z += 0.05;
             }
@@ -203,11 +203,19 @@ onRenderFcts.push(function() {
             }
             if (getDistance(
                 el.position.x, el.position.y, el.position.z,
-                sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
+                sphere.position.x, sphere.position.y, sphere.position.z) < 3.9) {
 
-                scene.remove(el);
-                arr.splice(ind, 1);
-                catchBonus(el.type);
+                if (getDistance(
+                    el.position.x, el.position.y, el.position.z,
+                    sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
+                    
+                    scene.remove(el);
+                    arr.splice(ind, 1);
+                    catchBonus(el.type);
+            }
+                el.scale.x *= 0.9;
+                el.scale.y *= 0.9;
+                el.scale.z *= 0.9;
             }
         });
     }

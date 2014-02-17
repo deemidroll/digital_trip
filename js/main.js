@@ -203,7 +203,12 @@ onRenderFcts.push(function() {
             }
             if (getDistance(
                 el.position.x, el.position.y, el.position.z,
-                sphere.position.x, sphere.position.y, sphere.position.z) < 3.9) {
+                sphere.position.x, sphere.position.y, sphere.position.z) < 1.0) {
+                
+                el.position.z -= 0.095 * speed.getValue();
+                el.scale.x *= 0.9;
+                el.scale.y *= 0.9;
+                el.scale.z *= 0.9;
 
                 if (getDistance(
                     el.position.x, el.position.y, el.position.z,
@@ -212,10 +217,7 @@ onRenderFcts.push(function() {
                     scene.remove(el);
                     arr.splice(ind, 1);
                     catchBonus(el.type);
-            }
-                el.scale.x *= 0.9;
-                el.scale.y *= 0.9;
-                el.scale.z *= 0.9;
+                }
             }
         });
     }

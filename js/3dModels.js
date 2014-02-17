@@ -19,15 +19,15 @@ var loadModel = function(modelObj) {
 
 var listOfModels = [{
     name: "bonusH",
-    scale: {x: 0.01, y: 0.01, z: 0.01},
+    scale: {x: 0.02, y: 0.02, z: 0.02},
     rotation: {x: Math.PI/1.3, y: -Math.PI/1.3, z: -Math.PI/1.3}
 }, {
     name: "bonusI",
-    scale: {x: 0.25, y: 0.25, z: 0.25},
+    scale: {x: 0.5, y: 0.5, z: 0.5},
     rotation: {x: Math.PI/1.3, y: -Math.PI/1.3, z: -Math.PI/1.3}
 }, {
     name: "bonusE",
-    scale: {x: 0.25, y: 0.25, z: 0.25},
+    scale: {x: 0.5, y: 0.5, z: 0.5},
     rotation: {x: 0, y: 0, z: 0}
 }]
 

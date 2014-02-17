@@ -6,6 +6,8 @@ var genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
     geometry = listOfModels[type].geometry;
     material = listOfModels[type].material;
 
+    // console.log(geometry);
+
     bonus = new THREE.Mesh( geometry, material );
     bonus.position.x = x;
     bonus.position.y = y;
@@ -25,7 +27,21 @@ var genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
 
     arr.push(bonus);
     scene.add(bonus);
+
+    // animate(bonus);
 };
+
+// function animate(el) {
+//     var materials = el.material.materials || el.material;
+ 
+//     for (var k in materials) {
+//         materials[k].skinning = true;
+//     }
+ 
+//     THREE.AnimationHandler.add(el.geometry.animation);
+//     animation = new THREE.Animation(el, "ArmatureAction", THREE.AnimationHandler.CATMULLROM);
+//     animation.play();
+// }
 
 var useBonuses = function (type) {
     // helth

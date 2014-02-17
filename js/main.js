@@ -205,6 +205,16 @@ onRenderFcts.push(function() {
                 el.position.x, el.position.y, el.position.z,
                 sphere.position.x, sphere.position.y, sphere.position.z) < 1.0) {
                 
+                if (el.type === 0) {
+                    el.rotation.x += 0.2;
+                }
+                if (el.type === 1) {
+                    el.rotation.y += 0.2;
+                }
+                if (el.type === 2) {
+                    el.rotation.z += 0.2;
+                }
+
                 el.position.z -= 0.095 * speed.getValue();
                 el.scale.x *= 0.9;
                 el.scale.y *= 0.9;

@@ -1,0 +1,93 @@
+body {
+    font-family: Helvetica sans-serif;
+    margin: 0px;
+    background-color: #000000;
+    overflow: hidden;
+    color: #eee;
+}
+
+.helthbar, .stngs, .score, .bonus{
+    position: absolute;
+    opacity: 0.5;
+}
+
+.hit, .game_over {
+    width: 100%;
+    height: 100%;
+    display: none;
+    position: absolute;
+}
+
+.hit {
+    /*display: block;*/
+    background-color: #BE463C;
+}
+
+.game_over {
+    /*display: table;*/
+    background-color: #444;
+    text-align: center;
+}
+
+.cont {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.error {
+    font-size: 2em;
+}
+
+.one_more_time {
+    margin: 10% 0 0 0;
+    display: inline-block;
+    border: 2px #eee solid;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.helthbar, .score, .bonus {
+    bottom: 30px;
+}
+
+.helthbar {
+    border: 1px #eee solid;
+    background-color: #000;
+    width: 30%;
+    height: 20px;
+    left: 35%;
+    padding: 1px;
+}
+
+.helth {
+    width: 100%;
+    height: 100%;
+    background-color: #BE463C;
+}
+
+.stngs {
+    width: 60px;
+    height: 30px;
+    right: 30px;
+    top: 30px;
+}
+
+.bonus {
+    height: 30px;
+    right: 30px;
+    font-size: 2em;
+}
+
+.score {
+    height: 30px;
+    left: 30px;
+    font-size: 2em;
+}
+
+#disp {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+}

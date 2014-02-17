@@ -56,24 +56,33 @@ var dontFeelPain = function (time) {
 
 ////////////////////////////////////////////
 // использовать очередь функций 
+var blink = function (color, frames) {
+    var defClr = {r: 1, g: 0, b: 0},
+        clr = new THREE.Color(color),
+        framesLeft = frames;
+        dr = (defClr.r - clr.r)/frames*0.5,
+        dg = (defClr.g - clr.g)/frames*0.5,
+        db = (defClr.b - clr.b)/frames*0.5,
+        r = sphereLightning.color.r,
+        g = sphereLightning.color.g,
+        b = sphereLightning.color.b;
 
-var blink = {
-    color: new THREE.Color(),
-    frames: 0,
-    framesLeft: 0,
-    dr: 0,
-    dg: 0,
-    db: 0
-};
-
-blink.doBlink = function (color, frames) {
-    var defClr = {r: 1, g: 0, b: 0};
-        blink.color = new THREE.Color(color);
-        blink.frames = frames;
-        blink.framesLeft = frames;
-        blink.dr = (defClr.r - blink.color.r)/frames*0.5;
-        blink.dg = (defClr.g - blink.color.g)/frames*0.5;
-        blink.db = (defClr.b - blink.color.b)/frames*0.5;
+        onRenderFcts.push(function() {
+            if (framesLeft > frames/2) {
+                sphere.material.color.setRGB(r-=dr, g-=dg, b-=db);
+                sphereLightning.color.setRGB(r-=dr, g-=dg, b-=db);
+                sphereLight.color.setRGB(r-=dr, g-=dg, b-=db);
+            }
+            if (framesLeft < frames/2) {
+                sphere.material.color.setRGB(r+=dr, g+=dg, b+=db);
+                sphereLightning.color.setRGB(r+=dr, g+=dg, b+=db);
+                sphereLight.color.setRGB(r+=dr, g+=dg, b+=db);
+            }
+            if (framesLeft === 0) {
+                onRenderFcts.splice(onRenderFcts.length - 1, 1);
+            }
+            framesLeft -= 1;
+        });
 };
 ////////////////////////////////////////////
 
@@ -110,28 +119,12 @@ var hit = function() {
 };
 
 var generateStone = function (scene, arr, spawnCoord) {
-    var radius, color, x, y,
-        part = Math.random();
-    if (part > 0.5) {
-        x = Math.random() * 10 - 5,
-        y = Math.random() * 10 - 5;
-    } else {
-        x = Math.random() * 30 - 15,
-        y = Math.random() * 30 - 15;
-    }
-        if (Math.abs(x) > 5 || Math.abs(y) > 5) {
-            radius = Math.random() + 1.5;
-            color = 0x555555;
-        } else {
-            radius = Math.min(Math.random() + 1, 1.5);
-            color = 0x999999;
-        }
-
+    var radius = Math.min(Math.random() + 1, 1.5);
     var geometry = new THREE.IcosahedronGeometry(radius, 0),
-        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: color}),
+        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: 0x999999}),
         stone = new THREE.Mesh( geometry, material );
-        stone.position.x = x;
-        stone.position.y = y;
+        stone.position.x = Math.random() * 10 - 5;
+        stone.position.y = Math.random() * 10 - 5;
         stone.position.z = Math.random() * 4 + spawnCoord;
         stone.rotation.x = Math.random();
         stone.rotation.y = Math.random();
@@ -140,14 +133,14 @@ var generateStone = function (scene, arr, spawnCoord) {
 };
 
 var generateFragments = function (scene, arr, x, y, z, numb) {
-    var geometry = new THREE.IcosahedronGeometry(0.5, 0),
+    var geometry = new THREE.TetrahedronGeometry(0.2, 0),
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
-        numb = numb || 2;
-    for (var i = 0; i < 5; i++) {
-        var fragment = new THREE.Mesh( geometry, material );
+        numb = numb || 1.5;
+    for (var i = 0; i < 10; i++) {
+    var fragment = new THREE.Mesh( geometry, material );
         fragment.position.x = x + Math.random() * numb - 0.5 * numb;
         fragment.position.y = y + Math.random() * numb - 0.5 * numb;
-        // fragment.position.z = z + Math.random() * numb - 0.5 * numb;
+        fragment.position.z = z + Math.random() * numb - 0.5 * numb;
         // fragment.position.z = z;
         fragment.rotation.x = Math.random();
         fragment.rotation.y = Math.random();
@@ -157,56 +150,21 @@ var generateFragments = function (scene, arr, x, y, z, numb) {
 };
 
 var genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
-    var r = 0.5,
-    coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.1, 32, 1, true ),
-    coin_cap_geo = new THREE.Geometry();
-    for ( var i=0; i<100; i++) {
-        var a = i * 1/100 * Math.PI * 2,
-            z = Math.sin(a),
-            xCosA = Math.cos(a),
-            a1 = (i+1) * 1/100 * Math.PI * 2,
-            z1 = Math.sin(a1),
-            x1 = Math.cos(a1);
-        coin_cap_geo.vertices.push(
-            new THREE.Vector3(0, 0, 0),
-            new THREE.Vector3(xCosA*r, 0, z*r),
-            new THREE.Vector3(x1*r, 0, z1*r)
-        );
-        coin_cap_geo.faceVertexUvs[0].push([
-            new THREE.Vector2(0.5, 0.5),
-            new THREE.Vector2(xCosA/2+0.5, z/2+0.5),
-            new THREE.Vector2(x1/2+0.5, z1/2+0.5)
-        ]);
-        coin_cap_geo.faces.push(new THREE.Face3(i*3, i*3+1, i*3+2));
-    }
-    coin_cap_geo.computeCentroids();
-    coin_cap_geo.computeFaceNormals();
+    var geometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 32, 1),
+        // texture = THREE.ImageUtils.loadTexture("./img/avers.png"),
+        // material = new THREE.MeshLambertMaterial({map:texture}),
+        // texture or color
+        material = new THREE.MeshPhongMaterial({color: 0xffd700, ambient: 0xffd700, specular: 0xffd700, shininess: 10}),
+        coin = new THREE.Mesh( geometry, material );
 
-    var coin_cap_texture = THREE.ImageUtils.loadTexture("./img/avers.png");
-
-    var coin_sides_mat = new THREE.MeshPhongMaterial({color: 0xcfb53b, specular: 0xcfb53b, shininess: 1});
-    var coin_sides = new THREE.Mesh( coin_sides_geo, coin_sides_mat );
-
-    var coin_cap_mat = new THREE.MeshPhongMaterial({color: 0xcfb53b, specular: 0xcfb53b, shininess: 1, map:coin_cap_texture});
-    var coin_cap_top = new THREE.Mesh( coin_cap_geo, coin_cap_mat );
-    var coin_cap_bottom = new THREE.Mesh( coin_cap_geo, coin_cap_mat );
-    coin_cap_top.position.y = 0.05;
-    coin_cap_bottom.position.y = -0.05;
-    coin_cap_top.rotation.x = Math.PI;
-
-    var coin = new THREE.Object3D();
-    coin.add(coin_sides);
-    coin.add(coin_cap_top);
-    coin.add(coin_cap_bottom);
-
-    coin.position.x = x;
-    coin.position.y = y;
-    coin.position.z = Math.random() * 4 + spawnCoord;;
-    coin.rotation.x = 1.5;
-    coin.rotation.y = 0;
-    coin.rotation.z = zAngle;
-    arr.push(coin);
-    scene.add(coin);
+        coin.position.x = x;
+        coin.position.y = y;
+        coin.position.z = Math.random() * 4 + spawnCoord;;
+        coin.rotation.x = 1.5;
+        coin.rotation.y = 0;
+        coin.rotation.z = zAngle;
+        arr.push(coin);
+        scene.add(coin);
 };
 
 var changeDestPoint = function(dy, dx, destPoint) {

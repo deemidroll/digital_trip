@@ -1,32 +1,43 @@
-var geometry = new THREE.Geometry();
-
-for ( i = 0; i < 200; i ++ ) {
-
-    var vertex = new THREE.Vector3();
-    // vertex.x = Math.random() * 2000 - 1000;
-    // vertex.y = Math.random() * 2000 - 1000;
-    // vertex.z = Math.random() * 2000 - 1000;
-    vertex.x = Math.random() - 0.5;
-    var sign = Math.random() - 0.5;
-    vertex.y = Math.sqrt(0.25 - vertex.x * vertex.x) * sign / Math.abs(sign);
-    vertex.z = Math.random();
-    // vertex.z = 0;
-    geometry.vertices.push( vertex );
-
-}
-    var material = new THREE.ParticleSystemMaterial( { size: 0.1 , color: 0xcfb53b} );
-    var particles = new THREE.ParticleSystem( geometry, material );
-
-    particles.rotation.x = 0.5;
-    particles.rotation.y = 0;
-    particles.rotation.z = 0;
-
-    // scene.add( particles );
-
-
-
-onRenderFcts.push(function(){
-    // particles.position.x-=0.01;
-    // particles.position.y-=0.01;
-    particles.position.z += (Math.random()-0.5)*0.1;
-});
+// create the emitter
+    var emitter = Fireworks.createEmitter({nParticles : 100})
+        .effectsStackBuilder()
+            .spawnerSteadyRate(15)
+            .position(Fireworks.createShapePoint(0, 0, 0))
+            .velocity(Fireworks.createShapePoint(0, 0, 5))
+            .lifeTime(0.3, 0.5)
+            .randomVelocityDrift(Fireworks.createVector(10, 10, 10))
+            .renderToThreejsParticleSystem({
+                particleSystem  : function(emitter){
+                    var geometry    = new THREE.Geometry();
+                    // init vertices
+                    for( var i = 0; i < emitter.nParticles(); i++ ){
+                        geometry.vertices.push( new THREE.Vector3() );
+                    }
+                    // init colors
+                    geometry.colors = new Array(emitter.nParticles())
+                    for( var i = 0; i < emitter.nParticles(); i++ ){
+                        geometry.colors[i]  = sphere.material.color;
+                    }
+                    
+                    var texture = Fireworks.ProceduralTextures.buildTexture();
+                    var material    = new THREE.ParticleBasicMaterial({
+                        color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
+                        size        : 2.5,
+                        sizeAttenuation : true,
+                        vertexColors    : true,
+                        map     : texture,
+                        blending    : THREE.AdditiveBlending,
+                        depthWrite  : false,
+                        transparent : true
+                    });
+                    var particleSystem      = new THREE.ParticleSystem(geometry, material);
+                    particleSystem.dynamic      = true;
+                    particleSystem.sortParticles    = true;
+                    
+                    scene.add(particleSystem);
+                    particleSystem.position = sphere.position;
+                    // particleSystem.material.color = sphere.material.color;
+                    return particleSystem;
+                }
+            }).back()
+        .start();

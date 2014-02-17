@@ -12,8 +12,9 @@ camera.position.x = 0;
 camera.position.y = 1;
 camera.position.z = 10;
 
-// camera.lens = 23;
+camera.lens = 23;
 
+console.log(camera);
 // scene
 scene = new THREE.Scene();
 
@@ -24,10 +25,10 @@ var onRenderFcts = [];
 var winResize   = new THREEx.WindowResize(renderer, camera);
 
 // sphere
-var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
+var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
 sphere.overdraw = true;
 sphere.isInvulnerability = false;
-// scene.add(sphere);
+scene.add(sphere);
 
 // lightning 0xBE463C
 var light  = new THREE.PointLight(0xffffff, 0.75, 100);

@@ -7,7 +7,7 @@ var spawnCoord = -200,
     // blurCoord = 3,
     opacityCoord = 2,
     dieCoord = 7,
-    stonesCloseness = 18;
+    stonesCloseness = 20;
 
 // SPEED
 var speed = {
@@ -48,9 +48,8 @@ var destPoint = {x: 0, y: 0};
 //////////////////////////////////////////////
 
 // render the scene
-onRenderFcts.push(function(delta, now) {
+onRenderFcts.push(function() {
     renderer.render(scene, camera);
-    emitter.update(delta).render();
 });
 var lens = 23;
 onRenderFcts.push(function() {
@@ -75,7 +74,7 @@ onRenderFcts.push(function() {
     }
     camera.setLens(lens);
 });
-// stones lifecicle, rotation and moving
+// stone life cicle, rotation and moving
 onRenderFcts.push(function() {
     stones.forEach(function(el, ind, arr){
     el.rotation.y += 0.007;
@@ -126,7 +125,7 @@ onRenderFcts.push(function() {
             // el.rotation.x += 0.05;
             el.position.x *= 1.1;
             el.position.y *= 1.1;
-            el.position.z += 0.001 * speed.getValue();
+            el.position.z += 0.1 * speed.getValue();
             if (el.position.z > dieCoord) {
                 scene.remove(el);
                 arr.splice(ind, 1);
@@ -157,7 +156,6 @@ onRenderFcts.push(function() {
             if (getDistance(
                 el.position.x, el.position.y, el.position.z,
                 sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
-                blink.doBlink(0xcfb53b, 60);
                 scene.remove(el);
                 arr.splice(ind, 1);
                 currentScore = changeScore(currentScore, 1);
@@ -203,7 +201,7 @@ onRenderFcts.push(function() {
             if (getDistance(
                 el.position.x, el.position.y, el.position.z,
                 sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
-                blink.doBlink("green", 60);
+                blink(0xffffff, 60);
                 scene.remove(el);
                 arr.splice(ind, 1);
                 catchBonus(el.type);
@@ -211,35 +209,3 @@ onRenderFcts.push(function() {
         });
     }
 });
-
-onRenderFcts.push(function() {
-            var r = sphere.material.color.r,
-                g = sphere.material.color.g,
-                b = sphere.material.color.b,
-                frames = 60,
-                dr = blink.dr,
-                dg = blink.dg,
-                db = blink.db;
-            if (blink.framesLeft === frames) {
-                sphereLight.color.r = sphere.material.color.r = blink.color.r;
-                sphereLight.color.g = sphere.material.color.g = blink.color.g;
-                sphereLight.color.b = sphere.material.color.b = blink.color.b;
-                // sphereLightning.color.setRGB(r-=dr * frames, g-=dg * frames, b-=db * frames);
-                // sphereLight.color.setRGB(r-=dr * frames, g-=dg * frames, b-=db * frames);
-            }
-            if (blink.framesLeft < frames) {
-                sphereLight.color.r = sphere.material.color.r += dr;
-                sphereLight.color.g = sphere.material.color.g += dg;
-                sphereLight.color.b = sphere.material.color.b += db;
-                // sphere.material.color.setRGB(r+=dr, g+=dg, b+=db);
-                // sphereLightning.color.setRGB(r+=dr, g+=dg, b+=db);
-                // sphereLight.color.setRGB(r+=dr, g+=dg, b+=db);
-            }
-            if (blink.framesLeft === 0) {
-                // sphere.material.color.setRGB(1,0,0);
-                // sphereLightning.color.setRGB(1,0,0);
-                // sphereLight.color.setRGB(1,0,0);
-                return;
-            }
-            blink.framesLeft -= 1;
-        });

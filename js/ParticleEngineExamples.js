@@ -23,6 +23,6 @@ Examples = {
 
 		particlesPerSecond : 100,
 		particleDeathAge   : 4.0,		
-		emitterDeathAge    : 60
+		emitterDeathAge    : 5
 	}
 }

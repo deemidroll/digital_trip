@@ -243,3 +243,11 @@ var makeFun = function(time) {
         clearTimeout(invulner);
     }, time || 10000);
 };
+
+var genRandomFloorBetween = function (min, max) {
+    var rand = min - 0.5 + Math.random()*(max-min+1);
+    rand = Math.round(rand);
+    return rand;
+};
+
+console.log(genRandomFloorBetween(500, 512));

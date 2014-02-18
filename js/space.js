@@ -8,7 +8,3 @@ onRenderFcts.push(function() {
     var dt = clock.getDelta();
     engine.update( dt * 0.5 );
 });
-
-console.log(engine);
-
-

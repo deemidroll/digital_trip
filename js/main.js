@@ -51,6 +51,7 @@ var destPoint = {x: 0, y: 0};
 onRenderFcts.push(function(delta, now) {
     renderer.render(scene, camera);
     emitter.update(delta).render();
+    stats.update();
 });
 var lens = 23;
 onRenderFcts.push(function() {
@@ -234,18 +235,18 @@ onRenderFcts.push(function() {
 });
 
 onRenderFcts.push(function() {
-            if (blink.framesLeft === 0) {
-                return;
-            }
-            if (blink.framesLeft === blink.frames) {
-                sphereLight.color.r = sphere.material.color.r = blink.color.r;
-                sphereLight.color.g = sphere.material.color.g = blink.color.g;
-                sphereLight.color.b = sphere.material.color.b = blink.color.b;
-            }
-            if (blink.framesLeft < blink.frames) {
-                sphereLight.color.r = sphere.material.color.r += blink.dr;
-                sphereLight.color.g = sphere.material.color.g += blink.dg;
-                sphereLight.color.b = sphere.material.color.b += blink.db;
-            }
-            blink.framesLeft -= 1;
-        });
+    if (blink.framesLeft === 0) {
+        return;
+    }
+    if (blink.framesLeft === blink.frames) {
+        sphereLight.color.r = sphere.material.color.r = blink.color.r;
+        sphereLight.color.g = sphere.material.color.g = blink.color.g;
+        sphereLight.color.b = sphere.material.color.b = blink.color.b;
+    }
+    if (blink.framesLeft < blink.frames) {
+        sphereLight.color.r = sphere.material.color.r += blink.dr;
+        sphereLight.color.g = sphere.material.color.g += blink.dg;
+        sphereLight.color.b = sphere.material.color.b += blink.db;
+    }
+    blink.framesLeft -= 1;
+});

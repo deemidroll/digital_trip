@@ -1,0 +1,1 @@
+// var sparksEmitter = new SPARKS.Emitter(new SPARKS.SteadyCounter(160));

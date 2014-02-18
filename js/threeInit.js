@@ -1,4 +1,4 @@
-var renderer, scene, camera;
+var renderer, scene, camera, stast;
 
 // renderer
 renderer = new THREE.WebGLRenderer();
@@ -16,6 +16,14 @@ camera.position.z = 10;
 
 // scene
 scene = new THREE.Scene();
+
+// STATS
+    stats = new Stats();
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.top = '0px';
+    stats.domElement.style.zIndex = 100;
+var body = document.getElementsByTagName("body")[0];
+    body.appendChild( stats.domElement );
 
 // declare the rendering loop
 var onRenderFcts = [];

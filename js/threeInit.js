@@ -1,4 +1,4 @@
-var renderer, scene, camera, stast;
+var renderer, scene, camera;
 
 // renderer
 renderer = new THREE.WebGLRenderer();
@@ -7,7 +7,7 @@ renderer.physicallyBasedShading = true;
 document.body.appendChild(renderer.domElement);
 
 // camera
-camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 150);
+camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 500);
 camera.position.x = 0;
 camera.position.y = 1;
 camera.position.z = 10;
@@ -18,7 +18,7 @@ camera.position.z = 10;
 scene = new THREE.Scene();
 
 // STATS
-    stats = new Stats();
+var stats = new Stats();
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '0px';
     stats.domElement.style.zIndex = 100;

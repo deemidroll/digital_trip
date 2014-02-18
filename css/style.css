@@ -19,8 +19,10 @@ body {
 }
 
 .hit {
-    /*display: block;*/
+    /*display: table;*/
     background-color: #BE463C;
+    text-align: center;
+    font-size: 5em;
 }
 
 .game_over {

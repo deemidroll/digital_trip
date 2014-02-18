@@ -105,7 +105,10 @@ var oneMoreTime = function() {
 
 var hit = function() {
     $(function(){
-        $(".hit").fadeIn(0).fadeOut(1000);
+        $(".error").html(genRandomFloorBetween(500, 511));
+        $(".hit").css({"display": "table"}).fadeOut(1000, function() {
+            $(".error").html("");
+        });
     });
 };
 
@@ -249,5 +252,3 @@ var genRandomFloorBetween = function (min, max) {
     rand = Math.round(rand);
     return rand;
 };
-
-console.log(genRandomFloorBetween(500, 512));

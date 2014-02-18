@@ -11,24 +11,48 @@ body {
     opacity: 0.5;
 }
 
-.hit, .game_over {
+.hit, .game_over, .menu_page, .loader, .choose_control{
     width: 100%;
     height: 100%;
     display: none;
     position: absolute;
+    text-align: center;
 }
 
 .hit {
     /*display: table;*/
     background-color: #BE463C;
-    text-align: center;
-    font-size: 5em;
 }
 
 .game_over {
     /*display: table;*/
     background-color: #444;
-    text-align: center;
+}
+
+.menu_page {
+    /*display: table;*/
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1;
+}
+
+.menu {
+    display: inline-block;
+    width: 300px;
+    height: 350px;
+    border: 1px #ffffff solid;
+    background-color: #363636;
+}
+
+.menu hr {
+     /*color: #595959;*/
+     /*background: #595959;*/
+     width: 75%;
+     /*height: 1px;*/
+}
+
+.menu span {
+    margin-bottom: 0;
+    font-size: 1.25em;
 }
 
 .cont {
@@ -37,7 +61,7 @@ body {
 }
 
 .error {
-    font-size: 2em;
+    font-size: 5em;
 }
 
 .one_more_time {
@@ -69,10 +93,20 @@ body {
 }
 
 .stngs {
-    width: 60px;
-    height: 30px;
     right: 30px;
     top: 30px;
+}
+
+.stngs div {
+    width: 40px;
+    height: 40px;
+    border: 1px #ffffff solid;
+    display: inline-block;
+    float: left;
+    margin-left: 5px;
+    font-size: 32px;
+    text-align: center;
+    cursor: pointer;
 }
 
 .bonus {

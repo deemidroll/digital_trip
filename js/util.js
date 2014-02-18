@@ -106,7 +106,7 @@ var oneMoreTime = function() {
 var hit = function() {
     $(function(){
         $(".error").html(genRandomFloorBetween(500, 511));
-        $(".hit").css({"display": "table"}).fadeOut(1000, function() {
+        $(".hit").css({"display": "table"}).fadeOut(500, function() {
             $(".error").html("");
         });
     });
@@ -187,10 +187,10 @@ var genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
 
     var coin_cap_texture = THREE.ImageUtils.loadTexture("./img/avers.png");
 
-    var coin_sides_mat = new THREE.MeshPhongMaterial({color: 0xcfb53b, specular: 0xcfb53b, shininess: 1});
+    var coin_sides_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b});
     var coin_sides = new THREE.Mesh( coin_sides_geo, coin_sides_mat );
 
-    var coin_cap_mat = new THREE.MeshPhongMaterial({color: 0xcfb53b, specular: 0xcfb53b, shininess: 1, map:coin_cap_texture});
+    var coin_cap_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b, map: coin_cap_texture});
     var coin_cap_top = new THREE.Mesh( coin_cap_geo, coin_cap_mat );
     var coin_cap_bottom = new THREE.Mesh( coin_cap_geo, coin_cap_mat );
     coin_cap_top.position.y = 0.05;

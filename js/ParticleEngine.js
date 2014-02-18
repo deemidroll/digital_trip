@@ -274,8 +274,10 @@ ParticleEngine.prototype.setValues = function( parameters )
 		},
 		vertexShader:   particleVertexShader,
 		fragmentShader: particleFragmentShader,
-		transparent: true,  alphaTest: 0.5, // if having transparency issues, try including: alphaTest: 0.5, 
-		blending: THREE.NormalBlending, depthTest: true
+		transparent: true,  
+		// alphaTest: 0.5, // if having transparency issues, try including: alphaTest: 0.5, 
+		blending: THREE.NormalBlending, 
+		depthTest: true
 	});
 	this.particleMesh = new THREE.ParticleSystem();
 }
@@ -386,6 +388,20 @@ ParticleEngine.prototype.update = function(dt)
 			this.particleMaterial.attributes.customOpacity.value[i] = this.particleArray[i].opacity;
 			this.particleMaterial.attributes.customSize.value[i]    = this.particleArray[i].size;
 			this.particleMaterial.attributes.customAngle.value[i]   = this.particleArray[i].angle;
+			// check if particle sould change color
+			var dist = getDistance(
+				this.particleArray[i].position.x,
+				this.particleArray[i].position.y,
+				this.particleArray[i].position.z,
+				sphere.position.x,
+				sphere.position.y,
+				sphere.position.z)
+			if (dist < 3) {
+				// update particle color
+				this.particleArray[i].color.r = sphere.material.color.r * 1/dist;
+				this.particleArray[i].color.g = sphere.material.color.g * 1/dist;
+				this.particleArray[i].color.b = sphere.material.color.b * 1/dist;
+			}
 		}		
 	}
 

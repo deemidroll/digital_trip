@@ -42,13 +42,13 @@ var light  = new THREE.PointLight(0xffffff, 0.75, 100);
 light.position.set(0, 0, -1);
 scene.add(light);
 
-var sphereLight = new THREE.PointLight(0xff0000, 1.75, 7.5);
+var sphereLight = new THREE.PointLight(0xff0000, 1.75, 15);
 sphereLight.position.set(0, 0, 0);
 scene.add(sphereLight);
 
 var sphereLightning = new THREE.PointLight(0xff0000, 0.75, 7.5);
 sphereLightning.position.set(0, 0, 2);
-scene.add(sphereLightning);
+// scene.add(sphereLightning);
 
 var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.25 );
 directionalLight.position.set(0, 0, 1);

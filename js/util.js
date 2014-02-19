@@ -143,10 +143,11 @@ var generateStone = function (scene, arr, spawnCoord) {
 };
 
 var generateFragments = function (scene, arr, x, y, z, numb) {
-    var geometry = new THREE.IcosahedronGeometry(0.5, 0),
+    var geometry, 
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
         numb = numb || 2;
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 20; i++) {
+        geometry = new THREE.IcosahedronGeometry(genRandomBetween(0.1, 1), 0);
         var fragment = new THREE.Mesh( geometry, material );
         fragment.position.x = x + Math.random() * numb - 0.5 * numb;
         fragment.position.y = y + Math.random() * numb - 0.5 * numb;

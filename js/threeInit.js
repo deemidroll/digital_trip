@@ -63,28 +63,6 @@ shield.position = sphere.position;
 
 // SOUNDS
 var globalVolume = 1;
-// var Sound = function ( sources, radius, volume, position ) {
-//     var audio = document.createElement( 'audio' );
-
-//     for ( var i = 0; i < sources.length; i ++ ) {
-//         var source = document.createElement( 'source' );
-//         source.src = sources[ i ];
-//         audio.appendChild( source );
-//     }
-
-//     this.position = position || sphere.position;
-//     this.play = function () {
-//         audio.play();
-//     };
-//     this.update = function ( camera ) {
-//         var distance = this.position.distanceTo( sphere.position );
-//         if ( distance <= radius ) {
-//             audio.volume = volume * globalVolume * ( 1 - distance / radius );
-//         } else {
-//             audio.volume = 0;
-//         }
-//     };
-// };
 
 var webaudio = new WebAudio();
 
@@ -107,6 +85,10 @@ var soundStoneDestroy = webaudio.createSound().load('sounds/stoneDestroy.wav', f
 var soundStoneMiss = webaudio.createSound().load('sounds/stoneMiss.wav', function(sosoundCoinund){
     // soundStoneMiss.loop(true).play();
 });
+// var sound = webaudio.createSound().load('sounds/theField_overTheIce.mp3', function(sosoundCoinund){
+//     // sound.loop(true).play();
+// });
+
 
 
 // change IcosahedronGeometry prototype

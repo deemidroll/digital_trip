@@ -106,7 +106,7 @@ onRenderFcts.push(function() {
         // генерировать осколки
         generateFragments(scene, fragments, el.position.x, el.position.y, el.position.z);
     }
-    if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - sphere.position.z > 0.5) {
+    if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - sphere.position.z > 1) {
         var soundStoneMiss = new Sound( [ 'sounds/stoneMiss.wav'], distanceBerweenCenters * 2, 0.5 );
         soundStoneMiss.position = el.position;
         soundStoneMiss.update();

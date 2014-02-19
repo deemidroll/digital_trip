@@ -1,14 +1,12 @@
 $(function(){
     $(".menu_button").click(function() {
         $(".menu_page").css({"display": "table"});
-        var soundPause = new Sound( [ 'sounds/pause.wav'], 1, 1);
         soundPause.update();
         soundPause.play();
         cancelAnimationFrame(id);
     });
     $(".menu_page").click(function() {
         $(".menu_page").css({"display": "none"});
-        var soundPause = new Sound( [ 'sounds/pause.wav'], 1, 1 );
         soundPause.update();
         soundPause.play();
         requestAnimationFrame(function animate(nowMsec) {

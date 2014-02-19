@@ -92,7 +92,6 @@ onRenderFcts.push(function() {
         radiusesSum = sphere.geometry.radius + el.geometry.radius;
         
     if (distanceBerweenCenters < radiusesSum) {
-        var soundStoneDestroy = new Sound( [ 'sounds/stoneDestroy.wav'], 1, 1 );
         soundStoneDestroy.update();
         soundStoneDestroy.play();
         // bump(0.2);
@@ -107,8 +106,6 @@ onRenderFcts.push(function() {
         generateFragments(scene, fragments, el.position.x, el.position.y, el.position.z);
     }
     if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - sphere.position.z > 1) {
-        var soundStoneMiss = new Sound( [ 'sounds/stoneMiss.wav'], distanceBerweenCenters * 2, 0.5 );
-        soundStoneMiss.position = el.position;
         soundStoneMiss.update();
         soundStoneMiss.play();
     }
@@ -165,7 +162,6 @@ onRenderFcts.push(function() {
             }
             var distanceBerweenCenters = el.position.distanceTo(sphere.position);
             if (distanceBerweenCenters < 0.9) {
-                var soundCoin = new Sound( [ 'sounds/coin.wav'], 1, 1);
                 soundCoin.update();
                 soundCoin.play();
                 blink.doBlink(0xcfb53b, 60);

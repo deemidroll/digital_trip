@@ -63,28 +63,51 @@ shield.position = sphere.position;
 
 // SOUNDS
 var globalVolume = 1;
-var Sound = function ( sources, radius, volume, position ) {
-    var audio = document.createElement( 'audio' );
+// var Sound = function ( sources, radius, volume, position ) {
+//     var audio = document.createElement( 'audio' );
 
-    for ( var i = 0; i < sources.length; i ++ ) {
-        var source = document.createElement( 'source' );
-        source.src = sources[ i ];
-        audio.appendChild( source );
-    }
+//     for ( var i = 0; i < sources.length; i ++ ) {
+//         var source = document.createElement( 'source' );
+//         source.src = sources[ i ];
+//         audio.appendChild( source );
+//     }
 
-    this.position = position || sphere.position
-    this.play = function () {
-        audio.play();
-    };
-    this.update = function ( camera ) {
-        var distance = this.position.distanceTo( sphere.position );
-        if ( distance <= radius ) {
-            audio.volume = volume * globalVolume * ( 1 - distance / radius );
-        } else {
-            audio.volume = 0;
-        }
-    };
+//     this.position = position || sphere.position;
+//     this.play = function () {
+//         audio.play();
+//     };
+//     this.update = function ( camera ) {
+//         var distance = this.position.distanceTo( sphere.position );
+//         if ( distance <= radius ) {
+//             audio.volume = volume * globalVolume * ( 1 - distance / radius );
+//         } else {
+//             audio.volume = 0;
+//         }
+//     };
+// };
+
+var webaudio = new WebAudio();
+
+WebAudio.Sound.prototype.update = function() {
+    this.volume(globalVolume);
 };
+
+var soundCoin = webaudio.createSound().load('sounds/coin.wav', function(sosoundCoinund){
+    // soundCoin.loop(true).play();
+});
+var soundGameover = webaudio.createSound().load('sounds/gameover.wav', function(sosoundCoinund){
+    // soundGameover.loop(true).play();
+});
+var soundPause = webaudio.createSound().load('sounds/pause.wav', function(sosoundCoinund){
+    // soundPause.loop(true).play();
+});
+var soundStoneDestroy = webaudio.createSound().load('sounds/stoneDestroy.wav', function(sosoundCoinund){
+    // soundStoneDestroy.loop(true).play();
+});
+var soundStoneMiss = webaudio.createSound().load('sounds/stoneMiss.wav', function(sosoundCoinund){
+    // soundStoneMiss.loop(true).play();
+});
+
 
 // change IcosahedronGeometry prototype
 THREE.IcosahedronGeometry = function ( radius, detail ) {

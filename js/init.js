@@ -1,11 +1,16 @@
 $(function(){
     $(".menu_button").click(function() {
         $(".menu_page").css({"display": "table"});
+        var soundPause = new Sound( [ 'sounds/pause.wav'], 1, 1);
+        soundPause.update();
+        soundPause.play();
         cancelAnimationFrame(id);
     });
     $(".menu_page").click(function() {
         $(".menu_page").css({"display": "none"});
-
+        var soundPause = new Sound( [ 'sounds/pause.wav'], 1, 1 );
+        soundPause.update();
+        soundPause.play();
         requestAnimationFrame(function animate(nowMsec) {
             // keep looping
             id = requestAnimationFrame(animate);
@@ -18,5 +23,14 @@ $(function(){
                 onRenderFct(deltaMsec/1000, nowMsec/1000);
             });
         });
+    });
+    $(".music_button").click(function() {
+        if (globalVolume) {
+            globalVolume = 0;
+            $(".music_button").html("N");
+        } else {
+            globalVolume = 1;
+            $(".music_button").html("M");
+        }
     });
 });

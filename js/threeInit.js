@@ -32,7 +32,7 @@ var onRenderFcts = [];
 var winResize   = new THREEx.WindowResize(renderer, camera);
 
 // sphere
-var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
+var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
 sphere.overdraw = true;
 // sphere.position.set(0, 0, 0);
 sphere.isInvulnerability = false;
@@ -60,6 +60,31 @@ var shield = new THREE.Mesh(new THREE.CubeGeometry(1.3, 1.3, 1.3, 2, 2, 2), new 
 shield.material.color = sphere.material.color;
 shield.position = sphere.position;
 // scene.add(shield);
+
+// SOUNDS
+var globalVolume = 1;
+var Sound = function ( sources, radius, volume, position ) {
+    var audio = document.createElement( 'audio' );
+
+    for ( var i = 0; i < sources.length; i ++ ) {
+        var source = document.createElement( 'source' );
+        source.src = sources[ i ];
+        audio.appendChild( source );
+    }
+
+    this.position = position || sphere.position
+    this.play = function () {
+        audio.play();
+    };
+    this.update = function ( camera ) {
+        var distance = this.position.distanceTo( sphere.position );
+        if ( distance <= radius ) {
+            audio.volume = volume * globalVolume * ( 1 - distance / radius );
+        } else {
+            audio.volume = 0;
+        }
+    };
+};
 
 // change IcosahedronGeometry prototype
 THREE.IcosahedronGeometry = function ( radius, detail ) {

@@ -22,7 +22,7 @@ var emitter = Fireworks.createEmitter({nParticles : 100})
                 var texture = Fireworks.ProceduralTextures.buildTexture();
                 var material    = new THREE.ParticleBasicMaterial({
                     color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
-                    size        : 1.5,
+                    size        : 3,
                     sizeAttenuation : true,
                     vertexColors    : true,
                     map     : texture,

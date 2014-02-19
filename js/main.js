@@ -88,15 +88,13 @@ onRenderFcts.push(function() {
     if (el.position.z > opacityCoord) {
         el.material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, transparent: true, opacity: 0.75});
     }
-    var distanceBerweenCenters = getDistance(el.position.x,
-        el.position.y,
-        el.position.z,
-        sphere.position.x,
-        sphere.position.y,
-        sphere.position.z),
+    var distanceBerweenCenters = el.position.distanceTo(sphere.position);
         radiusesSum = sphere.geometry.radius + el.geometry.radius;
-                
+        
     if (distanceBerweenCenters < radiusesSum) {
+        var soundStoneDestroy = new Sound( [ 'sounds/stoneDestroy.wav'], 1, 1 );
+        soundStoneDestroy.update();
+        soundStoneDestroy.play();
         // bump(0.2);
         scene.remove(el);
         arr.splice(ind, 1);
@@ -107,6 +105,12 @@ onRenderFcts.push(function() {
         }
         // генерировать осколки
         generateFragments(scene, fragments, el.position.x, el.position.y, el.position.z);
+    }
+    if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - sphere.position.z > 0.5) {
+        var soundStoneMiss = new Sound( [ 'sounds/stoneMiss.wav'], distanceBerweenCenters * 2, 0.5 );
+        soundStoneMiss.position = el.position;
+        soundStoneMiss.update();
+        soundStoneMiss.play();
     }
     });
 });
@@ -142,7 +146,7 @@ onRenderFcts.push(function() {
         x = genCoord();
         y = genCoord();
         for (var i = 0; i < 10; i++) {
-            genCoins(scene, coins, spawnCoord - i * 5, x, y, i * 0.25);
+            genCoins(scene, coins, spawnCoord - i * 10, x, y, i * 0.25);
         }
     }
     if (coins.length) {
@@ -159,9 +163,11 @@ onRenderFcts.push(function() {
                     el.material.opacity = 0.5;
                 });
             }
-            if (getDistance(
-                el.position.x, el.position.y, el.position.z,
-                sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
+            var distanceBerweenCenters = el.position.distanceTo(sphere.position);
+            if (distanceBerweenCenters < 0.9) {
+                var soundCoin = new Sound( [ 'sounds/coin.wav'], 1, 1);
+                soundCoin.update();
+                soundCoin.play();
                 blink.doBlink(0xcfb53b, 60);
                 bump();
                 scene.remove(el);

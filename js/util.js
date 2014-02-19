@@ -87,6 +87,9 @@ var changeScore = function(currentScore, delta) {
 };
 
 var gameOver = function() {
+    var soundGameover = new Sound( [ 'sounds/gameover.wav'], 1, 1 );
+    soundGameover.update();
+    soundGameover.play();
     $(function(){
         $(".total_coins").text(currentScore);
         $(".game_over").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 1000);

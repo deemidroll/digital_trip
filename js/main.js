@@ -97,6 +97,7 @@ onRenderFcts.push(function() {
         radiusesSum = sphere.geometry.radius + el.geometry.radius;
                 
     if (distanceBerweenCenters < radiusesSum) {
+        // bump(0.2);
         scene.remove(el);
         arr.splice(ind, 1);
         currentHelth = changeHelth(currentHelth, -19);
@@ -159,6 +160,7 @@ onRenderFcts.push(function() {
                 el.position.x, el.position.y, el.position.z,
                 sphere.position.x, sphere.position.y, sphere.position.z) < 0.9) {
                 blink.doBlink(0xcfb53b, 60);
+                bump();
                 scene.remove(el);
                 arr.splice(ind, 1);
                 currentScore = changeScore(currentScore, 1);

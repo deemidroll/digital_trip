@@ -21,7 +21,7 @@ Examples = {
 		opacityBase : 1,
 		blendStyle  : THREE.AdditiveBlending,
 
-		particlesPerSecond : 500,
+		particlesPerSecond : 250,
 		particleDeathAge   : 4.0,		
 		emitterDeathAge    : 5
 	}

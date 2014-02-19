@@ -106,7 +106,7 @@ var oneMoreTime = function() {
 var hit = function() {
     $(function(){
         $(".error").html(genRandomFloorBetween(500, 511));
-        $(".hit").css({"display": "table"}).fadeOut(500, function() {
+        $(".hit").css({"display": "table"}).fadeOut(250, function() {
             $(".error").html("");
         });
     });
@@ -123,10 +123,10 @@ var generateStone = function (scene, arr, spawnCoord) {
         y = Math.random() * 30 - 15;
     }
         if (Math.abs(x) > 5 || Math.abs(y) > 5) {
-            radius = Math.random() + 1.5;
+            radius = genRandomBetween(1.5, 3)
             color = 0x555555;
         } else {
-            radius = Math.min(Math.random() + 1, 1.5);
+            radius = genRandomBetween(1.5, 3)
             color = 0x999999;
         }
 
@@ -252,3 +252,21 @@ var genRandomFloorBetween = function (min, max) {
     rand = Math.round(rand);
     return rand;
 };
+
+var genRandomBetween = function (min, max) {
+    return Math.random() * (max - min) + min;
+};
+
+var getSign = function () {
+    var signVal = Math.random() - 0.5;
+    return Math.abs(signVal)/signVal;
+};
+
+var bump = function (amp) {
+    if (sphere.isInvulnerability) return;
+    for (var i = 0; i < 2; i++) {
+        amp = amp || 0.15
+        sphere.position.x += getSign() * amp;
+        sphere.position.y += getSign() * amp;
+    }
+ };

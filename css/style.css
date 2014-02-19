@@ -1,5 +1,6 @@
 body {
-    font-family: Helvetica sans-serif;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+   font-weight: 300;
     margin: 0px;
     background-color: #000000;
     overflow: hidden;
@@ -29,6 +30,36 @@ body {
     background-color: #444;
 }
 
+.choose_control {
+    /*display: table;*/
+    background-color: #000;
+    z-index: 1;
+}
+
+.choose_control span {
+    margin-bottom: 40px;
+}
+
+.bigfont {
+    font-size: 3em;
+}
+
+.block {
+    display: block;
+}
+
+
+.loader {
+    /*display: table;*/
+    background-color: #000;
+    z-index: 1;
+}
+
+.loader span {
+    color: #fff;
+    font-size: 5em;
+}
+
 .menu_page {
     /*display: table;*/
     background-color: rgba(0,0,0,0.5);
@@ -51,7 +82,8 @@ body {
 }
 
 .menu span {
-    margin-bottom: 0;
+    margin-bottom: 15px;
+    margin-top: 15px;
     font-size: 1.25em;
 }
 

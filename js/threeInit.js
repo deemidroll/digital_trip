@@ -34,6 +34,7 @@ var winResize   = new THREEx.WindowResize(renderer, camera);
 // sphere
 var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
 sphere.overdraw = true;
+// sphere.position.set(0, 0, 0);
 sphere.isInvulnerability = false;
 // scene.add(sphere);
 

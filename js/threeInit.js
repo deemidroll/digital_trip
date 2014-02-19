@@ -7,10 +7,13 @@ renderer.physicallyBasedShading = true;
 document.body.appendChild(renderer.domElement);
 
 // camera
-camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 500);
+camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300);
 camera.position.x = 0;
-camera.position.y = 1;
-camera.position.z = 10;
+camera.position.y = 0;
+camera.z = 15;
+camera.position.z = camera.z;
+
+console.log(camera);
 
 // camera.lens = 23;
 

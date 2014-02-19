@@ -265,7 +265,7 @@ var getSign = function () {
 var bump = function (amp) {
     if (sphere.isInvulnerability) return;
     for (var i = 0; i < 2; i++) {
-        amp = amp || 0.15
+        amp = amp || 0.15;
         sphere.position.x += getSign() * amp;
         sphere.position.y += getSign() * amp;
     }

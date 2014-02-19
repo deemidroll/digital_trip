@@ -6,7 +6,7 @@ var currentHelth = 100,
 var spawnCoord = -200,
     // blurCoord = 3,
     opacityCoord = 2,
-    dieCoord = 7,
+    dieCoord = camera.z + 7,
     stonesCloseness = 18;
 
 // SPEED
@@ -57,20 +57,20 @@ var lens = 23;
 onRenderFcts.push(function() {
 
     if (speed.getChanger() > 0) {
-        camera.position.z = Math.max(camera.position.z -= 0.1, 8);
+        camera.position.z = Math.max(camera.position.z -= 0.1, camera.z - 2);
         lens = Math.max(lens -= 0.3, 17)
         composer.render();
     } else if (speed.getChanger() < 0) {
-        camera.position.z = Math.min(camera.position.z += 0.05, 11);
+        camera.position.z = Math.min(camera.position.z += 0.05, camera.z + 1);
         lens = Math.min(lens += 0.3, 29);
         composer.render();
     } else {
         var delta = 23 - lens;
         if (delta > 0) {
-            camera.position.z = Math.min(camera.position.z += 0.1, 10);
+            camera.position.z = Math.min(camera.position.z += 0.1, camera.z);
             lens = Math.min(lens += 0.3, 23);
         } else {
-            camera.position.z = Math.max(camera.position.z -= 0.05, 10);
+            camera.position.z = Math.max(camera.position.z -= 0.05, camera.z);
             lens = Math.max(lens -= 0.3, 23);
         }
     }
@@ -154,7 +154,10 @@ onRenderFcts.push(function() {
                 arr.splice(ind, 1);
             }
             if (el.position.z > opacityCoord) {
-                el.material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, transparent: true, opacity: 0.5});
+                el.children.forEach(function(el) {
+                    el.material.transparent = true;
+                    el.material.opacity = 0.5;
+                });
             }
             if (getDistance(
                 el.position.x, el.position.y, el.position.z,

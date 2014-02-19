@@ -53,25 +53,25 @@ onRenderFcts.push(function(delta, now) {
     emitter.update(delta).render();
     stats.update();
 });
-var lens = 23;
+var lens = camera.lens;
 onRenderFcts.push(function() {
 
     if (speed.getChanger() > 0) {
         camera.position.z = Math.max(camera.position.z -= 0.1, camera.z - 2);
-        lens = Math.max(lens -= 0.3, 17)
+        lens = Math.max(lens -= 0.3, camera.lens - 6)
         composer.render();
     } else if (speed.getChanger() < 0) {
         camera.position.z = Math.min(camera.position.z += 0.05, camera.z + 1);
-        lens = Math.min(lens += 0.3, 29);
+        lens = Math.min(lens += 0.3, camera.lens + 6);
         composer.render();
     } else {
-        var delta = 23 - lens;
+        var delta = camera.lens - lens;
         if (delta > 0) {
             camera.position.z = Math.min(camera.position.z += 0.1, camera.z);
-            lens = Math.min(lens += 0.3, 23);
+            lens = Math.min(lens += 0.3, camera.lens);
         } else {
             camera.position.z = Math.max(camera.position.z -= 0.05, camera.z);
-            lens = Math.max(lens -= 0.3, 23);
+            lens = Math.max(lens -= 0.3, camera.lens);
         }
     }
     camera.setLens(lens);

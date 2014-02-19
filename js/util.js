@@ -126,7 +126,7 @@ var generateStone = function (scene, arr, spawnCoord) {
             radius = genRandomBetween(1.5, 3)
             color = 0x555555;
         } else {
-            radius = genRandomBetween(1.5, 3)
+            radius = genRandomBetween(1.5, 2.5)
             color = 0x999999;
         }
 

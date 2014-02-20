@@ -1,6 +1,6 @@
 var genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
     var type = genRandomFloorBetween(0, 2);
-    // var type = 1;
+    // var type = 2;
     var geometry, material;
 
     geometry = listOfModels[type].geometry;

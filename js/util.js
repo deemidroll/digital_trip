@@ -87,12 +87,15 @@ var changeScore = function(currentScore, delta) {
 };
 
 var gameOver = function() {
-    stop();
+    clearTimeout(window.makeFunTimer);
+    stopSound(0);
+    stopSound(1);
     soundGameover.update();
     soundGameover.play();
     $(function(){
         $(".total_coins").text(currentScore);
         $(".game_over").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 1000);
+        $(document).unbind("keydown").unbind("keyup");
     });
     setTimeout(function() {
         cancelAnimationFrame(id);
@@ -244,11 +247,45 @@ var moveSphere = function(sphere, destPoint) {
 };
 
 var makeFun = function(time) {
+    clearTimeout(window.makeFunTimer);
     speed.setChanger(-1);
-    var invulner = setTimeout(function() {
+    stopSound(0);
+    playSound(1);
+    window.rainbow = setInterval(
+                function() {
+                    var color;
+                    switch (genRandomFloorBetween(0, 5)) {
+                        case 0:
+                        color = "orange";
+                        break;
+                        case 1:
+                        color = "yellow";
+                        break;
+                        case 2:
+                        color = "green";
+                        break;
+                        case 3:
+                        color = "DeepSkyBlue";
+                        break;
+                        case 4:
+                        color = "blue";
+                        break;
+                        case 5:
+                        color = "DarkSlateBlue";
+                        break;
+                        default:
+                        color = "white";
+                        break;
+                    }
+                    blink.doBlink(color, 60);
+                }, 500);
+    window.makeFunTimer = setTimeout(function() {
         speed.setChanger(0);
-        clearTimeout(invulner);
-    }, time || 10000);
+        stopSound(1);
+        playSound(0);
+        clearInterval(window.rainbow);
+        clearTimeout(makeFunTimer);
+    }, time || 21500);
 };
 
 var genRandomFloorBetween = function (min, max) {

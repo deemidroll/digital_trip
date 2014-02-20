@@ -1,6 +1,5 @@
 video=document.getElementById('video')
 canvas=document.getElementById('canvas2')
-console.log(canvas);
 _=canvas.getContext('2d')
 ccanvas=document.getElementById('comp')
 c_=ccanvas.getContext('2d')

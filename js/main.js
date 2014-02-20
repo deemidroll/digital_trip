@@ -243,6 +243,7 @@ onRenderFcts.push(function() {
 
 onRenderFcts.push(function() {
     if (blink.framesLeft === 0) {
+        // sphere.material.color.r = 0.5 + valueAudio/125;
         return;
     }
     if (blink.framesLeft === blink.frames) {
@@ -256,4 +257,10 @@ onRenderFcts.push(function() {
         sphereLight.color.b = sphere.material.color.b += blink.db;
     }
     blink.framesLeft -= 1;
+});
+
+onRenderFcts.push(function() {
+    // sphere.material.color.r = percent;
+    // sphere.material.color.g = percent /10;
+    // sphere.material.color.b = percent /5;
 });

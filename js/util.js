@@ -87,6 +87,7 @@ var changeScore = function(currentScore, delta) {
 };
 
 var gameOver = function() {
+    stop();
     soundGameover.update();
     soundGameover.play();
     $(function(){

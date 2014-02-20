@@ -159,3 +159,12 @@ body {
     top: 40%;
     left: 0;
 }
+
+.color {
+    width: 100px;
+    height: 100px;
+    background-color: #fff;
+    position: absolute;
+    top: 50%;
+    right: 0;
+}

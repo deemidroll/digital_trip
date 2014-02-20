@@ -1,6 +1,8 @@
 var context = new window.AudioContext(); //
 // переменные для буфера, источника и получателя
-var buffer, source, destination, analyser; 
+var buffer, source, destination, analyser, gainNode; 
+
+var startedAt, pausedAt, paused;
 
 // функция для подгрузки файла в буфер
 var loadSoundFile = function(url) {
@@ -15,6 +17,9 @@ var loadSoundFile = function(url) {
       // получаем декодированный буфер
       buffer = decodedArrayBuffer;
       play();
+      onRenderFcts.push(function() {
+        visualize();
+      });
     }, function(e) {
       console.log('Error decoding file', e);
     });
@@ -28,12 +33,13 @@ var play = function(){
     source = context.createBufferSource();
     // подключаем буфер к источнику
     source.buffer = buffer;
-
     // дефолтный получатель звука
     destination = context.destination;
-
     analyser = context.createAnalyser();
-    analyser.connect(destination);
+    gainNode = context.createGain();
+    gainNode.connect(destination);
+    gainNode.gain.value = globalVolume;
+    analyser.connect(gainNode);
     analyser.fftSize = 2048;
     analyser.minDecibels = -50;
     analyser.maxDecibels = -20;
@@ -42,19 +48,24 @@ var play = function(){
     // подключаем источник к получателю
     source.connect(analyser);
     // воспроизводим
-    source.start(0);
-    // console.log(source);
-    // source.gain.value = globalVolume;
+    paused = false;
 
-    onRenderFcts.push(function() {
-        visualize();
-    });
-}
+    if (pausedAt) {
+    startedAt = Date.now() - pausedAt;
+    source.start(0, pausedAt / 1000);
+    }
+    else {
+    startedAt = Date.now();
+    source.start(0);
+    }
+};
 
 // функция остановки воспроизведения
 var stop = function(){
   source.stop(0);
-}
+  pausedAt = Date.now() - startedAt;
+  paused = true;
+};
 
 loadSoundFile('sounds/theField_overTheIce.mp3');
 // loadSoundFile('sounds/music.mp3');

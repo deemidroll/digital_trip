@@ -3,12 +3,14 @@ $(function(){
         $(".menu_page").css({"display": "table"});
         soundPause.update();
         soundPause.play();
+        stop();
         cancelAnimationFrame(id);
     });
     $(".menu_page").click(function() {
         $(".menu_page").css({"display": "none"});
         soundPause.update();
         soundPause.play();
+        play();
         requestAnimationFrame(function animate(nowMsec) {
             // keep looping
             id = requestAnimationFrame(animate);
@@ -24,10 +26,10 @@ $(function(){
     });
     $(".music_button").click(function() {
         if (globalVolume) {
-            globalVolume = 0;
+            gainNode.gain.value = globalVolume = 0;
             $(".music_button").html("N");
         } else {
-            globalVolume = 1;
+            gainNode.gain.value = globalVolume = 1;
             $(".music_button").html("M");
         }
     });

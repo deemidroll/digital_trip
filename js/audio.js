@@ -38,7 +38,7 @@ var play = function(){
     analyser = context.createAnalyser();
     gainNode = context.createGain();
     gainNode.connect(destination);
-    gainNode.gain.value = globalVolume;
+    // gainNode.gain.value = 1;
     analyser.connect(gainNode);
     analyser.fftSize = 2048;
     analyser.minDecibels = -50;

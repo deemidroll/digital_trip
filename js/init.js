@@ -11,26 +11,20 @@ $(function(){
         soundPause.update();
         soundPause.play();
         pauseSoundOff();
-        requestAnimationFrame(function animate(nowMsec) {
-            // keep looping
-            id = requestAnimationFrame(animate);
-            // measure time
-            lastTimeMsec    = lastTimeMsec || nowMsec-1000/60;
-            var deltaMsec   = Math.min(200, nowMsec - lastTimeMsec);
-            lastTimeMsec    = nowMsec;
-            // call each update function
-            onRenderFcts.forEach(function(onRenderFct) {
-                onRenderFct(deltaMsec/1000, nowMsec/1000);
-            });
-        });
+        startGame();
     });
     $(".music_button").click(function() {
         if (globalVolume) {
-            gainNodes[0].gain.value = gainNodes[1].gain.value = globalVolume = 0;
+            globalVolume = 0;
             $(".music_button").html("N");
         } else {
-            gainNodes[0].gain.value = gainNodes[1].gain.value = globalVolume = 1;
+            globalVolume = 1;
             $(".music_button").html("M");
         }
+        gainNodes.forEach(function(el) {
+                if (el) {
+                    el.gain.value = globalVolume;
+                }
+        });
     });
 });

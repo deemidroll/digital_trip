@@ -1,77 +1,87 @@
-video=document.getElementById('video')
-canvas=document.getElementById('canvas2')
-_=canvas.getContext('2d')
-ccanvas=document.getElementById('comp')
-c_=ccanvas.getContext('2d')
-navigator.webkitGetUserMedia({audio:false,video:true},function(stream){
-    s=stream
-    video.src=window.webkitURL.createObjectURL(stream)
-    video.addEventListener('play',
-        function(){setInterval(dump,1000/25)}
-    )
-},function(){
-    console.log('OOOOOOOH! DEEEEENIED!')
-})
-compression=5
-width=height=0
-function dump(){
-    if(canvas.width!=video.videoWidth){
-        width=Math.floor(video.videoWidth/compression)
-        height=Math.floor(video.videoHeight/compression)
-        canvas.width=ccanvas.width=width
-        canvas.height=ccanvas.height=height
-    }
-    _.drawImage(video,width,0,-width,height)
-    draw=_.getImageData(0,0,width,height)
-    //c_.putImageData(draw,0,0)
-    skinfilter()
-    test()  
-}
-huemin=0.0
-huemax=0.10
-satmin=0.0
-satmax=1.0
-valmin=0.4
-valmax=1.0
-function skinfilter(){
+var enableWebcam = function() {
+    var video=document.getElementById('video'),
+        canvas=document.getElementById('canvas2'),
+        _=canvas.getContext('2d'),
+        ccanvas=document.getElementById('comp'),
+        c_=ccanvas.getContext('2d'),
+        compression=5, width = 0, height=0,
+        huemin=0.0,
+        huemax=0.10,
+        satmin=0.0,
+        satmax=1.0,
+        valmin=0.4,
+        valmax=1.0,
+        draw,
+        skin_filter;
+    navigator.webkitGetUserMedia({audio:false,video:true},function(stream){
+        startGame();
+        stopSound(2);
+        playSound(0);
+        $(".choose_control").fadeOut(250);
+        video.src=window.webkitURL.createObjectURL(stream);
+        video.addEventListener('play', function() {
+            setInterval(dump,1000/25);
+        });
+    }, function() {
+        console.log('OOOOOOOH! DEEEEENIED!');
+        $(function() {
+            $(".message").html("sorry, webcam is not available. please choose another method of control");
+        });
+    });
     
-    skin_filter=_.getImageData(0,0,width,height)
-    var total_pixels=skin_filter.width*skin_filter.height
-    var index_value=total_pixels*4
-    
-    var count_data_big_array=0;
-    for (var y=0 ; y<height ; y++)
-    {
-        for (var x=0 ; x<width ; x++)
-        {
-            index_value = x+y*width
-            r = draw.data[count_data_big_array]
-                    g = draw.data[count_data_big_array+1]
-                    b = draw.data[count_data_big_array+2]
-                    a = draw.data[count_data_big_array+3]
-
-                    hsv = rgb2Hsv(r,g,b);
-                    //When the hand is too lose (hsv[0] > 0.59 && hsv[0] < 1.0)
-            //Skin Range on HSV values
-            if(((hsv[0] > huemin && hsv[0] < huemax)||(hsv[0] > 0.59 && hsv[0] < 1.0))&&(hsv[1] > satmin && hsv[1] < satmax)&&(hsv[2] > valmin && hsv[2] < valmax)){
-
-                    skin_filter[count_data_big_array]=r
-                skin_filter[count_data_big_array+1]=g
-                skin_filter[count_data_big_array+2]=b
-                skin_filter[count_data_big_array+3]=a
-                }else{
-
-                    skin_filter.data[count_data_big_array]=
-                skin_filter.data[count_data_big_array+1]=
-                skin_filter.data[count_data_big_array+2]=0
-                skin_filter.data[count_data_big_array+3]=0
-                }
-
-                    count_data_big_array=index_value*4;
+    function dump() {
+        if(canvas.width!=video.videoWidth) {
+            width=Math.floor(video.videoWidth/compression)
+            height=Math.floor(video.videoHeight/compression)
+            canvas.width=ccanvas.width=width
+            canvas.height=ccanvas.height=height
         }
+        _.drawImage(video,width,0,-width,height);
+        draw=_.getImageData(0,0,width,height);
+        //c_.putImageData(draw,0,0);
+        skinfilter();
+        test();
+    };
+
+    function skinfilter(){
+        
+        skin_filter=_.getImageData(0,0,width,height);
+        var total_pixels=skin_filter.width*skin_filter.height
+        var index_value=total_pixels*4
+        
+        var count_data_big_array=0;
+        for (var y=0 ; y<height ; y++)
+        {
+            for (var x=0 ; x<width ; x++)
+            {
+                index_value = x+y*width
+                r = draw.data[count_data_big_array]
+                        g = draw.data[count_data_big_array+1]
+                        b = draw.data[count_data_big_array+2]
+                        a = draw.data[count_data_big_array+3]
+    
+                        hsv = rgb2Hsv(r,g,b);
+                        //When the hand is too lose (hsv[0] > 0.59 && hsv[0] < 1.0)
+                //Skin Range on HSV values
+                if(((hsv[0] > huemin && hsv[0] < huemax)||(hsv[0] > 0.59 && hsv[0] < 1.0))&&(hsv[1] > satmin && hsv[1] < satmax)&&(hsv[2] > valmin && hsv[2] < valmax)){
+    
+                        skin_filter[count_data_big_array]=r
+                    skin_filter[count_data_big_array+1]=g
+                    skin_filter[count_data_big_array+2]=b
+                    skin_filter[count_data_big_array+3]=a
+                    }else{
+    
+                        skin_filter.data[count_data_big_array]=
+                    skin_filter.data[count_data_big_array+1]=
+                    skin_filter.data[count_data_big_array+2]=0
+                    skin_filter.data[count_data_big_array+3]=0
+                    }
+    
+                        count_data_big_array=index_value*4;
+            }
+        }
+        draw=skin_filter
     }
-    draw=skin_filter
-}
 
 function rgb2Hsv(r, g, b){
     
@@ -103,10 +113,10 @@ function rgb2Hsv(r, g, b){
     return [h, s, v];
 }
 
-last=false
-thresh=150
-down=false
-wasdown=false
+var last=false;
+var thresh=150;
+var down=false;
+var wasdown=false;
 function test(){
     delt=_.createImageData(width,height)
     if(last!==false){
@@ -151,9 +161,9 @@ function test(){
     last=draw
     c_.putImageData(delt,0,0)
 }
-movethresh=2
-brightthresh=300
-overthresh=1000
+var movethresh=2;
+var brightthresh=300;
+var overthresh=1000;
 function calibrate(){
     wasdown={
         x:down.x,
@@ -161,8 +171,8 @@ function calibrate(){
         d:down.d
     }
 }
-avg=0
-state=0//States: 0 waiting for gesture, 1 waiting for next move after gesture, 2 waiting for gesture to end
+var avg=0;
+var state=0;//States: 0 waiting for gesture, 1 waiting for next move after gesture, 2 waiting for gesture to end
 function handledown(){
     avg=0.9*avg+0.1*down.d
     var davg=down.d-avg,good=davg>brightthresh
@@ -217,3 +227,4 @@ function handledown(){
             break
     }
 }
+};

@@ -10,15 +10,17 @@ $(function() {
         if (k === 39) changeDestPoint(0, 1, destPoint);
         // speedUp
         if (k === 16) {
-            speed.setChanger(1);
-            stopSound(1);
-            playSound(0);
-            clearInterval(window.rainbow);
-            clearTimeout(makeFunTimer);
+            speed.setChanger(3);
+            if (window.makeFunTimer) {
+                stopSound(1);
+                playSound(0);
+                clearInterval(window.rainbow);
+                clearTimeout(window.makeFunTimer);
+            }
         }
         if (k === 17) {
             makeFun();
-            }
+        }
     });
 
     $(document).keyup(function() {
@@ -35,5 +37,4 @@ $(function() {
         //     clearInterval(window.rainbow);
         // }
     });
-
 });

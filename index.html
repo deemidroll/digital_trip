@@ -9,28 +9,26 @@
     <div class="helthbar">
         <div class="helth"></div>
     </div>
-    <div class="stngs">
-        <div class="music_button">M</div>
-        <div class="menu_button">=</div>
-    </div>
+    <div class="music_button">M</div>
+    <div class="menu_button">=</div>
     <div class="score"><span class="current_coins">0</span> D</div>
     <div class="bonus"></div>
     <div class="loader">
         <div class="cont">
             <span>DIGITAL TRIP</span>
-            <p><span>0</span>%</p>
+            <div><b class="startGame">LOADING</b></div>
         </div>
     </div>
     <div class="choose_control">
         <div class="cont">
             <span class="block bigfont">DIGITAL TRIP</span>
             <br>
-            <span class="block">choose controls</span>
+            <span class="block message">choose controls</span>
             <br>
             <span class="block">
-                <span class="wasd">WASD</span>
-                <span class="mobile">Mobile</span>
-                <span class="webcam">Webcam</span>
+                <span class="choose_wasd button">WASD</span>
+                <span class="choose_mobile button">Mobile</span>
+                <span class="choose_webcam button">Webcam</span>
             </span>
         </div>
     </div>
@@ -39,9 +37,9 @@
             <div class="menu">
                 <p>change controls</p>
                 <span class="block">
-                    <span class="wasd">WASD</span>
-                    <span class="mobile">Mobile</span>
-                    <span class="webcam">Webcam</span>
+                    <span class="change_wasd button">WASD</span>
+                    <span class="change_mobile button">Mobile</span>
+                    <span class="change_webcam button">Webcam</span>
                 </span>
                 <hr>
                 <span class="block">source on <a href="http://deemidroll.github.io/">github</a></span>
@@ -72,8 +70,11 @@
     <div id="disp"><canvas id="comp"></canvas></div>
     <video id="video" autoplay width="300" style="display:none"></video>
     <canvas id="canvas2" style="width:300px;display:none;" width="128" height="96"></canvas>
-
     <!-- <div class="color"></div> -->
+    <!-- loader -->
+    <script src="vendor/head.core.min.js"></script>
+    <script src="js/head.js"></script>
+    <!-- end of loader -->
 
     <script src="vendor/jquery.min.js"></script>
     <script src="vendor/three.js/build/three.min.js"></script>

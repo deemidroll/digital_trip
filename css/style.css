@@ -7,7 +7,7 @@ body {
     color: #eee;
 }
 
-.helthbar, .stngs, .score, .bonus{
+.helthbar, .menu_button, .music_button, .score, .bonus{
     position: absolute;
     opacity: 0.5;
 }
@@ -28,6 +28,7 @@ body {
 .game_over {
     /*display: table;*/
     background-color: #444;
+    z-index: 3;
 }
 
 .choose_control {
@@ -50,9 +51,12 @@ body {
 
 
 .loader {
-    /*display: table;*/
+    display: table;
     background-color: #000;
     z-index: 1;
+}
+
+.startGame {
 }
 
 .loader span {
@@ -124,21 +128,26 @@ body {
     background-color: #BE463C;
 }
 
-.stngs {
-    right: 30px;
-    top: 30px;
-}
 
-.stngs div {
+.music_button, .menu_button {
     width: 40px;
     height: 40px;
     border: 1px #ffffff solid;
-    display: inline-block;
-    float: left;
-    margin-left: 5px;
     font-size: 32px;
     text-align: center;
     cursor: pointer;
+}
+
+.music_button {
+    z-index: 2;
+    right: 75px;
+    top: 30px;
+}
+
+.menu_button {
+    z-index: 1;
+    right: 30px;
+    top: 30px;
 }
 
 .bonus {
@@ -167,4 +176,17 @@ body {
     position: absolute;
     top: 50%;
     right: 0;
+}
+
+a {
+    color: white;
+}
+
+a:hover {
+    color: red;
+}
+
+.button:hover {
+    cursor: pointer;
+    color: red;
 }

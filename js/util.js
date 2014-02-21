@@ -111,15 +111,13 @@ var oneMoreTime = function() {
 
 var hit = function() {
     $(function(){
-        $(".error").html(genRandomFloorBetween(500, 511));
-        $(".hit").css({"display": "table"}).fadeOut(250, function() {
-            $(".error").html("");
-        });
+        $(".error").html("ERROR " + genRandomFloorBetween(500, 511));
+        $(".hit").css({"display": "table"}).fadeOut(250);
     });
 };
 
 var generateStone = function (scene, arr, spawnCoord) {
-    var radius, color, x, y,
+    var radius, color, x, y, depth,
         part = Math.random();
     if (part > 0.5) {
         x = Math.random() * 10 - 5,
@@ -129,11 +127,12 @@ var generateStone = function (scene, arr, spawnCoord) {
         y = Math.random() * 30 - 15;
     }
         if (Math.abs(x) > 5 || Math.abs(y) > 5) {
-            radius = genRandomBetween(1.5, 3)
-            color = 0x555555;
+            radius = genRandomBetween(1.5, 3);
+            color = new THREE.Color(0x555555);
         } else {
-            radius = genRandomBetween(1.5, 2.5)
-            color = 0x999999;
+            radius = genRandomBetween(1.5, 2.5);
+            depth = genRandomFloorBetween(100, 153)/255;
+            color = new THREE.Color().setRGB(depth, depth, depth);
         }
 
     var geometry = new THREE.IcosahedronGeometry(radius, 0),
@@ -248,7 +247,7 @@ var moveSphere = function(sphere, destPoint) {
 
 var makeFun = function(time) {
     clearTimeout(window.makeFunTimer);
-    speed.setChanger(-1);
+    speed.setChanger(-3);
     stopSound(0);
     playSound(1);
     window.rainbow = setInterval(

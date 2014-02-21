@@ -43,8 +43,9 @@ var emitter = Fireworks.createEmitter({nParticles : 100})
         }).back()
     .start();
 
- onRenderFcts.push(function() {
+onRenderFcts.push(function() {
     emitter._particles.forEach(function(el) {
         el.velocity.vector.z += valueAudio/28;
     });
+    
  });

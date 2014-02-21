@@ -11,39 +11,13 @@ $(function() {
         // speedUp
         if (k === 16) {
             speed.setChanger(1);
+            stopSound(1);
+            playSound(0);
+            clearInterval(window.rainbow);
+            clearTimeout(makeFunTimer);
         }
         if (k === 17) {
-            speed.setChanger(-1);
-            stopSound(0);
-            playSound(1);
-            window.rainbow = setInterval(
-                function() {
-                    var color;
-                    switch (genRandomFloorBetween(0, 5)) {
-                        case 0:
-                        color = "orange";
-                        break;
-                        case 1:
-                        color = "yellow";
-                        break;
-                        case 2:
-                        color = "green";
-                        break;
-                        case 3:
-                        color = "DeepSkyBlue";
-                        break;
-                        case 4:
-                        color = "blue";
-                        break;
-                        case 5:
-                        color = "DarkSlateBlue";
-                        break;
-                        default:
-                        color = "white";
-                        break;
-                    }
-                    blink.doBlink(color, 1);
-                }, 100);
+            makeFun();
             }
     });
 
@@ -51,14 +25,15 @@ $(function() {
         var k = event.keyCode;
         // speedDown
         if (k === 16) {
+
             speed.setChanger(0);
         }
-        if (k === 17) {
-            speed.setChanger(0);
-            stopSound(1);
-            playSound(0);
-            clearInterval(window.rainbow);
-        }
+        // if (k === 17) {
+        //     speed.setChanger(0);
+        //     stopSound(1);
+        //     playSound(0);
+        //     clearInterval(window.rainbow);
+        // }
     });
 
 });

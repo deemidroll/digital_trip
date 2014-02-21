@@ -167,8 +167,8 @@ var generateFragments = function (scene, arr, x, y, z, numb) {
 };
 
 var genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
-    var r = 0.5,
-    coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.1, 32, 1, true ),
+    var r = 0.25,
+    coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.05, 32, 1, true ),
     coin_cap_geo = new THREE.Geometry();
     for ( var i=0; i<100; i++) {
         var a = i * 1/100 * Math.PI * 2,
@@ -277,14 +277,15 @@ var makeFun = function(time) {
                         color = "white";
                         break;
                     }
-                    blink.doBlink(color, 60);
-                }, 500);
+                    blink.doBlink(color, 2);
+                }, 100);
     window.makeFunTimer = setTimeout(function() {
         speed.setChanger(0);
         stopSound(1);
         playSound(0);
         clearInterval(window.rainbow);
         clearTimeout(makeFunTimer);
+        blink.doBlink("red", 2);
     }, time || 21500);
 };
 

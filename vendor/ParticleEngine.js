@@ -398,9 +398,9 @@ ParticleEngine.prototype.update = function(dt)
 			// 	sphere.position.z)
 			// if (dist < 3) {
 			// 	// update particle color
-				this.particleArray[i].color.r = valueAudio/1/1 || 70/255;
-				this.particleArray[i].color.g = valueAudio/255/1 || 68/255;
-				this.particleArray[i].color.b = valueAudio/255/1 || 81/255;
+				this.particleArray[i].color.r = DT.valueAudio/1/1 || 70/255;
+				this.particleArray[i].color.g = DT.valueAudio/255/1 || 68/255;
+				this.particleArray[i].color.b = DT.valueAudio/255/1 || 81/255;
 			// 	this.particleArray[i].color.g = sphere.material.color.g * 1/dist;
 			// 	this.particleArray[i].color.b = sphere.material.color.b * 1/dist;
 			// }

@@ -361,7 +361,7 @@ ParticleEngine.prototype.initialize = function()
 	this.particleMesh = new THREE.ParticleSystem( this.particleGeometry, this.particleMaterial );
 	this.particleMesh.dynamic = true;
 	this.particleMesh.sortParticles = true;
-	scene.add( this.particleMesh );
+	DT.scene.add( this.particleMesh );
 }
 
 ParticleEngine.prototype.update = function(dt)
@@ -439,6 +439,6 @@ ParticleEngine.prototype.update = function(dt)
 
 ParticleEngine.prototype.destroy = function()
 {
-    scene.remove( this.particleMesh );
+    DT.scene.remove( this.particleMesh );
 }
 ///////////////////////////////////////////////////////////////////////////////

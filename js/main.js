@@ -6,7 +6,7 @@ renderer.physicallyBasedShading = true;
 document.body.appendChild(renderer.domElement);
 
 // camera
-camera = DT.camera;
+var camera = DT.camera;
 camera.position.x = 0;
 camera.position.y = 0.5;
 camera.z = 15;
@@ -15,7 +15,7 @@ camera.lens = 35;
 
 var lens = camera.lens;
 // scene
-scene = DT.scene;
+var scene = DT.scene;
 
 // declare the rendering loop
 var onRenderFcts = DT.onRenderFcts;
@@ -27,7 +27,7 @@ var winResize = new THREEx.WindowResize(renderer, camera);
 var sphere = DT.sphere;
 sphere.overdraw = true;
 sphere.position.set(0, 0, 0);
-scene.add(sphere);
+// scene.add(sphere);
 
 // lightning 0xBE463C
 var light = DT.lights.light;
@@ -110,7 +110,7 @@ var emitter = Fireworks.createEmitter({nParticles : 100})
                     texture = Fireworks.ProceduralTextures.buildTexture(),
                     material    = new THREE.ParticleBasicMaterial({
                         color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
-                        size        : 60,
+                        size        : 80,
                         sizeAttenuation : false,
                         vertexColors    : true,
                         map     : texture,
@@ -203,7 +203,7 @@ onRenderFcts.push(function() {
         // bump(0.2);
         scene.remove(el);
         arr.splice(ind, 1);
-        currentHelth = DT.changeHelth(currentHelth, -19);
+        DT.player.currentHelth = DT.changeHelth(DT.player.currentHelth, -19);
         // вызвать вспышку экрана
         if (DT.player.isInvulnerability === false) {
             DT.hit();

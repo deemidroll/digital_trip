@@ -299,7 +299,7 @@ ParticleEngine.prototype.createParticle = function()
 	var particle = new Particle();
 
 	if (this.positionStyle == Type.CUBE)
-		particle.position = this.randomVector3( this.positionBase, this.positionSpread ); 
+		particle.position = new THREE.Vector3(DT.genRandomBetween(-2.5, 2.5), -2.5, -150)
 	if (this.positionStyle == Type.SPHERE)
 	{
 		var r = 10;
@@ -398,9 +398,16 @@ ParticleEngine.prototype.update = function(dt)
 			// 	sphere.position.z)
 			// if (dist < 3) {
 			// 	// update particle color
+			if (!DT.player.isFun) {
 				this.particleArray[i].color.r = DT.valueAudio/1/1 || 70/255;
 				this.particleArray[i].color.g = DT.valueAudio/255/1 || 68/255;
 				this.particleArray[i].color.b = DT.valueAudio/255/1 || 81/255;
+			} else {
+				this.particleArray[i].color.r = DT.sphere.material.color.r;
+				this.particleArray[i].color.g = DT.sphere.material.color.g;
+				this.particleArray[i].color.b = DT.sphere.material.color.b;
+			}
+				
 			// 	this.particleArray[i].color.g = sphere.material.color.g * 1/dist;
 			// 	this.particleArray[i].color.b = sphere.material.color.b * 1/dist;
 			// }

@@ -4,8 +4,10 @@ var DT = {
     player: {
         currentHelth: 100,
         currentScore: 0,
-        destPoint: {x: 0, y: 0},
-        isInvulnerability: false
+        destPoint: {x: 0, y: -2.5},
+        isInvulnerability: false,
+        isFun: false,
+        jump: false
     },
     param: {
         spawnCoord: -200,
@@ -38,6 +40,12 @@ var DT = {
         bonuses: [],
         caughtBonuses: []
     },
+    audio: {
+        frequency: {
+            0: 400,
+            1: 100
+        }
+    },
     webaudio: new WebAudio(),
     sounds: {
         soundCoin: 'sounds/coin.wav',
@@ -48,8 +56,8 @@ var DT = {
     },
     music: {
         0: 'sounds/theField_overTheIce.mp3',
-        1: 'sounds/dubstep.mp3',
-        2: 'sounds/space_ambient.mp3'
+        1: 'sounds/heart.mp3',
+        2: 'sounds/space_ambient2.mp3'
     },
     renderer: new THREE.WebGLRenderer(),
     camera: new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300),
@@ -101,11 +109,11 @@ var DT = {
     startunnel: {
         positionStyle  : Type.CUBE,
         positionBase   : new THREE.Vector3( 0, 0, -200 ),
-        positionSpread : new THREE.Vector3( 10, 10, 10 ),
+        positionSpread : new THREE.Vector3( 0, 0, 0 ),
 
         velocityStyle  : Type.CUBE,
         velocityBase   : new THREE.Vector3( 0, 0, 100 ),
-        velocitySpread : new THREE.Vector3( 5, 5, 80 ), 
+        velocitySpread : new THREE.Vector3( 0, 0, 0 ), 
         
         angleBase               : 0,
         angleSpread             : 720,
@@ -115,14 +123,22 @@ var DT = {
         particleTexture : THREE.ImageUtils.loadTexture( 'img/spikey.png' ),
 
         sizeBase    : 1.0,
-        sizeSpread  : 0.5,              
-        colorBase   : new THREE.Vector3(0.0, 0.0, 0.2), // H,S,L
+        sizeSpread  : 0.5,
+        colorBase   : new THREE.Vector3(0.0, 0.0, 0.1), // H,S,L
         opacityBase : 1,
         blendStyle  : THREE.AdditiveBlending,
 
-        particlesPerSecond : 250,
-        particleDeathAge   : 4.0,       
+        particlesPerSecond : 200,
+        particleDeathAge   : 4.0,
         emitterDeathAge    : 5
+    },
+    blink: {
+        color: new THREE.Color(),
+        frames: 0,
+        framesLeft: 0,
+        dr: 0,
+        dg: 0,
+        db: 0
     }
 };
 // auxiliary functions
@@ -169,31 +185,14 @@ DT.changeHelth = function(currHelth, delta) {
     return currHelth;
 };
 
-DT.invulnerTimeout;
+DT.invulnerTimer;
 DT.dontFeelPain = function (time) {
-    clearTimeout(DT.invulnerTimeout);
+    DT.invulnerTimer = (time || 10000) / 1000 * 60;
     DT.player.isInvulnerability = true;
     DT.scene.add(DT.shield);
-    DT.invulnerTimeout = setTimeout(function() {
-        DT.player.isInvulnerability = false;
-        DT.scene.remove(DT.shield);
-        clearTimeout(DT.invulnerTimeout);
-    }, time || 10000);
 };
 
-////////////////////////////////////////////
-// использовать очередь функций 
-
-DT.blink = {
-    color: new THREE.Color(),
-    frames: 0,
-    framesLeft: 0,
-    dr: 0,
-    dg: 0,
-    db: 0
-};
-
-DT.blink.doBlink = function (color, frames) {
+DT.blink.doBlink = function (color, frames, recover) {
     var defClr = {r: 1, g: 0, b: 0},
         blink = DT.blink;
         blink.color = new THREE.Color(color);
@@ -209,12 +208,11 @@ DT.changeScore = function(currentScore, delta) {
     $(function(){
         $(".current_coins").text(currentScore);
     });
-
     return currentScore;
 };
 
 DT.gameOver = function() {
-    clearTimeout(DT.makeFunTimer);
+    clearTimeout(DT.player.isFun);
     DT.stopSound(0);
     DT.stopSound(1);
     DT.soundGameover.update();
@@ -253,14 +251,14 @@ DT.generateStone = function (scene, arr, spawnCoord) {
         x = Math.random() * 30 - 15,
         y = Math.random() * 30 - 15;
     }
-        if (Math.abs(x) > 5 || Math.abs(y) > 5) {
-            radius = DT.genRandomBetween(1.5, 3);
-            color = new THREE.Color(0x555555);
-        } else {
-            radius = DT.genRandomBetween(1.5, 2.5);
-            depth = DT.genRandomFloorBetween(100, 153)/255;
-            color = new THREE.Color().setRGB(depth, depth, depth);
-        }
+    if (Math.abs(x) > 5 || Math.abs(y) > 5) {
+        radius = DT.genRandomBetween(1.5, 3);
+        color = new THREE.Color(0x464451);
+    } else {
+        radius = DT.genRandomBetween(1, 2);
+        depth = DT.genRandomFloorBetween(80, 100)/255;
+        color = new THREE.Color().setRGB(depth, depth, depth);
+    }
 
     var geometry = new THREE.IcosahedronGeometry(radius, 0),
         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: color}),
@@ -276,11 +274,11 @@ DT.generateStone = function (scene, arr, spawnCoord) {
 
 DT.generateFragments = function (scene, arr, x, y, z, numb) {
     var geometry, 
-        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading}),
+        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: "red"}),
         numb = numb || 2,
         fragment;
-    for (var i = 0; i < 20; i++) {
-        geometry = new THREE.IcosahedronGeometry(DT.genRandomBetween(0.1, 1), 0);
+    for (var i = 0; i < 100; i++) {
+        geometry = new THREE.IcosahedronGeometry(DT.genRandomBetween(0.02, 0.2), 0);
         fragment = new THREE.Mesh( geometry, material );
         fragment.position.x = x + Math.random() * numb - 0.5 * numb;
         fragment.position.y = y + Math.random() * numb - 0.5 * numb;
@@ -345,7 +343,7 @@ DT.genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
 DT.genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
     var listOfModels = DT.listOfModels;
     var type = DT.genRandomFloorBetween(0, 2);
-    // var type = 2;
+    // var type = 1;
     var geometry = listOfModels[type].geometry,
         material = listOfModels[type].material,
         bonus = new THREE.Mesh( geometry, material );
@@ -420,64 +418,48 @@ DT.changeDestPoint = function(dy, dx, destPoint) {
     if (destPoint.x > -2.5 && dx < 0) {
         destPoint.x += dx * 2.5;
     }
-    if (destPoint.y < 2.5 && dy > 0) {
-        destPoint.y += dy * 2.5;
+    if (DT.sphere.position.y + 2.5 < 0.1 && dy > 0) {
+        DT.player.jump = true;
     }
     if (destPoint.y > -2.5 && dy < 0) {
-        destPoint.y += dy * 2.5;
+        DT.player.jump = false;
     }
 };
 
-DT.moveSphere = function(sphere, destPoint) {
-    ["x", "y"].forEach(function(aix) {
-        var dx = destPoint[aix] - sphere.position[aix];
-        if (Math.abs(dx) > 0.01) {
-            sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
+DT.onRenderFcts.push(function () {
+    if (DT.player.jump) {
+        DT.player.destPoint.y = 0;
+        if (DT.sphere.position.y > -0.1) {
+            DT.player.jump = false;
         }
-    });
-};
+    } else {
+        DT.player.destPoint.y = -2.5;
+    }
+});
+
+DT.moveSphere = function(sphere, destPoint, n) {
+    for (var i = 0; i < n; i++) {
+        ["x"].forEach(function(aix) {
+            var dx = destPoint[aix] - sphere.position[aix];
+            if (Math.abs(dx) > 0.01) {
+                sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
+            }
+        });
+    }
+        ["y"].forEach(function(aix) {
+            var dx = destPoint[aix] - sphere.position[aix];
+            if (Math.abs(dx) > 0.01) {
+                sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
+            }
+        });
+};  
 
 DT.makeFun = function(time) {
-    clearTimeout(DT.makeFunTimer);
+    DT.player.isFun = true;
+    DT.funTimer = (time || 10000) / 1000 * 60;
     DT.speed.setChanger(-3);
     DT.stopSound(0);
     DT.playSound(1);
-    DT.rainbow = setInterval(
-                function() {
-                    var color;
-                    switch (DT.genRandomFloorBetween(0, 5)) {
-                        case 0:
-                        color = "orange";
-                        break;
-                        case 1:
-                        color = "yellow";
-                        break;
-                        case 2:
-                        color = "green";
-                        break;
-                        case 3:
-                        color = "DeepSkyBlue";
-                        break;
-                        case 4:
-                        color = "blue";
-                        break;
-                        case 5:
-                        color = "DarkSlateBlue";
-                        break;
-                        default:
-                        color = "white";
-                        break;
-                    }
-                    DT.blink.doBlink(color, 2);
-                }, 100);
-    DT.makeFunTimer = setTimeout(function() {
-        DT.speed.setChanger(0);
-        DT.stopSound(1);
-        DT.playSound(0);
-        clearInterval(DT.rainbow);
-        clearTimeout(DT.makeFunTimer);
-        DT.blink.doBlink("red", 2);
-    }, time || 21500);
 };
 
 DT.genRandomFloorBetween = function (min, max) {
@@ -546,11 +528,12 @@ $(function(){
         // speedUp
         if (k === 16) {
             DT.speed.setChanger(3);
-            if (DT.makeFunTimer) {
+            if (DT.player.isFun) {
                 DT.stopSound(1);
                 DT.playSound(0);
                 clearInterval(DT.rainbow);
-                clearTimeout(DT.makeFunTimer);
+                DT.player.isFun === false;
+                DT.blink.doBlink("red", 2);
             }
         }
         if (k === 17) {
@@ -563,6 +546,7 @@ $(function(){
         // speedDown
         if (k === 16) {
             DT.speed.setChanger(0);
+            DT.funTimer = 0;
         }
     });
 
@@ -686,14 +670,14 @@ loadSoundFile = function(url, bufferIndex) {
     xhr.send();
 }
 
-loadSoundFile('sounds/theField_overTheIce.mp3', 0);
-loadSoundFile('sounds/dubstep.mp3', 1);
-loadSoundFile('sounds/space_ambient.mp3', 2);
+loadSoundFile(DT.music[0], 0);
+loadSoundFile(DT.music[1], 1);
+loadSoundFile(DT.music[2], 2);
 
 visualize = function(index) {
     freqDomain[index] = new Uint8Array(analysers[index].frequencyBinCount);
     analysers[index].getByteFrequencyData(freqDomain[index]);
-    DT.valueAudio = getFrequencyValue(400, index);
+    DT.valueAudio = getFrequencyValue(DT.audio.frequency[index], index);
 };
 
 getFrequencyValue = function(frequency, bufferIndex) {
@@ -756,71 +740,56 @@ THREE.IcosahedronGeometry = function ( radius, detail ) {
 };
 THREE.IcosahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
 
-THREE.DodecahedronGeometry = function ( radius, detail ) {
+// THREE.DodecahedronGeometry = function ( radius, detail ) {
+//     this.radius = radius;
+//     this.detail = detail;
+//     var p = (1 + Math.sqrt(5))/2, q = 1/p;
 
-    // http://en.wikipedia.org/wiki/Dodecahedron#Cartesian_coordinates
+//     var vertices = [
+//         [ 0,  q,  p], //  0  green
+//         [ 0,  q, -p], //  1
+//         [ 0, -q,  p], //  2
+//         [ 0, -q, -p], //  3
+//         [ p,  0,  q], //  4  pink
+//         [ p,  0, -q], //  5
+//         [-p,  0,  q], //  6
+//         [-p,  0, -q], //  7
+//         [ q,  p,  0], //  8  blue
+//         [ q, -p,  0], //  9
+//         [-q,  p,  0], // 10
+//         [-q, -p,  0], // 11
+//         [ 1,  1,  1], // 12  orange
+//         [ 1,  1, -1], // 13
+//         [ 1, -1,  1], // 14
+//         [ 1, -1, -1], // 15
+//         [-1,  1,  1], // 16
+//         [-1,  1, -1], // 17
+//         [-1, -1,  1], // 18
+//         [-1, -1, -1]  // 19
+//     ]; 
 
-    var p = (1 + Math.sqrt(5))/2,
-        q = 1/p;
+//     var faces = [
+//         [16,0,2,18,6],
 
-    var vs = [          //  x   y   z
-        new THREE.Vector3(  0,  q,  p), //  0  green
-        new THREE.Vector3(  0,  q, -p), //  1
-        new THREE.Vector3(  0, -q,  p), //  2
-        new THREE.Vector3(  0, -q, -p), //  3
+//         [16,10,8,12,0],
+//         [0,12,4,14,2],
+//         [2,14,9,11,18],
+//         [18,11,19,7,6],
+//         [6,7,17,10,16],
 
-        new THREE.Vector3(  p,  0,  q), //  4  pink
-        new THREE.Vector3(  p,  0, -q), //  5
-        new THREE.Vector3( -p,  0,  q), //  6
-        new THREE.Vector3( -p,  0, -q), //  7
+//         [1,17,10,8,13],
+//         [13,8,12,4,5],
+//         [5,4,14,9,15],
+//         [15,9,11,19,3],
+//         [3,19,7,17,1],
 
-        new THREE.Vector3(  q,  p,  0), //  8  blue
-        new THREE.Vector3(  q, -p,  0), //  9
-        new THREE.Vector3( -q,  p,  0), // 10
-        new THREE.Vector3( -q, -p,  0), // 11
+//         [1,13,5,15,3]
+//     ];
+//     THREE.PolyhedronGeometry.call( this, vertices, faces, radius, detail );
+// };
 
-        new THREE.Vector3(  1,  1,  1), // 12  orange
-        new THREE.Vector3(  1,  1, -1), // 13
-        new THREE.Vector3(  1, -1,  1), // 14
-        new THREE.Vector3(  1, -1, -1), // 15
-        new THREE.Vector3( -1,  1,  1), // 16
-        new THREE.Vector3( -1,  1, -1), // 17
-        new THREE.Vector3( -1, -1,  1), // 18
-        new THREE.Vector3( -1, -1, -1)] // 19
+// THREE.DodecahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
 
-    var faces = [
-        [16,0,2,18,6],
-
-        [16,10,8,12,0],
-        [0,12,4,14,2],
-        [2,14,9,11,18],
-        [18,11,19,7,6],
-        [6,7,17,10,16],
-
-        [1,17,10,8,13],
-        [13,8,12,4,5],
-        [5,4,14,9,15],
-        [15,9,11,19,3],
-        [3,19,7,17,1],
-
-        [1,13,5,15,3]
-    ]
-
-    var list = new Array();
-
-    faces.forEach(function(indices) {
-        var vertices = indices.map(function(i) { return (vs[i]); }),
-            geometry = new THREE.ConvexGeometry(vertices),
-            material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff, opacity: 0.4 }),
-            mesh     = new THREE.Mesh(geometry, material);
-
-        list.push(mesh);
-    })
-
-    return list;
-};
-
-THREE.DodecahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
 // add method repeat
 String.prototype.repeat = function(num) {
     return new Array( num + 1 ).join( this );
@@ -836,7 +805,7 @@ loadModel = function(modelObj) {
     // create a new material
     modelObj.material = new THREE.MeshFaceMaterial( materials );
     // shining of bonuses
-    modelObj.material.materials.forEach(function(el){
+    modelObj.material.materials.forEach(function (el) {
         el.emissive.r = el.color.r * 0.5;
         el.emissive.g = el.color.g * 0.5;
         el.emissive.b = el.color.b * 0.5;
@@ -851,6 +820,229 @@ loadModel = function(modelObj) {
 listOfModels.map(function(el) {
     loadModel(el);
 });
+
+
+// WEBCAM GESTURE
+DT.enableWebcam = function () {
+    var video=document.getElementById('video'),
+        canvas=document.getElementById('canvas2'),
+        _=canvas.getContext('2d'),
+        ccanvas=document.getElementById('comp'),
+        c_=ccanvas.getContext('2d'),
+        compression=5, width = 0, height=0,
+        huemin=0.0,
+        huemax=0.10,
+        satmin=0.0,
+        satmax=1.0,
+        valmin=0.4,
+        valmax=1.0,
+        draw,
+        skin_filter,
+        last=false,
+        thresh=150,
+        down=false,
+        wasdown=false,
+        movethresh=2,
+        brightthresh=300,
+        overthresh=1000,
+        avg=0,
+        state=0;//States: 0 waiting for gesture, 1 waiting for next move after gesture, 2 waiting for gesture to end
+    navigator.webkitGetUserMedia({audio:false,video:true}, function (stream) {
+        DT.startGame();
+        DT.stopSound(2);
+        DT.playSound(0);
+        $(".choose_control").fadeOut(250);
+        video.src=window.webkitURL.createObjectURL(stream);
+        video.addEventListener('play', function () {
+            setInterval(dump,1000/25);
+        });
+    }, function () {
+        console.log('OOOOOOOH! DEEEEENIED!');
+        $(function() {
+            $(".message").html("sorry, webcam is not available. please choose another method of control");
+        });
+    });
+    
+    function dump() {
+        if(canvas.width!=video.videoWidth) {
+            width=Math.floor(video.videoWidth/compression)
+            height=Math.floor(video.videoHeight/compression)
+            canvas.width=ccanvas.width=width
+            canvas.height=ccanvas.height=height
+        }
+        _.drawImage(video,width,0,-width,height);
+        draw=_.getImageData(0,0,width,height);
+        //c_.putImageData(draw,0,0);
+        skinfilter();
+        test();
+    };
+
+    function skinfilter() {
+        
+        skin_filter = _.getImageData(0,0,width,height);
+        var total_pixels = skin_filter.width * skin_filter.height,
+            index_value = total_pixels * 4,
+            count_data_big_array = 0;
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                index_value = x + y * width
+                r = draw.data[count_data_big_array]
+                g = draw.data[count_data_big_array+1]
+                b = draw.data[count_data_big_array+2]
+                a = draw.data[count_data_big_array+3]
+
+                hsv = rgb2Hsv(r,g,b);
+                //When the hand is too lose (hsv[0] > 0.59 && hsv[0] < 1.0)
+                //Skin Range on HSV values
+                if(((hsv[0] > huemin && hsv[0] < huemax)||(hsv[0] > 0.59 && hsv[0] < 1.0))&&(hsv[1] > satmin && hsv[1] < satmax)&&(hsv[2] > valmin && hsv[2] < valmax)){
+
+                    skin_filter[count_data_big_array] = r;
+                    skin_filter[count_data_big_array + 1] = g;
+                    skin_filter[count_data_big_array + 2] = b;
+                    skin_filter[count_data_big_array + 3] = a;
+                } else {
+    
+                    skin_filter.data[count_data_big_array] =
+                    skin_filter.data[count_data_big_array+1] =
+                    skin_filter.data[count_data_big_array+2] = 
+                    skin_filter.data[count_data_big_array+3] = 0;
+                }
+    
+                count_data_big_array = index_value * 4;
+            }
+        }
+        draw = skin_filter;
+    }
+
+    function rgb2Hsv(r, g, b) {
+        
+        r = r/255
+        g = g/255
+        b = b/255;
+    
+        var max = Math.max(r, g, b),
+            min = Math.min(r, g, b),
+            h, s, v = max,
+            d = max - min;
+        s = max == 0 ? 0 : d / max;
+        if (max == min){
+            h = 0; // achromatic
+        } else {
+            switch(max){
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return [h, s, v];
+    }
+    
+    function test() {
+        delt = _.createImageData(width,height);
+        if (last !== false) {
+            var totalx = 0, totaly = 0, totald = 0, totaln = delt.width * delt.height, 
+                dscl = 0,
+                pix = totaln * 4;
+            while (pix -= 4) {
+                var d=Math.abs(
+                    draw.data[pix]-last.data[pix]
+                )+Math.abs(
+                    draw.data[pix+1]-last.data[pix+1]
+                )+Math.abs(
+                    draw.data[pix+2]-last.data[pix+2]
+                )
+                if(d > thresh){
+                    delt.data[pix] = 160;
+                    delt.data[pix + 1] = 255;
+                        delt.data[pix + 2] =
+                    delt.data[pix + 3] = 255;
+                    totald += 1;
+                    totalx += ((pix/4)%width);
+                    totaly += (Math.floor((pix / 4) / delt.height))
+                }
+                else{
+                    delt.data[pix] = delt.data[pix + 1] = delt.data[pix + 2] = 0;
+                    delt.data[pix + 3] = 0;
+                }
+            }
+        }
+        //slide.setAttribute('style','display:initial')
+        //slide.value=(totalx/totald)/width
+        if(totald) {
+            down = {
+                x: totalx / totald,
+                y: totaly / totald,
+                d: totald
+            }
+            handledown()
+        }
+        //console.log(totald)
+        last = draw
+        c_.putImageData(delt, 0, 0);
+    }
+    
+    function calibrate() {
+        wasdown = {
+            x: down.x,
+            y: down.y,
+            d: down.d
+        }
+    }
+    
+    function handledown() {
+        avg = 0.9 * avg + 0.1 * down.d;
+        var davg = down.d -avg, good = davg > brightthresh;
+        // console.log(davg)
+        switch (state) {
+            case 0:
+                if (good) {//Found a gesture, waiting for next move
+                    state = 1;
+                    calibrate();
+                }
+                break;
+            case 2://Wait for gesture to end
+                if (!good) {//Gesture ended
+                    state = 0;
+                }
+                break;
+            case 1://Got next move, do something based on direction
+                var dx = down.x - wasdown.x, dy = down.y - wasdown.y,
+                    dirx = Math.abs(dy) < Math.abs(dx);//(dx,dy) is on a bowtie
+                console.log(good,davg);
+                if (dx <- movethresh && dirx) {
+                    console.log('right');
+                    DT.changeDestPoint(0, 1, DT.player.destPoint);
+                    
+                } else if (dx > movethresh && dirx) {
+                    console.log('left');
+                    DT.changeDestPoint(0, -1, DT.player.destPoint);
+                    
+                }
+                if (dy > movethresh &&! dirx) {
+                    if (davg > overthresh) {
+                        console.log('over up');
+                        // DT.changeDestPoint(1, 0, DT.player.destPoint);
+                    } else {
+                        console.log('up');
+                        DT.changeDestPoint(1, 0, DT.player.destPoint);
+                    }
+                } else if (dy <- movethresh &&! dirx) {
+                    if (davg > overthresh) {
+                        console.log('over down');
+                        // DT.changeDestPoint(-1, 0, DT.player.destPoint);
+                    } else {
+                        console.log('down');
+                        DT.changeDestPoint(-1, 0, DT.player.destPoint);
+                    }
+                }
+                state = 2;
+                break;
+        }
+    }
+};
 
 });
 

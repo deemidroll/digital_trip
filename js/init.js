@@ -262,13 +262,12 @@ DT.generateStone = function (scene, arr, spawnCoord) {
         color = new THREE.Color().setRGB(depth, depth, depth);
     }
     geometry = new THREE.IcosahedronGeometry(radius, 0);
-    material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: color, envMap: DT.mirrorCamera.renderTarget});
+    material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: color});
 
     stone = new THREE.Mesh( geometry, material );
     stone.position.x = x;
     stone.position.y = y;
     stone.position.z = Math.random() * 4 + spawnCoord;
-    DT.mirrorCamera.position = stone.position;
     stone.rotation.x = Math.random();
     stone.rotation.y = Math.random();
     arr.push(stone);

@@ -165,8 +165,7 @@ DT.onRenderFcts.push(function() {
 //         }
 //     });
 // });
-DT.mirrorCamera = new THREE.CubeCamera( 10, 50, 32 );
-    DT.scene.add( DT.mirrorCamera );
+
 // render the scene
 DT.onRenderFcts.push(function(delta, now) {
     DT.renderer.render(DT.scene, DT.camera);
@@ -257,10 +256,6 @@ DT.onRenderFcts.push(function() {
         el.rotation.y += 0.014;
         el.rotation.x += 0.014;
         el.position.z += 0.1 * DT.speed.getValue();
-        // el.visible = false;
-        DT.mirrorCamera.updateCubeMap( DT.renderer, DT.scene );
-        // el.visible = true;
-
     });
 });
 // fragments lifecicle

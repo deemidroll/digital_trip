@@ -108,7 +108,7 @@ var DT = {
     valueAudio: 0,
     startunnel: {
         positionStyle  : Type.CUBE,
-        positionBase   : new THREE.Vector3( 0, 0, -200 ),
+        positionBase   : new THREE.Vector3( 0, 0, -100 ),
         positionSpread : new THREE.Vector3( 0, 0, 0 ),
 
         velocityStyle  : Type.CUBE,
@@ -128,7 +128,7 @@ var DT = {
         opacityBase : 1,
         // blendStyle  : THREE.AdditiveBlending,
 
-        particlesPerSecond : 500,
+        particlesPerSecond : 1000,
         particleDeathAge   : 4.0,
         emitterDeathAge    : 60
     },

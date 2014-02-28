@@ -188,7 +188,7 @@ function ParticleEngine()
     this.opacitySpread = 0.0;
     this.opacityTween  = new Tween();
 
-    this.blendStyle = THREE.NormalBlending; // false;
+    // this.blendStyle = THREE.CustomBlending;
 
     this.particleArray = [];
     this.particlesPerSecond = 100;
@@ -228,7 +228,8 @@ function ParticleEngine()
         vertexShader:   particleVertexShader,
         fragmentShader: particleFragmentShader,
         transparent: true, // alphaTest: 0.5,  // if having transparency issues, try including: alphaTest: 0.5, 
-        blending: THREE.NormalBlending, depthTest: true,
+        blending: THREE.NormalBlending, 
+        depthTest: true,
         
     });
     this.particleMesh = new THREE.Mesh();
@@ -256,6 +257,9 @@ ParticleEngine.prototype.setValues = function( parameters )
     this.emitterAge      = 0.0;
     this.emitterAlive    = true;
     this.particleCount = this.particlesPerSecond * Math.min( this.particleDeathAge, this.emitterDeathAge );
+
+    // this.particleTexture.premultiplyAlpha = true;
+    this.particleTexture.needsUpdate = true;
     
     this.particleGeometry = new THREE.Geometry();
     this.particleMaterial = new THREE.ShaderMaterial( 
@@ -299,12 +303,23 @@ ParticleEngine.prototype.createParticle = function()
     var particle = new Particle();
 
     if (this.positionStyle == Type.CUBE)
-        var x = DT.genRandomBetween(-5.5, 5.5),
-            y = -3.5,
-            z = -150;
-        // if (particle.position.x + 3 < 0.1) {
-            // particle.position.y = 0;
-        // }
+        var x, y, z, n;
+        n = Math.random();
+        if (n > 0.3) {
+            x = DT.genRandomBetween(-5.5, 5.5);
+            y = -3.5;
+        } else {
+            y = DT.genRandomBetween(-10, 10);
+            if (n > 0.2) {
+                x = DT.genRandomBetween(-10, -3.5);
+            } else if (n > 0.1) {
+                x = DT.genRandomBetween(3.5, 10);
+            } else  {
+                x = DT.genRandomBetween(-3.5, 3.5);
+                y = DT.genRandomBetween(1, 10);
+            }
+        }
+        z = -300;
         particle.position = new THREE.Vector3(x, y, z);
 
     if (this.positionStyle == Type.SPHERE)
@@ -361,9 +376,11 @@ ParticleEngine.prototype.initialize = function()
         this.particleMaterial.attributes.customAngle.value[i]   = this.particleArray[i].angle;
     }
     
-    this.particleMaterial.blending = this.blendStyle;
-    if ( this.blendStyle != THREE.NormalBlending) 
-        this.particleMaterial.depthTest = false;
+    // this.particleMaterial.blending = THREE.CustomBlending;
+    // this.particleMaterial.blendSrc = THREE.SrcAlphaFactor;
+    // this.particleMaterial.blendDst = THREE.DstAlphaFactor;
+    // this.particleMaterial.blendEquation = THREE.AddEquation;
+    console.log(this.particleMaterial);
     
     this.particleMesh = new THREE.ParticleSystem( this.particleGeometry, this.particleMaterial );
     this.particleMesh.dynamic = true;

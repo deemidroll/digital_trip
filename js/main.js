@@ -33,7 +33,7 @@ lens = DT.camera.lens;
 // DT.sphere
 DT.sphere.overdraw = true;
 DT.sphere.position.set(0, -2.5, 0);
-// DT.scene.add(DT.sphere);
+DT.scene.add(DT.sphere);
 
 // DT.lights
 DT.lights.light.position.set(0, 0, -1);

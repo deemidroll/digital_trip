@@ -10,6 +10,7 @@ var stones = DT.collections.stones,
     bonuses = DT.collections.bonuses,
     caughtBonuses = DT.collections.caughtBonuses;
 // ParticleEngine
+    // stardust
 var engine = new ParticleEngine(),
     clock = new THREE.Clock();
     engine.setValues(DT.startunnel);
@@ -151,6 +152,7 @@ DT.onRenderFcts.push(function() {
     el.position.z += 0.1 * DT.speed.getValue();
     if (el.position.z > dieCoord) {
         DT.scene.remove(el);
+        arr.splice(ind, 1);
     } 
     if (el.position.z > DT.param.opacityCoord) {
         el.material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, transparent: true, opacity: 0.75});
@@ -170,7 +172,7 @@ DT.onRenderFcts.push(function() {
             DT.hit();
         }
         // генерировать осколки
-        DT.generateFragments(DT.scene, fragments, el.position.x, el.position.y, el.position.z);
+        DT.generateFragments(DT.scene, fragments, el.position.x, el.position.y, el.position.z, 2, el.geometry.radius);
     }
     if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - DT.sphere.position.z > 1) {
         DT.soundStoneMiss.update();
@@ -182,10 +184,11 @@ DT.onRenderFcts.push(function() {
 DT.onRenderFcts.push(function() {
     if (fragments.length) {
         fragments.forEach(function(el, ind, arr) {
-            el.position.x *= 1.1;
-            el.position.y *= 1.1;
-            el.position.z += 0.001 * DT.speed.getValue();
-            if (el.position.z > dieCoord) {
+            el.frames += 1;
+            el.position.x *= 1.2;
+            el.position.y *= 1.2;
+            el.position.z += 0;
+            if (el.frames > el.TTL) {
                 DT.scene.remove(el);
                 arr.splice(ind, 1);
             }

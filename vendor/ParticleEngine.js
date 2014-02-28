@@ -380,7 +380,6 @@ ParticleEngine.prototype.initialize = function()
     // this.particleMaterial.blendSrc = THREE.SrcAlphaFactor;
     // this.particleMaterial.blendDst = THREE.DstAlphaFactor;
     // this.particleMaterial.blendEquation = THREE.AddEquation;
-    console.log(this.particleMaterial);
     
     this.particleMesh = new THREE.ParticleSystem( this.particleGeometry, this.particleMaterial );
     this.particleMesh.dynamic = true;

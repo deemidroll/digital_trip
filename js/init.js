@@ -262,7 +262,7 @@ DT.generateStone = function (scene, arr, spawnCoord) {
         color = new THREE.Color().setRGB(depth, depth, depth);
     }
     geometry = new THREE.IcosahedronGeometry(radius, 0);
-    material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: color});
+    material = new THREE.MeshPhongMaterial({shading: THREE.FlatShading, color: color, specular: 0x111111, shininess: 100});
 
     stone = new THREE.Mesh( geometry, material );
     stone.position.x = x;
@@ -561,7 +561,6 @@ DT.backgroundMesh = new THREE.Mesh(
     }));
 DT.backgroundMesh.material.depthTest = false;
 DT.backgroundMesh.material.depthWrite = false;
-console.log(DT.backgroundMesh);
 DT.backgroundMesh.visible = false;
 DT.scene.add(DT.backgroundMesh);
 // SOUNDS

@@ -5,7 +5,7 @@ var DT = {
         currentHelth: 100,
         currentScore: 0,
         destPoint: {x: 0, y: -2.5},
-        isInvulnerability: true,
+        isInvulnerability: false,
         isFun: false,
         jump: false
     },
@@ -140,7 +140,8 @@ var DT = {
         dg: 0,
         db: 0
     },
-    emittFragments: null
+    emittFragments: null,
+    bgTexture: THREE.ImageUtils.loadTexture( 'img/bg.jpg' ),
 };
 // auxiliary functions
 DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
@@ -609,7 +610,17 @@ $(function(){
             DT.funTimer = 0;
         }
     });
-
+// BACKGROUND
+DT.backgroundMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(20, 10, 0),
+    new THREE.MeshBasicMaterial({
+        map: DT.bgTexture
+    }));
+DT.backgroundMesh.material.depthTest = false;
+DT.backgroundMesh.material.depthWrite = false;
+console.log(DT.backgroundMesh);
+DT.backgroundMesh.visible = false;
+DT.scene.add(DT.backgroundMesh);
 // SOUNDS
 DT.soundCoin = DT.webaudio.createSound().load(DT.sounds.soundCoin);
 DT.soundGameover = DT.webaudio.createSound().load(DT.sounds.soundGameover);

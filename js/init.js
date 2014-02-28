@@ -5,7 +5,7 @@ var DT = {
         currentHelth: 100,
         currentScore: 0,
         destPoint: {x: 0, y: -2.5},
-        isInvulnerability: false,
+        isInvulnerability: true,
         isFun: false,
         jump: false
     },

@@ -95,20 +95,20 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 DT.emittFragments = Fireworks.createEmitter({nParticles : 1000})
     .effectsStackBuilder()
         .spawnerSteadyRate(10000)
-        .position(Fireworks.createShapeSphere(10, 0, 0, 1.5))
+        .position(Fireworks.createShapeSphere(10, 0, 0, 3.0))
         .velocity(Fireworks.createShapePoint(0, 0, 5))
         .lifeTime(0.3, 0.5)
         .randomVelocityDrift(Fireworks.createVector(10, 10, 10))
         .renderToThreejsParticleSystem({
             particleSystem  : function(emitt){
                 var geometry    = new THREE.Geometry(),
-                    // texture = Fireworks.ProceduralTextures.buildTexture(),
+                    texture = Fireworks.ProceduralTextures.buildTexture(),
                     material    = new THREE.ParticleBasicMaterial({
                         color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
-                        size        : 2,
+                        size        : 4,
                         sizeAttenuation : false,
                         vertexColors    : true,
-                        // map     : texture,
+                        map     : texture,
                         blending    : THREE.AdditiveBlending,
                         depthWrite  : false,
                         transparent : true
@@ -123,7 +123,7 @@ DT.emittFragments = Fireworks.createEmitter({nParticles : 1000})
                 // init colors
                 geometry.colors = new Array(emitt.nParticles())
                 for( var i = 0; i < emitt.nParticles(); i++ ){
-                    geometry.colors[i]  = new THREE.Color("red");
+                    geometry.colors[i]  = new THREE.Color("green");
                 }
                 
                 DT.scene.add(particleSystem);
@@ -133,6 +133,7 @@ DT.emittFragments = Fireworks.createEmitter({nParticles : 1000})
             }
         }).back()
     .start();
+    console.log(DT.emittFragments);
 //////////////////////////////////////////////
 // ON RENDER 
 //////////////////////////////////////////////
@@ -160,6 +161,7 @@ DT.onRenderFcts.push(function() {
     DT.emittFragments._effects.forEach(function (el) {
         if (el.name === "position") {
             el.opts.shape.position = fragmentsPosition;
+            el.opts.shape.radius = 0.15 * fragmentsCounter;
         }
     });
 });

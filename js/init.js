@@ -5,7 +5,7 @@ var DT = {
         currentHelth: 100,
         currentScore: 0,
         destPoint: {x: 0, y: -2.5},
-        isInvulnerability: true,
+        isInvulnerability: false,
         isFun: false,
         jump: false
     },
@@ -139,7 +139,8 @@ var DT = {
         dr: 0,
         dg: 0,
         db: 0
-    }
+    },
+    emittFragments: null
 };
 // auxiliary functions
 DT.getDistance = function (x1, y1, z1, x2, y2, z2) {

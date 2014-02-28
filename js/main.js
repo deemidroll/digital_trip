@@ -2,7 +2,7 @@
 // when resize
 var winResize = new THREEx.WindowResize(DT.renderer, DT.camera);
 // service variables
-var dieCoord, lens, emitter;
+var dieCoord, lens, emitter, fragmentsPosition = {x: -1000, y: 0, z: 0}, fragmentsCounter = 0;
 // collections
 var stones = DT.collections.stones,
     fragments = DT.collections.fragments,
@@ -91,6 +91,48 @@ emitter = Fireworks.createEmitter({nParticles : 100})
             }
         }).back()
     .start();
+
+DT.emittFragments = Fireworks.createEmitter({nParticles : 1000})
+    .effectsStackBuilder()
+        .spawnerSteadyRate(10000)
+        .position(Fireworks.createShapeSphere(10, 0, 0, 1.5))
+        .velocity(Fireworks.createShapePoint(0, 0, 5))
+        .lifeTime(0.3, 0.5)
+        .randomVelocityDrift(Fireworks.createVector(10, 10, 10))
+        .renderToThreejsParticleSystem({
+            particleSystem  : function(emitt){
+                var geometry    = new THREE.Geometry(),
+                    // texture = Fireworks.ProceduralTextures.buildTexture(),
+                    material    = new THREE.ParticleBasicMaterial({
+                        color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
+                        size        : 2,
+                        sizeAttenuation : false,
+                        vertexColors    : true,
+                        // map     : texture,
+                        blending    : THREE.AdditiveBlending,
+                        depthWrite  : false,
+                        transparent : true
+                    }),
+                    particleSystem = new THREE.ParticleSystem(geometry, material);
+                    particleSystem.dynamic  = true;
+                    particleSystem.sortParticles = true;
+                // init vertices
+                for( var i = 0; i < emitt.nParticles(); i++ ){
+                    geometry.vertices.push( new THREE.Vector3() );
+                }
+                // init colors
+                geometry.colors = new Array(emitt.nParticles())
+                for( var i = 0; i < emitt.nParticles(); i++ ){
+                    geometry.colors[i]  = new THREE.Color("red");
+                }
+                
+                DT.scene.add(particleSystem);
+                particleSystem.position = {x:0, y:0, z:0};
+
+                return particleSystem;
+            }
+        }).back()
+    .start();
 //////////////////////////////////////////////
 // ON RENDER 
 //////////////////////////////////////////////
@@ -107,10 +149,26 @@ DT.onRenderFcts.push(function() {
     });
 });
 
+DT.onRenderFcts.push(function() {
+    if (fragmentsPosition.x !== -1000) {
+        fragmentsCounter += 1; 
+        if (fragmentsCounter > 20) {
+            fragmentsPosition = {x: -1000, y: 0, z: 0};
+            fragmentsCounter = 0;
+        }
+    }
+    DT.emittFragments._effects.forEach(function (el) {
+        if (el.name === "position") {
+            el.opts.shape.position = fragmentsPosition;
+        }
+    });
+});
+
 // render the scene
 DT.onRenderFcts.push(function(delta, now) {
     DT.renderer.render(DT.scene, DT.camera);
     emitter.update(delta).render();
+    DT.emittFragments.update(delta).render();
     stats.update();
     DT.speed.increase();
 });
@@ -172,7 +230,9 @@ DT.onRenderFcts.push(function() {
             DT.hit();
         }
         // генерировать осколки
-        DT.generateFragments(DT.scene, fragments, el.position.x, el.position.y, el.position.z, 2, el.geometry.radius);
+        // DT.generateFragments(DT.scene, fragments, el.position.x, el.position.y, el.position.z, 2, el.geometry.radius);
+        fragmentsPosition = {x: el.position.x, y: el.position.y, z: el.position.z}
+        ///
     }
     if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - DT.sphere.position.z > 1) {
         DT.soundStoneMiss.update();

@@ -244,7 +244,7 @@ DT.hit = function() {
 };
 
 DT.generateStone = function (scene, arr, spawnCoord) {
-    var radius, color, x, y, depth,
+    var radius, color, x, y, depth, geometry, material, stone,
         part = Math.random();
     if (part > 0.5) {
         x = Math.random() * 10 - 5,
@@ -261,94 +261,37 @@ DT.generateStone = function (scene, arr, spawnCoord) {
         depth = DT.genRandomFloorBetween(80, 100)/255;
         color = new THREE.Color().setRGB(depth, depth, depth);
     }
-    var geometry = new THREE.IcosahedronGeometry(radius, 0),
-        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: color}),
-                    attributes = {
-                displacement: { type: 'v3', value: [] },
-                customColor:  { type: 'c', value: [] }
-            };
-            uniforms = {
-                time: { type: "f", value: 0.0 }
-            };
-            var shaderMaterial = new THREE.ShaderMaterial( {
-                uniforms:       uniforms,
-                attributes:     attributes,
-                vertexShader:   document.getElementById( 'vertexshader' ).textContent,
-                fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
-                shading:        THREE.FlatShading
-            });
+    geometry = new THREE.IcosahedronGeometry(radius, 0);
+    material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: color});
 
-
-
-            // geometry.dynamic = true;
-            // THREE.GeometryUtils.center( geometry );
-            // var bb = geometry.boundingBox;
-            // var i, n = 6, maxEdgeLength = 4;
-            // for ( i = 0; i < n; i ++ ) THREE.GeometryUtils.tessellate( geometry, maxEdgeLength );
-            // THREE.GeometryUtils.explode( geometry );
-            // var vertices = geometry.vertices;
-            // var colors = attributes.customColor.value;
-            // var displacement = attributes.displacement.value;
-            // var h, d, x, y, z;
-            // var nv, v = 0;
-            // var rand = function() {
-            //     return Math.random() - 0.5;
-            // }
-            // for( var f = 0; f < geometry.faces.length; f ++ ) {
-            //     var face = geometry.faces[ f ];
-            //     if ( face instanceof THREE.Face3 ) {
-            //         nv = 3;
-            //     } else {
-            //         nv = 4;
-            //     }
-            //     h = 0.15 * Math.random();
-            //     s = 0.7 * Math.random();
-            //     d = 10 * ( 0.5 - Math.random() );
-            //     x = rand() * (bb.max.x - bb.min.x);
-            //     y = rand() * (bb.max.y - bb.min.y) * 4;
-            //     z = rand() * (bb.max.z - bb.min.z) * 10;
-            //     for ( var i = 0; i < nv; i ++ ) {
-            //         colors[ v ] = new THREE.Color();
-            //         displacement[ v ] = new THREE.Vector3();
-            //         colors[ v ].setHSV( h, s, 1 );
-            //         colors[ v ].convertGammaToLinear();
-            //         displacement[ v ].set( x, y, z );
-            //         v += 1;
-            //     }
-            // }
-            // console.log( "faces", geometry.faces.length );
-            // stone = new THREE.Mesh( geometry, shaderMaterial );
-            // stone.rotation.set( 0.5, 0.5, 0 );
-            // stone.doubleSided = true;
-            // scene.add( mesh );
-        stone = new THREE.Mesh( geometry, material );
-        stone.position.x = x;
-        stone.position.y = y;
-        stone.position.z = Math.random() * 4 + spawnCoord;
-        stone.rotation.x = Math.random();
-        stone.rotation.y = Math.random();
-        arr.push(stone);
-        scene.add(stone);
+    stone = new THREE.Mesh( geometry, material );
+    stone.position.x = x;
+    stone.position.y = y;
+    stone.position.z = Math.random() * 4 + spawnCoord;
+    stone.rotation.x = Math.random();
+    stone.rotation.y = Math.random();
+    arr.push(stone);
+    scene.add(stone);
 };
 
-DT.generateFragments = function (scene, arr, x, y, z, numb) {
-    var geometry, 
-        material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: "red"}),
-        numb = numb || 2,
-        fragment;
-    for (var i = 0; i < 100; i++) {
-        geometry = new THREE.IcosahedronGeometry(0.1, 0);
-        fragment = new THREE.Mesh( geometry, material );
-        fragment.position.x = x + Math.random() * numb - 0.5 * numb;
-        fragment.position.y = y + Math.random() * numb - 0.5 * numb;
-        // fragment.rotation.x = Math.random();
-        // fragment.rotation.y = Math.random();
-        fragment.TTL = 240;
-        fragment.frames = 0;
-        arr.push(fragment);
-        scene.add(fragment);
-    }
-};
+// DT.generateFragments = function (scene, arr, x, y, z, numb) {
+//     var geometry, 
+//         material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, color: "red"}),
+//         numb = numb || 2,
+//         fragment;
+//     for (var i = 0; i < 100; i++) {
+//         geometry = new THREE.IcosahedronGeometry(0.1, 0);
+//         fragment = new THREE.Mesh( geometry, material );
+//         fragment.position.x = x + Math.random() * numb - 0.5 * numb;
+//         fragment.position.y = y + Math.random() * numb - 0.5 * numb;
+//         // fragment.rotation.x = Math.random();
+//         // fragment.rotation.y = Math.random();
+//         fragment.TTL = 240;
+//         fragment.frames = 0;
+//         arr.push(fragment);
+//         scene.add(fragment);
+//     }
+// };
 
 DT.genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
     var r = 0.25,

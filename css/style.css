@@ -12,7 +12,7 @@ body {
     opacity: 0.5;
 }
 
-.hit, .game_over, .menu_page, .loader, .choose_control{
+.hit, .game_over, .menu_page, .loader, .choose_control, .nogame{
     width: 100%;
     height: 100%;
     display: none;
@@ -49,11 +49,25 @@ body {
     display: block;
 }
 
+.gameTimer {
+    position: absolute;
+    opacity: 0.5;
+    left: 170px;
+    top: 5px;
+    font-size: 32px;
+    z-index: 4;
+}
 
 .loader {
     display: table;
     background-color: #000;
     z-index: 3;
+}
+
+.nogame {
+    display: none;
+    background-color: #000;
+    z-index: 4;
 }
 
 .startGame {

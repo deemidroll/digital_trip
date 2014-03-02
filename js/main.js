@@ -173,7 +173,16 @@ DT.onRenderFcts.push(function(delta, now) {
     emitter.update(delta).render();
     // DT.emittFragments.update(delta).render();
     stats.update();
+    stats2.update();
     DT.speed.increase();
+});
+
+DT.gameTimer = 0;
+DT.onRenderFcts.push(function () {
+    DT.gameTimer += 1;
+    if (DT.gameTimer % 60 === 0) {
+        DT.updateGameTimer(DT.gameTimer);
+    }
 });
 // LENS
 DT.onRenderFcts.push(function() {
@@ -319,7 +328,7 @@ DT.onRenderFcts.push(function() {
 DT.onRenderFcts.push(function() {
     if (!bonuses.length) {
         var x = DT.genCoord(),
-            y = 0;
+            y = 2.5;
         DT.genBonus(DT.scene, bonuses, DT.param.spawnCoord, x, y, DT.listOfModels);
     }
     if (bonuses.length) {

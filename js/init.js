@@ -422,22 +422,27 @@ DT.changeDestPoint = function(dy, dx, destPoint) {
     if (destPoint.x > -2.5 && dx < 0) {
         destPoint.x += dx * 2.5;
     }
-    if (DT.sphere.position.y + 2.5 < 0.1 && dy > 0) {
+    if (DT.sphere.position.y < -2 && dy > 0) {
+        DT.jumpLength = 0;
         DT.player.jump = true;
     }
-    if (destPoint.y > -2.5 && dy < 0) {
+    if (dy < 0) {
         DT.player.jump = false;
     }
 };
-
+DT.jumpLength = 0;
+DT.jumpOffset = 2.2;
 DT.onRenderFcts.push(function () {
-    if (DT.player.jump) {
-        DT.player.destPoint.y = 0;
-        if (DT.sphere.position.y > -0.1) {
-            DT.player.jump = false;
+    if (DT.jumpLength !== 0 || DT.player.jump) {
+        if (DT.jumpLength < 2 * DT.jumpOffset && !DT.player.jump) {
+            DT.jumpLength = 2 * 2 * DT.jumpOffset - DT.jumpLength;
         }
-    } else {
-        DT.player.destPoint.y = -2.5;
+        DT.jumpLength += 0.1 * (DT.speed.getValue() / 6);
+        DT.sphere.position.y = -(0.5 * DT.jumpLength-DT.jumpOffset)*(0.5 * DT.jumpLength-DT.jumpOffset) + 2.5;
+        if (DT.sphere.position.y < -2.5) {
+            DT.player.jump = false;
+            DT.jumpLength = 0;
+        }
     }
 });
 
@@ -872,7 +877,7 @@ DT.enableWebcam = function () {
     }, function () {
         console.log('OOOOOOOH! DEEEEENIED!');
         $(function() {
-            $(".message").html("sorry, webcam is not available. please choose another method of control");
+            $(".message").html("sorry, webcam is not available. please choose another control");
         });
     });
     
@@ -1057,6 +1062,15 @@ DT.enableWebcam = function () {
     }
 };
 
+DT.updateGameTimer = function (timer) {
+    var sec, min;
+    sec = timer / 60;
+    min = Math.floor(sec / 60);
+    sec = sec % 60;
+    sec < 10 ? sec = "0" + sec.toString() : sec;
+    $(".gameTimer").html(min + ":" + sec);
+}
+
 });
 
 // STATS
@@ -1066,3 +1080,11 @@ var stats = new Stats();
     stats.domElement.style.zIndex = 100;
 var body = document.getElementsByTagName("body")[0];
     body.appendChild( stats.domElement );
+var stats2 = new Stats();
+    stats2.setMode(1); // 0: fps, 1: ms
+    stats2.domElement.style.position = 'absolute';
+    stats2.domElement.style.top = '0px';
+    stats2.domElement.style.left = '80px';
+    stats2.domElement.style.zIndex = 100;
+var body = document.getElementsByTagName("body")[0];
+    body.appendChild( stats2.domElement );

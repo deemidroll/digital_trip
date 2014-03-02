@@ -316,7 +316,7 @@ ParticleEngine.prototype.createParticle = function()
                 x = DT.genRandomBetween(3.5, 10);
             } else  {
                 x = DT.genRandomBetween(-3.5, 3.5);
-                y = DT.genRandomBetween(1, 10);
+                y = DT.genRandomBetween(3, 10);
             }
         }
         z = -300;

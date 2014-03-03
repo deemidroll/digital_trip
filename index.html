@@ -81,7 +81,7 @@
     <!-- <div class="color"></div> -->
 
     <script src="vendor/jquery.min.js"></script>
-    <script src="vendor/three.js/build/three.js"></script>
+    <script src="vendor/three.js/build/three.min.js"></script>
 
     <!-- // <script src="vendor/three.js/GeometryUtils.js"></script> -->
     
@@ -100,59 +100,7 @@
     <script src="vendor/three.js/examples/ShaderPass.js"></script>
     <!-- end of scripts for blur.js -->
 
-    <!-- scripts for partical system -->
 
-    <script type="x-shader/x-vertex" id="vertexshader">
-
-            uniform float time;
-
-            attribute vec3 customColor;
-            attribute vec3 displacement;
-
-            varying vec3 vNormal;
-            varying vec3 vColor;
-
-            float quadraticEaseInOut ( float k ) {
-
-                if ( ( k *= 2.0 ) < 1.0 ) return 0.5 * k * k;
-                return - 0.5 * ( --k * ( k - 2.0 ) - 1.0 );
-
-            }
-
-            void main() {
-
-                vNormal = normal;
-                vColor = customColor;
-
-                float t = abs(time * 2.0 - 1.0);
-                //vec3 newPosition = position + time * displacement;
-                vec3 newPosition = quadraticEaseInOut(t) * (displacement - position) + position;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
-
-            }
-
-        </script>
-
-        <script type="x-shader/x-fragment" id="fragmentshader">
-
-            varying vec3 vNormal;
-            varying vec3 vColor;
-
-            void main() {
-
-                const float ambient = 0.005;
-
-                vec3 light = vec3( 1.0 );
-                light = normalize( light );
-
-                float directional = max( dot( vNormal, light ), 0.0 );
-
-                gl_FragColor = vec4( ( directional + ambient ) * vColor, 1.0 );
-                gl_FragColor.xyz = sqrt( gl_FragColor.xyz );
-
-            }
-
-        </script>
     <!-- // <script src="vendor/Tween.js"></script> -->
     <!-- // <script src="js/tween.min.js"></script> -->
     <script src="vendor/three.js/examples/fireworks-bundle.js"></script>

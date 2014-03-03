@@ -194,7 +194,7 @@ DT.onRenderFcts.push(function() {
         composer.render();
     } else if (DT.speed.getChanger() < 0) {
         DT.engine.velocityBase.z = 50;
-        DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
+        // DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
         DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z - 3);
         lens = Math.max(lens -= 0.3, DT.camera.lens - 18);
         composer.render();
@@ -206,7 +206,7 @@ DT.onRenderFcts.push(function() {
             DT.camera.position.z = Math.max(DT.camera.position.z -= 0.1, DT.camera.z);
             lens = Math.max(lens -= 0.3, DT.camera.lens);
         } else {
-            DT.camera.position.y = Math.min(DT.camera.position.y += 0.1, 0.5);
+            // DT.camera.position.y = Math.min(DT.camera.position.y += 0.1, 0.5);
             DT.camera.position.z = Math.min(DT.camera.position.z += 0.05, DT.camera.z);
             lens = Math.min(lens += 0.3, DT.camera.lens);
         }

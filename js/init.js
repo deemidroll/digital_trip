@@ -48,16 +48,16 @@ var DT = {
     },
     webaudio: new WebAudio(),
     sounds: {
-        soundCoin: 'sounds/coin.wav',
-        soundGameover: 'sounds/gameover.wav',
-        soundPause: 'sounds/pause.wav',
-        soundStoneDestroy: 'sounds/stoneDestroy.wav',
-        soundStoneMiss: 'sounds/stoneMiss.wav'
+        soundCoin: 'sounds/coin.ogg',
+        soundGameover: 'sounds/gameover.ogg',
+        soundPause: 'sounds/pause.ogg',
+        soundStoneDestroy: 'sounds/stoneDestroy.ogg',
+        soundStoneMiss: 'sounds/stoneMiss.ogg'
     },
     music: {
-        0: 'sounds/theField_overTheIce.mp3',
-        1: 'sounds/heart.mp3',
-        2: 'sounds/space_ambient2.mp3'
+        0: 'sounds/theField_overTheIce.ogg',
+        1: 'sounds/heart.ogg',
+        2: 'sounds/space_ambient2.ogg'
     },
     renderer: new THREE.WebGLRenderer(),
     camera: new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300),
@@ -525,7 +525,7 @@ $(function(){
         });
     });
     // control
-    $(document).keydown(function() {
+    $(document).keydown(function(event) {
         var destPoint = DT.player.destPoint,
             changeDestPoint = DT.changeDestPoint,
             k = event.keyCode;
@@ -550,7 +550,7 @@ $(function(){
         }
     });
 
-    $(document).keyup(function() {
+    $(document).keyup(function(event) {
         var k = event.keyCode;
         // speedDown
         if (k === 16) {
@@ -576,7 +576,7 @@ DT.soundStoneDestroy = DT.webaudio.createSound().load(DT.sounds.soundStoneDestro
 DT.soundStoneMiss = DT.webaudio.createSound().load(DT.sounds.soundStoneMiss);
 
 // MUSIC
-var context = new window.AudioContext(),
+var context,
     counter = 0,
     buffers = [], sources=[], destination, analysers = [],
     startedAt = [], pausedAt = [], stopped = [], paused = [], started = [],
@@ -585,6 +585,16 @@ var context = new window.AudioContext(),
     visualize, getFrequencyValue,
     onRenderFcts = DT.onRenderFcts,
     globalVolume = DT.param.globalVolume;
+
+window.addEventListener('load', function(){
+  try {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    context = new AudioContext();
+  }
+  catch(e) {
+    alert('Opps.. Your browser do not support audio API');
+  }
+}, false);
 
 DT.stopSound = function(index){
     if (stopped[index] === false) {

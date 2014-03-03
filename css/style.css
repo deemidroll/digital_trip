@@ -178,7 +178,7 @@ body {
 }
 
 #disp {
-    display: /*none*/;
+    display: none;
     position: absolute;
     top: 40%;
     left: 0;

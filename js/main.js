@@ -11,10 +11,10 @@ var stones = DT.collections.stones,
     caughtBonuses = DT.collections.caughtBonuses;
 // ParticleEngine
     // stardust
-var engine = new ParticleEngine(),
+DT.engine = new ParticleEngine(),
     clock = new THREE.Clock();
-    engine.setValues(DT.startunnel);
-    engine.initialize();
+    DT.engine.setValues(DT.startunnel);
+    DT.engine.initialize();
 
 // DT.renderer
 DT.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -137,10 +137,10 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 //////////////////////////////////////////////
 // ON RENDER 
 //////////////////////////////////////////////
-// Particle Engine - stardust
+// Particle DT.Engine - stardust
 DT.onRenderFcts.push(function() {
     var dt = clock.getDelta();
-    engine.update( dt * 0.5 );
+    DT.engine.update( dt * 0.5 );
 });
 
 // EMITTER Particle system - sphere tail
@@ -193,12 +193,14 @@ DT.onRenderFcts.push(function() {
         lens = Math.min(lens += 0.3, DT.camera.lens + 18)
         composer.render();
     } else if (DT.speed.getChanger() < 0) {
+        DT.engine.velocityBase.z = 50;
         DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
         DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z - 3);
         lens = Math.max(lens -= 0.3, DT.camera.lens - 18);
         composer.render();
     } else {
         var delta = DT.camera.lens - lens;
+        DT.engine.velocityBase.z = 100;
         if (delta < 0) {
             // DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
             DT.camera.position.z = Math.max(DT.camera.position.z -= 0.1, DT.camera.z);

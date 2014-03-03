@@ -129,8 +129,8 @@ var DT = {
         // blendStyle  : THREE.AdditiveBlending,
 
         particlesPerSecond : 1000,
-        particleDeathAge   : 4.0,
-        emitterDeathAge    : 60
+        particleDeathAge   : 8.0,
+        emitterDeathAge    : 300
     },
     blink: {
         color: new THREE.Color(),

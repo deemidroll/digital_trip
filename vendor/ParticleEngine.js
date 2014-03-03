@@ -333,7 +333,7 @@ ParticleEngine.prototype.createParticle = function()
         
     if ( this.velocityStyle == Type.CUBE )
     {
-        particle.velocity     = this.randomVector3( this.velocityBase, this.velocitySpread ); 
+        particle.velocity     = this.velocityBase; 
     }
     if ( this.velocityStyle == Type.SPHERE )
     {

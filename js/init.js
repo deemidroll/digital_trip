@@ -466,7 +466,7 @@ DT.moveSphere = function(sphere, destPoint, n) {
 DT.makeFun = function(time) {
     DT.player.isFun = true;
     DT.funTimer = (time || 10000) / 1000 * 60;
-    DT.speed.setChanger(-4);
+    DT.speed.setChanger(-5);
     DT.stopSound(0);
     DT.playSound(1);
 };
@@ -560,7 +560,7 @@ $(function(){
     });
 // BACKGROUND
 DT.backgroundMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(34, 17, 0),
+    new THREE.PlaneGeometry(44, 22, 0),
     new THREE.MeshBasicMaterial({
         map: DT.bgTexture
     }));

@@ -307,7 +307,7 @@ ParticleEngine.prototype.createParticle = function()
         n = Math.random();
         if (n > 0.75) {
             x = DT.genRandomBetween(-3.5, 3.5);
-            y = DT.genRandomBetween(-10, -3);
+            y = DT.genRandomBetween(-10, -3.5);
         } else {
             y = DT.genRandomBetween(-10, 10);
             if (n > 0.5) {

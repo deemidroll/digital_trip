@@ -188,19 +188,23 @@ DT.onRenderFcts.push(function () {
 DT.onRenderFcts.push(function() {
     var composer = DT.composer;
     if (DT.speed.getChanger() > 0) {
+        // DT.camera.position.y = Math.min(DT.camera.position.y += 0.1, 0.5);
         DT.camera.position.z = Math.min(DT.camera.position.z += 0.1, DT.camera.z + 6);
         lens = Math.min(lens += 0.3, DT.camera.lens + 18)
         composer.render();
     } else if (DT.speed.getChanger() < 0) {
+        DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
         DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z - 3);
         lens = Math.max(lens -= 0.3, DT.camera.lens - 18);
         composer.render();
     } else {
         var delta = DT.camera.lens - lens;
         if (delta < 0) {
+            // DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
             DT.camera.position.z = Math.max(DT.camera.position.z -= 0.1, DT.camera.z);
             lens = Math.max(lens -= 0.3, DT.camera.lens);
         } else {
+            DT.camera.position.y = Math.min(DT.camera.position.y += 0.1, 0.5);
             DT.camera.position.z = Math.min(DT.camera.position.z += 0.05, DT.camera.z);
             lens = Math.min(lens += 0.3, DT.camera.lens);
         }
@@ -329,7 +333,7 @@ DT.onRenderFcts.push(function() {
 DT.onRenderFcts.push(function() {
     if (!bonuses.length) {
         var x = DT.genCoord(),
-            y = 2.5;
+            y = -2.5;
         DT.genBonus(DT.scene, bonuses, DT.param.spawnCoord, x, y, DT.listOfModels);
     }
     if (bonuses.length) {

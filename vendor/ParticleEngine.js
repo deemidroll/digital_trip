@@ -305,14 +305,14 @@ ParticleEngine.prototype.createParticle = function()
     if (this.positionStyle == Type.CUBE)
         var x, y, z, n;
         n = Math.random();
-        if (n > 0.3) {
-            x = DT.genRandomBetween(-5.5, 5.5);
-            y = -3.5;
+        if (n > 0.75) {
+            x = DT.genRandomBetween(-3.5, 3.5);
+            y = DT.genRandomBetween(-10, -3);
         } else {
             y = DT.genRandomBetween(-10, 10);
-            if (n > 0.2) {
+            if (n > 0.5) {
                 x = DT.genRandomBetween(-10, -3.5);
-            } else if (n > 0.1) {
+            } else if (n > 0.25) {
                 x = DT.genRandomBetween(3.5, 10);
             } else  {
                 x = DT.genRandomBetween(-3.5, 3.5);
@@ -426,9 +426,9 @@ ParticleEngine.prototype.update = function(dt)
                 this.particleArray[i].color.g = DT.valueAudio/255/1 || 68/255;
                 this.particleArray[i].color.b = DT.valueAudio/255/1 || 81/255;
             } else {
-                this.particleArray[i].color.r = DT.sphere.material.color.r;
-                this.particleArray[i].color.g = DT.sphere.material.color.g;
-                this.particleArray[i].color.b = DT.sphere.material.color.b;
+                this.particleArray[i].color.r = DT.sphere.material.color.r || 1;
+                this.particleArray[i].color.g = DT.sphere.material.color.g || 1;
+                this.particleArray[i].color.b = DT.sphere.material.color.b || 1;
             }
                 
             //  this.particleArray[i].color.g = sphere.material.color.g * 1/dist;

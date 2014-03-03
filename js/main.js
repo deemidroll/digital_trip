@@ -188,21 +188,21 @@ DT.onRenderFcts.push(function () {
 DT.onRenderFcts.push(function() {
     var composer = DT.composer;
     if (DT.speed.getChanger() > 0) {
-        DT.camera.position.z = Math.max(DT.camera.position.z -= 0.1, DT.camera.z - 2);
-        lens = Math.max(lens -= 0.3, DT.camera.lens - 6)
+        DT.camera.position.z = Math.min(DT.camera.position.z += 0.1, DT.camera.z + 6);
+        lens = Math.min(lens += 0.3, DT.camera.lens + 18)
         composer.render();
     } else if (DT.speed.getChanger() < 0) {
-        DT.camera.position.z = Math.min(DT.camera.position.z += 0.05, DT.camera.z + 1);
-        lens = Math.min(lens += 0.3, DT.camera.lens + 6);
+        DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z - 3);
+        lens = Math.max(lens -= 0.3, DT.camera.lens - 18);
         composer.render();
     } else {
         var delta = DT.camera.lens - lens;
-        if (delta > 0) {
-            DT.camera.position.z = Math.min(DT.camera.position.z += 0.1, DT.camera.z);
-            lens = Math.min(lens += 0.3, DT.camera.lens);
-        } else {
-            DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z);
+        if (delta < 0) {
+            DT.camera.position.z = Math.max(DT.camera.position.z -= 0.1, DT.camera.z);
             lens = Math.max(lens -= 0.3, DT.camera.lens);
+        } else {
+            DT.camera.position.z = Math.min(DT.camera.position.z += 0.05, DT.camera.z);
+            lens = Math.min(lens += 0.3, DT.camera.lens);
         }
     }
     DT.camera.setLens(lens);
@@ -259,8 +259,9 @@ DT.onRenderFcts.push(function() {
             // el.position.y = y;
             // el.position.z = z;
             // // DT.scene.add(el);
-            el.rotation.y += 0.09;
-            el.rotation.x += 0.09;
+            
+            // el.rotation.y += 0.09;
+            // el.rotation.x += 0.09;
         }
         el.rotation.y += 0.014;
         el.rotation.x += 0.014;

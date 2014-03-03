@@ -1,0 +1,28 @@
+body {
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    font-weight: 300;
+    margin: 0px;
+    background-color: #000000;
+    overflow: hidden;
+    color: #eee;
+    text-align: center;
+    font-size: 4em;
+    vertical-align: middle;
+}
+
+button {
+    font-size: 1.5em;
+    margin: 50px;
+}
+
+.choose_control {
+    display: block;
+}
+
+.buttons_control {
+    display: none;
+}
+
+.gyro_control {
+    display: none;
+}

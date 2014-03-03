@@ -422,13 +422,13 @@ DT.changeDestPoint = function(dy, dx, destPoint) {
     if (destPoint.x > -2.5 && dx < 0) {
         destPoint.x += dx * 2.5;
     }
-    if (DT.sphere.position.y < -2 && dy > 0) {
-        DT.jumpLength = 0;
-        DT.player.jump = true;
-    }
-    if (dy < 0) {
-        DT.player.jump = false;
-    }
+    // if (DT.sphere.position.y < -2 && dy > 0) {
+    //     DT.jumpLength = 0;
+    //     DT.player.jump = true;
+    // }
+    // if (dy < 0) {
+    //     DT.player.jump = false;
+    // }
 };
 DT.jumpLength = 0;
 DT.jumpOffset = 2.2;
@@ -466,7 +466,7 @@ DT.moveSphere = function(sphere, destPoint, n) {
 DT.makeFun = function(time) {
     DT.player.isFun = true;
     DT.funTimer = (time || 10000) / 1000 * 60;
-    DT.speed.setChanger(-3);
+    DT.speed.setChanger(-4);
     DT.stopSound(0);
     DT.playSound(1);
 };
@@ -560,7 +560,7 @@ $(function(){
     });
 // BACKGROUND
 DT.backgroundMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(20, 10, 0),
+    new THREE.PlaneGeometry(34, 17, 0),
     new THREE.MeshBasicMaterial({
         map: DT.bgTexture
     }));
@@ -710,7 +710,7 @@ var renderer = DT.renderer,
     camera = DT.camera,
     composer,
     hblur, vblur,
-    bluriness = 0.5,
+    bluriness = 0,
     winResizeBlur;
 
 composer = new THREE.EffectComposer( renderer );

@@ -1089,9 +1089,9 @@ DT.initPhoneController = function() {
     } else { // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.37:8888';
+            server = 'http://192.168.1.38:8888';
         }
-        $("#gameConnect").html("Please open <span style=\"color: red\">" + server + "</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
+        $("#gameConnect").html("Please open <span style=\"color: red\">" + server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
         var socket = io.connect(server);
         // When initial welcome message, reply with 'game' device type
         socket.on('welcome', function(data) {

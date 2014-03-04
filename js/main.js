@@ -175,7 +175,7 @@ DT.onRenderFcts.push(function(delta, now) {
     stats.update();
     stats2.update();
     DT.speed.increase();
-    DT.engine.velocityBase.z = DT.speed.getValue() * 10;
+    DT.engine.velocityBase.z = DT.speed.getValue();
 });
 
 DT.gameTimer = 0;

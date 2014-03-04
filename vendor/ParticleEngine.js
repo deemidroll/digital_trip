@@ -306,20 +306,20 @@ ParticleEngine.prototype.createParticle = function()
         var x, y, z, n;
         n = Math.random();
         if (n > 0.75) {
-            x = DT.genRandomBetween(-3.5, 3.5);
-            y = DT.genRandomBetween(-10, -3.5);
+            x = DT.genRandomBetween(-DT.param.spacing + 0.5, DT.param.spacing + 0.5);
+            y = DT.genRandomBetween(-10, -DT.param.spacing + 0.5);
         } else {
             y = DT.genRandomBetween(-10, 10);
             if (n > 0.5) {
-                x = DT.genRandomBetween(-10, -3.5);
+                x = DT.genRandomBetween(-10, -DT.param.spacing + 0.5);
             } else if (n > 0.25) {
-                x = DT.genRandomBetween(3.5, 10);
+                x = DT.genRandomBetween(DT.param.spacing + 0.5, 10);
             } else  {
-                x = DT.genRandomBetween(-3.5, 3.5);
+                x = DT.genRandomBetween(-DT.param.spacing + 0.5, DT.param.spacing + 0.5);
                 y = DT.genRandomBetween(3, 10);
             }
         }
-        z = -300;
+        z = DT.genRandomBetween(-300, 10);
         particle.position = new THREE.Vector3(x, y, z);
 
     if (this.positionStyle == Type.SPHERE)
@@ -327,7 +327,7 @@ ParticleEngine.prototype.createParticle = function()
         var r = 10;
         var x = Math.random() * 2 - 1;
         var y = Math.sqrt(r * r - x * x);
-        var z = -100
+        var z = -300
         particle.position = new THREE.Vector3(x, y, z);
     }
         

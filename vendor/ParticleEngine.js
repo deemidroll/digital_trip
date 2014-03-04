@@ -306,16 +306,16 @@ ParticleEngine.prototype.createParticle = function()
         var x, y, z, n;
         n = Math.random();
         if (n > 0.75) {
-            x = DT.genRandomBetween(-DT.param.spacing + 0.5, DT.param.spacing + 0.5);
-            y = DT.genRandomBetween(-10, -DT.param.spacing + 0.5);
+            x = DT.genRandomBetween(-DT.param.spacing - 0.5, DT.param.spacing + 0.5);
+            y = DT.genRandomBetween(-10, -DT.param.spacing - 0.5);
         } else {
             y = DT.genRandomBetween(-10, 10);
             if (n > 0.5) {
-                x = DT.genRandomBetween(-10, -DT.param.spacing + 0.5);
+                x = DT.genRandomBetween(-10, -DT.param.spacing - 0.5);
             } else if (n > 0.25) {
                 x = DT.genRandomBetween(DT.param.spacing + 0.5, 10);
             } else  {
-                x = DT.genRandomBetween(-DT.param.spacing + 0.5, DT.param.spacing + 0.5);
+                x = DT.genRandomBetween(-DT.param.spacing - 0.5, DT.param.spacing + 0.5);
                 y = DT.genRandomBetween(3, 10);
             }
         }

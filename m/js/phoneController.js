@@ -1,6 +1,6 @@
 var initPhoneController = function() {
     // Game config
-    var server = 'http://188.226.168.19:8888',
+   var server = window.location.origin,
         leftBreakThreshold = -3,
         leftTurnThreshold = -20,
         rightBreakThreshold = 3,
@@ -9,6 +9,10 @@ var initPhoneController = function() {
         gameConnect = $("#gameConnect"),
         wheel = $("#wheel"),
         status = $("#status");
+
+    if (server === "http://127.0.0.1:8888") {
+        server = 'http://192.168.1.37:8888';
+    }
     // If client is an Android Phone
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
         // Show the controller ui with gamecode input

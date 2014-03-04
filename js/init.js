@@ -31,7 +31,7 @@ var DT = {
             return this.changer;
         },
         getValue: function () {
-            return this.value + this.changer;
+            return this.value;
         }
     },
     collections: {
@@ -1087,7 +1087,11 @@ DT.initPhoneController = function() {
     // If client is an Android Phone
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
     } else { // If client is browser game
-        var server = 'http://188.226.168.19:8888';
+        var server = window.location.origin;
+        if (server === "http://127.0.0.1:8888") {
+            server = 'http://192.168.1.37:8888';
+        }
+        $("#gameConnect").html("Please open <span style=\"color: red\">" + server + "</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
         var socket = io.connect(server);
         // When initial welcome message, reply with 'game' device type
         socket.on('welcome', function(data) {

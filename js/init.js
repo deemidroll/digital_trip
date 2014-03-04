@@ -1087,7 +1087,7 @@ DT.initPhoneController = function() {
     // If client is an Android Phone
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
     } else { // If client is browser game
-        var server = 'http://192.168.1.37:8888';
+        var server = 'http://188.226.168.19:8888';
         var socket = io.connect(server);
         // When initial welcome message, reply with 'game' device type
         socket.on('welcome', function(data) {

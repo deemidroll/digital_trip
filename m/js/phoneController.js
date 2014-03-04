@@ -1,6 +1,6 @@
 var initPhoneController = function() {
     // Game config
-    var server = 'http://192.168.1.37:8888',
+    var server = 'http://188.226.168.19:8888',
         leftBreakThreshold = -3,
         leftTurnThreshold = -20,
         rightBreakThreshold = 3,

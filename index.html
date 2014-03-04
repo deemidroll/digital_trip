@@ -6,6 +6,17 @@
     <link rel="stylesheet" type="text/css" href="css/style.css" />
 </head>
 <body>
+    <div id="controller" style="display:none">
+        <div id="socket">
+              <input type="text" name="socketId"/>
+            <input type="button" id="connect" value="Connect"/>
+        </div>
+        <div id="wheel" style="display:none">
+            <div id="turnRight"></div>
+            <div id="turnLeft"></div>
+        </div>
+        <div id="status"></div>
+    </div>
     <div class="helthbar">
         <div class="helth"></div>
     </div>
@@ -38,6 +49,10 @@
                 <span class="choose_mobile button">Mobile</span>
                 <span class="choose_webcam button">Webcam</span>
             </span>
+            <div id="gameConnect" style="display:none">
+                Please open up this page with your phone and enter code <span style="font-weight:bold" id="socketId"></span>
+            </div>
+            <div id="status"></div>
         </div>
     </div>
     <div class="menu_page">
@@ -118,5 +133,6 @@
     
     <script src="js/init.js"></script>
     <script src="js/main.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
 </body>
 </html>

@@ -1,0 +1,100 @@
+body,html {
+    background:#ccc;
+    padding:0;
+    margin:0;
+    overflow:hidden;
+    font-family:georgia;
+    text-align:center;
+    color: #666;
+    width:100%;
+    height:100%;
+}
+h1 {
+    color: #666 ; 
+}
+a {
+    color: blue;
+}
+
+#controller{
+   width:100%;
+   height:100%;
+   background: url('bg.png') repeat-x;
+   background-size:contain;
+}
+#wheel{
+   position:relative;
+   width:100%;
+   height:100%;
+}
+
+#forward{
+   position:absolute;
+   top:0;
+   left:0;
+   width:100%;
+   height: 100%;
+   background-image: url('forward.png');
+   background-repeat:no-repeat;
+   background-position: center center;
+   background-size:auto 75%;
+}
+
+#forward.active{
+   background-image: url('forwardon.png');
+}
+
+#stopRight{
+   position:absolute;
+   top:0;
+   left:0;
+   width:100%;
+   height: 100%;
+   background-image: url('stop.png');
+   background-repeat:no-repeat;
+   background-position: 98% center;
+   background-size:auto 40%;
+}
+#stopLeft{
+   position:absolute;
+   top:0;
+   left:0;
+   width:100%;
+   height: 100%;
+   background-image: url('stop.png');
+   background-repeat:no-repeat;
+   background-position: 2% center;
+   background-size:auto 40%;
+}
+
+#stopRight.active, #stopLeft.active{
+   background-image: url('stopon.png');
+}
+
+#turnLeft{
+   position:absolute;
+   top:0;
+   left:0;
+   width:100%;
+   height: 100%;
+   background-image: url('turn.png');
+   background-repeat:no-repeat;
+   background-position: 98% 95%;
+   background-size:auto 20%;
+   -webkit-transform:scaleX(-1);
+}
+#turnLeft.active, #turnRight.active{
+   background-image: url('turnon.png');
+}
+
+#turnRight{
+   position:absolute;
+   top:0;
+   left:0;
+   width:100%;
+   height: 100%;
+   background-image: url('turn.png');
+   background-repeat:no-repeat;
+   background-position: 98% 95%;
+   background-size:auto 20%;
+}

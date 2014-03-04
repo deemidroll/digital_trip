@@ -10,6 +10,7 @@ var DT = {
         jump: false
     },
     param: {
+        spacing: 3,
         spawnCoord: -200,
         opacityCoord: 2,
         dieCoord: 7,
@@ -75,6 +76,7 @@ var DT = {
     id: null,
     lastTimeMsec: null,
     startGame: function() {
+
         requestAnimationFrame(function animate(nowMsec) {
             var deltaMsec = Math.min(200, nowMsec - DT.lastTimeMsec);
             // keep looping
@@ -128,8 +130,8 @@ var DT = {
         opacityBase : 1,
         // blendStyle  : THREE.AdditiveBlending,
 
-        particlesPerSecond : 1000,
-        particleDeathAge   : 8.0,
+        particlesPerSecond : 500,
+        particleDeathAge   : 10.0,
         emitterDeathAge    : 300
     },
     blink: {
@@ -149,7 +151,7 @@ DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
 };
 
 DT.genCoord = function(delta) {
-    var offset = delta || 2.5,
+    var offset = delta || DT.param.spacing,
     x = Math.random() * offset * 2 - offset,
     absX = Math.abs(x);
     if (absX <= offset && absX >= offset * 0.33 ) {
@@ -294,7 +296,7 @@ DT.generateStone = function (scene, arr, spawnCoord) {
 // };
 
 DT.genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
-    var r = 0.25,
+    var r = 0.5,
     coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.05, 32, 1, true ),
     coin_cap_geo = new THREE.Geometry();
     for (var i = 0; i < 100; i++) {
@@ -414,13 +416,13 @@ DT.showBonuses = function (arr) {
 };
 
 DT.changeDestPoint = function(dy, dx, destPoint) {
-    var newPos = dx * 2.5;
+    var newPos = dx * DT.param.spacing;
 
-    if (destPoint.x < 2.5 && dx > 0) {
-        destPoint.x += dx * 2.5;
+    if (destPoint.x < DT.param.spacing && dx > 0) {
+        destPoint.x += dx * DT.param.spacing;
     }
-    if (destPoint.x > -2.5 && dx < 0) {
-        destPoint.x += dx * 2.5;
+    if (destPoint.x > -DT.param.spacing && dx < 0) {
+        destPoint.x += dx * DT.param.spacing;
     }
     // if (DT.sphere.position.y < -2 && dy > 0) {
     //     DT.jumpLength = 0;
@@ -536,7 +538,7 @@ $(function(){
         if (k === 39) changeDestPoint(0, 1, destPoint);
         // speedUp
         if (k === 16) {
-            DT.speed.setChanger(3);
+            DT.speed.setChanger(6);
             if (DT.player.isFun) {
                 DT.stopSound(1);
                 DT.playSound(0);
@@ -677,6 +679,9 @@ initSound = function(arrayBuffer, bufferIndex) {
                         DT.stopSound(2);
                         DT.playSound(0);
                     });
+                });
+                $(".choose_mobile").click(function() {
+                    DT.initPhoneController();
                 });
                 $(".choose_webcam").click(function() {
                     DT.enableWebcam();
@@ -1069,6 +1074,58 @@ DT.enableWebcam = function () {
                 state = 2;
                 break;
         }
+    }
+};
+
+DT.initPhoneController = function() {
+    // Game config
+    var leftBreakThreshold = -3;
+    var leftTurnThreshold = -20;
+    var rightBreakThreshold = 3;
+    var rightTurnThreshold = 20;
+
+    // If client is an Android Phone
+    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
+    } else { // If client is browser game
+        var server = 'http://192.168.1.37:8888';
+        var socket = io.connect(server);
+        // When initial welcome message, reply with 'game' device type
+        socket.on('welcome', function(data) {
+            socket.emit("device", {"type":"game"});
+        })
+        // We receive our game code to show the user
+        socket.on("initialize", function(gameCode) {
+            $("#gameConnect").show();
+            $("#socketId").html(gameCode);
+        });
+        // When the user inputs the code into the phone client,
+        //  we become 'connected'.  Start the game.
+        socket.on("connected", function(data) {
+            $("#gameConnect").hide();
+            $("#status").hide();
+            DT.startGame();
+            DT.stopSound(2);
+            DT.playSound(0);
+            $(".choose_control").fadeOut(250);
+        });
+        // When the phone is turned, turn the vehicle
+        socket.on('turn', function(turn) {
+            if(turn < leftBreakThreshold) {
+                if(turn > leftTurnThreshold) {
+                    DT.player.destPoint.x = 0;
+                } else {
+                    DT.player.destPoint.x = -DT.param.spacing;
+                }
+            } else if (turn > rightBreakThreshold) {
+                if(turn < rightTurnThreshold) {
+                    DT.player.destPoint.x = 0;
+                } else {
+                    DT.player.destPoint.x = DT.param.spacing;
+                }
+            } else {
+                DT.player.destPoint.x = 0;
+            }
+        });
     }
 };
 

@@ -327,7 +327,7 @@ ParticleEngine.prototype.createParticle = function()
         var r = 10;
         var x = Math.random() * 2 - 1;
         var y = Math.sqrt(r * r - x * x);
-        var z = -300
+        var z = -100
         particle.position = new THREE.Vector3(x, y, z);
     }
         

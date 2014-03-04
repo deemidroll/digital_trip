@@ -175,6 +175,7 @@ DT.onRenderFcts.push(function(delta, now) {
     stats.update();
     stats2.update();
     DT.speed.increase();
+    DT.engine.velocityBase.z = DT.speed.getValue() * 10;
 });
 
 DT.gameTimer = 0;
@@ -193,14 +194,12 @@ DT.onRenderFcts.push(function() {
         lens = Math.min(lens += 0.3, DT.camera.lens + 18)
         composer.render();
     } else if (DT.speed.getChanger() < 0) {
-        DT.engine.velocityBase.z = 50;
         // DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
         DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z - 3);
         lens = Math.max(lens -= 0.3, DT.camera.lens - 18);
         composer.render();
     } else {
         var delta = DT.camera.lens - lens;
-        DT.engine.velocityBase.z = 100;
         if (delta < 0) {
             // DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
             DT.camera.position.z = Math.max(DT.camera.position.z -= 0.1, DT.camera.z);

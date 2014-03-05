@@ -1,4 +1,4 @@
 digital_trip
 ============
 
-digital trip
+This is a WebGL project!

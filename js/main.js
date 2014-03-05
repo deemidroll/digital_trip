@@ -11,10 +11,10 @@ var stones = DT.collections.stones,
     caughtBonuses = DT.collections.caughtBonuses;
 // ParticleEngine
     // stardust
-DT.engine = new ParticleEngine(),
-    clock = new THREE.Clock();
-    DT.engine.setValues(DT.startunnel);
-    DT.engine.initialize();
+// DT.engine = new ParticleEngine(),
+    // clock = new THREE.Clock();
+    // DT.engine.setValues(DT.startunnel);
+    // DT.engine.initialize();
     // DT.engine.particleMaterial.uniforms.texture
 
 // DT.renderer
@@ -139,10 +139,10 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 // ON RENDER 
 //////////////////////////////////////////////
 // Particle DT.Engine - stardust
-DT.onRenderFcts.push(function() {
-    var dt = clock.getDelta();
-    DT.engine.update( dt * 0.5 );
-});
+// DT.onRenderFcts.push(function() {
+//     var dt = clock.getDelta();
+//     DT.engine.update( dt * 0.5 );
+// });
 
 // EMITTER Particle system - sphere tail
 DT.onRenderFcts.push(function() {
@@ -176,7 +176,7 @@ DT.onRenderFcts.push(function(delta, now) {
     stats.update();
     stats2.update();
     DT.speed.increase();
-    DT.engine.velocityBase.z = DT.speed.getValue();
+    // DT.engine.velocityBase.z = DT.speed.getValue();
 });
 
 DT.gameTimer = 0;
@@ -465,5 +465,37 @@ DT.onRenderFcts.push(function() {
         DT.lights.sphereLight.color.b = DT.sphere.material.color.b += DT.blink.db;
     }
     DT.blink.framesLeft -= 1;
+});
+var dustGeometry = new THREE.Geometry({});
+var dustNumber = 100;
+for (var i = 0; i < dustNumber; i++) {
+        var x = DT.genRandomBetween(-10, 10),
+            y = DT.genRandomBetween(-10, 10),
+            z = DT.genRandomBetween(-100, 0);
+    dustGeometry.vertices.push(new THREE.Vector3(x, y, z));
+}
+var dustMaterial = new THREE.ParticleSystemMaterial({size: 0.25});
+DT.dust = new THREE.ParticleSystem(dustGeometry, dustMaterial);
+console.log(DT.dust);
+DT.scene.add(DT.dust);
+DT.onRenderFcts.push(function () {
+    DT.dust.geometry.verticesNeedUpdate = true; 
+    if (!DT.player.isFun) {
+        DT.dust.material.color.r = DT.valueAudio/1/1 || 70/255;
+        DT.dust.material.color.g = DT.valueAudio/255/1 || 68/255;
+        DT.dust.material.color.b = DT.valueAudio/255/1 || 81/255;
+    } else {
+        DT.dust.material.color.r = DT.sphere.material.color.r || 1;
+        DT.dust.material.color.g = DT.sphere.material.color.g || 1;
+        DT.dust.material.color.b = DT.sphere.material.color.b || 1;
+    }
+    DT.dust.geometry.vertices.forEach(function (el) {
+        el.z += 0.1 * DT.speed.getValue();
+        if (el.z > 10) {
+            el.x = DT.genRandomBetween(-10, 10);
+            el.y = DT.genRandomBetween(-10, 10);
+            el.z = -100;
+        }
+    });
 });
 }());

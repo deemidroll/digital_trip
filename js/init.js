@@ -249,10 +249,10 @@ DT.generateStone = function (scene, arr, spawnCoord) {
     var radius, color, x, y, depth, geometry, material, stone,
         part = Math.random();
     if (part > 0.5) {
-        x = Math.random() * 10 - 5,
+        x = Math.random() * 10 - 5;
         y = Math.random() * 10 - 5;
     } else {
-        x = Math.random() * 30 - 15,
+        x = Math.random() * 30 - 15;
         y = Math.random() * 30 - 15;
     }
     if (Math.abs(x) > 5 || Math.abs(y) > 5) {

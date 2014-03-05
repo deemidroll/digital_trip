@@ -476,9 +476,11 @@ for (var i = 0; i < dustNumber; i++) {
 }
 var dustMaterial = new THREE.ParticleSystemMaterial({size: 0.25});
 DT.dust = new THREE.ParticleSystem(dustGeometry, dustMaterial);
+DT.dust.visible = false;
 console.log(DT.dust);
 DT.scene.add(DT.dust);
 DT.onRenderFcts.push(function () {
+    DT.dust.visible = true;
     DT.dust.geometry.verticesNeedUpdate = true; 
     if (!DT.player.isFun) {
         DT.dust.material.color.r = DT.valueAudio/1/1 || 70/255;

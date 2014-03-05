@@ -122,15 +122,15 @@ var DT = {
         angleVelocityBase       : 0,
         angleVelocitySpread     : 0,
         
-        particleTexture : THREE.ImageUtils.loadTexture( 'img/spikey.png' ),
+        particleTexture : THREE.ImageUtils.loadTexture( 'img/spikey3.png' ),
 
-        sizeBase    : 1.0,
-        sizeSpread  : 1.0,
+        sizeBase    : 0.5,
+        sizeSpread  : 0,
         colorBase   : new THREE.Vector3(0.0, 0.0, 0.1), // H,S,L
-        opacityBase : 1,
-        // blendStyle  : THREE.AdditiveBlending,
+        opacityBase : 0.5,
+        blendStyle  : THREE.AdditiveBlending,
 
-        particlesPerSecond : 1000,
+        particlesPerSecond : 500,
         particleDeathAge   : 4.0,
         emitterDeathAge    : 300
     },
@@ -1089,7 +1089,7 @@ DT.initPhoneController = function() {
     } else { // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.38:8888';
+            server = 'http://192.168.1.37:8888';
         }
         $("#gameConnect").html("Please open <span style=\"color: red\">" + server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
         var socket = io.connect(server);

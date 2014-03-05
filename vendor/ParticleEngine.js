@@ -304,22 +304,24 @@ ParticleEngine.prototype.createParticle = function()
 
     if (this.positionStyle == Type.CUBE)
         var x, y, z, n;
-        n = Math.random();
-        if (n > 0.75) {
-            x = DT.genRandomBetween(-DT.param.spacing - 0.5, DT.param.spacing + 0.5);
-            y = DT.genRandomBetween(-10, -DT.param.spacing - 0.5);
-        } else {
-            y = DT.genRandomBetween(-10, 10);
-            if (n > 0.5) {
-                x = DT.genRandomBetween(-10, -DT.param.spacing - 0.5);
-            } else if (n > 0.25) {
-                x = DT.genRandomBetween(DT.param.spacing + 0.5, 10);
-            } else  {
-                x = DT.genRandomBetween(-DT.param.spacing - 0.5, DT.param.spacing + 0.5);
-                y = DT.genRandomBetween(3, 10);
-            }
-        }
-        z = DT.genRandomBetween(-300, 10);
+        // n = Math.random();
+        // if (n > 0.75) {
+        //     x = DT.genRandomBetween(-DT.param.spacing - 0.5, DT.param.spacing + 0.5);
+        //     y = DT.genRandomBetween(-10, -DT.param.spacing - 0.5);
+        // } else {
+        //     y = DT.genRandomBetween(-10, 10);
+        //     if (n > 0.5) {
+        //         x = DT.genRandomBetween(-10, -DT.param.spacing - 0.5);
+        //     } else if (n > 0.25) {
+        //         x = DT.genRandomBetween(DT.param.spacing + 0.5, 10);
+        //     } else  {
+        //         x = DT.genRandomBetween(-DT.param.spacing - 0.5, DT.param.spacing + 0.5);
+        //         y = DT.genRandomBetween(3, 10);
+        //     }
+        // }
+        x = DT.genRandomBetween(-10, 10);
+        y = DT.genRandomBetween(-10, 10);
+        z = DT.genRandomBetween(-100, -10);
         particle.position = new THREE.Vector3(x, y, z);
 
     if (this.positionStyle == Type.SPHERE)
@@ -400,7 +402,7 @@ ParticleEngine.prototype.update = function(dt)
 
             // check if particle should expire
             // could also use: death by size<0 or alpha<0.
-            if ( this.particleArray[i].age > this.particleDeathAge ) 
+            if ( this.particleArray[i].age > this.particleDeathAge || this.particleArray[i].position.distanceTo(DT.sphere.position) < 5) 
             {
                 this.particleArray[i].alive = 0.0;
                 recycleIndices.push(i);

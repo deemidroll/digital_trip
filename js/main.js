@@ -15,6 +15,7 @@ DT.engine = new ParticleEngine(),
     clock = new THREE.Clock();
     DT.engine.setValues(DT.startunnel);
     DT.engine.initialize();
+    // DT.engine.particleMaterial.uniforms.texture
 
 // DT.renderer
 DT.renderer.setSize(window.innerWidth, window.innerHeight);

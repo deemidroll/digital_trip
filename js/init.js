@@ -484,12 +484,12 @@ DT.showLoading = function (n) {
     DT.showLoading.percent += 100/3;
     $(function () {
         $(".startGame").animate({left: DT.showLoading.percent}, {
-            duration: 400, 
+            duration: 500, 
             progress: function () {
                 var cur = $(".startGame").html();
                 cur = +cur + 1;
                 if (cur < DT.showLoading.percent) {
-                    console.log(cur);
+                    // console.log(cur);
                     $(".startGame").html(cur);
                 }
             },
@@ -595,15 +595,13 @@ var context,
     onRenderFcts = DT.onRenderFcts,
     globalVolume = DT.param.globalVolume;
 
-window.addEventListener('load', function(){
-  try {
+try {
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     context = new AudioContext();
-  }
-  catch(e) {
+}
+catch(e) {
     alert('Opps.. Your browser do not support audio API');
-  }
-}, false);
+}
 
 DT.stopSound = function(index){
     if (stopped[index] === false) {
@@ -708,27 +706,27 @@ getFrequencyValue = function(frequency, bufferIndex) {
 };
 
 // BLUR
-var renderer = DT.renderer,
-    scene = DT.scene,
-    camera = DT.camera,
-    composer,
-    hblur, vblur,
-    bluriness = 0,
-    winResizeBlur;
+// var renderer = DT.renderer,
+//     scene = DT.scene,
+//     camera = DT.camera,
+//     composer,
+//     hblur, vblur,
+//     bluriness = 0,
+//     winResizeBlur;
 
-composer = new THREE.EffectComposer( renderer );
-composer.addPass( new THREE.RenderPass( scene, camera ) );
+// composer = new THREE.EffectComposer( renderer );
+// composer.addPass( new THREE.RenderPass( scene, camera ) );
 
-hblur = new THREE.ShaderPass( THREE.HorizontalBlurShader );
-hblur.uniforms[ "h" ].value *= bluriness;
-composer.addPass( hblur );
+// hblur = new THREE.ShaderPass( THREE.HorizontalBlurShader );
+// hblur.uniforms[ "h" ].value *= bluriness;
+// composer.addPass( hblur );
 
-vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
-vblur.uniforms[ "v" ].value *= bluriness;
-vblur.renderToScreen = true;
-composer.addPass( vblur );
-DT.composer = composer;
-winResizeBlur   = new THREEx.WindowResize(composer, camera);
+// vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
+// vblur.uniforms[ "v" ].value *= bluriness;
+// vblur.renderToScreen = true;
+// composer.addPass( vblur );
+// DT.composer = composer;
+// winResizeBlur   = new THREEx.WindowResize(composer, camera);
 
 // add update function to webaudio prototype
 WebAudio.Sound.prototype.update = function() {

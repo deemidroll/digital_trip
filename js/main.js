@@ -54,7 +54,7 @@ for (var i = 0; i < dustNumber; i++) {
     dustGeometry.vertices.push(new THREE.Vector3(x, y, z));
 }
 DT.dust = new THREE.ParticleSystem(dustGeometry, dustMaterial);
-DT.dust.visible = false;
+DT.dust.material.visible = false;
 DT.scene.add(DT.dust);
 
 // create the emitter for sphere tail
@@ -193,17 +193,17 @@ DT.onRenderFcts.push(function () {
 });
 // LENS
 DT.onRenderFcts.push(function() {
-    var composer = DT.composer;
+    // var composer = DT.composer;
     if (DT.speed.getChanger() > 0) {
         // DT.camera.position.y = Math.min(DT.camera.position.y += 0.1, 0.5);
         DT.camera.position.z = Math.min(DT.camera.position.z += 0.1, DT.camera.z + 6);
         lens = Math.min(lens += 0.3, DT.camera.lens + 18)
-        composer.render();
+        // composer.render();
     } else if (DT.speed.getChanger() < 0) {
         // DT.camera.position.y = Math.max(DT.camera.position.y -= 0.1, -2.5);
         DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z - 3);
         lens = Math.max(lens -= 0.3, DT.camera.lens - 18);
-        composer.render();
+        // composer.render();
     } else {
         var delta = DT.camera.lens - lens;
         if (delta < 0) {
@@ -258,7 +258,7 @@ DT.onRenderFcts.push(function() {
             DT.soundStoneMiss.update();
             DT.soundStoneMiss.play();
         }
-        if (DT.valueAudio > 30 ) { 
+        // if (DT.valueAudio > 30 ) { 
             // var geometry = new THREE.IcosahedronGeometry(el.geometry.radius, 0),
             //     material = el.material,
             //     x = el.position.x,
@@ -273,7 +273,7 @@ DT.onRenderFcts.push(function() {
             
             // el.rotation.y += 0.09;
             // el.rotation.x += 0.09;
-        }
+        // }
         el.rotation.y += 0.014;
         el.rotation.x += 0.014;
         el.position.z += 0.1 * DT.speed.getValue();
@@ -472,7 +472,7 @@ DT.onRenderFcts.push(function() {
 });
 // DUST
 DT.onRenderFcts.push(function () {
-    DT.dust.visible = true;
+    DT.dust.material.visible = true;
     DT.dust.geometry.verticesNeedUpdate = true; 
     if (!DT.player.isFun) {
         DT.dust.material.color.r = DT.valueAudio/1/1 || 70/255;

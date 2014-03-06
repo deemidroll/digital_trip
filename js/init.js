@@ -488,8 +488,10 @@ DT.showLoading = function (n) {
             progress: function () {
                 var cur = $(".startGame").html();
                 cur = +cur + 1;
-                console.log(cur);
-                $(".startGame").html(+cur++);
+                if (cur < DT.showLoading.percent) {
+                    console.log(cur);
+                    $(".startGame").html(cur);
+                }
             },
             complete: function () {
                 $(".startGame").html(Math.floor(DT.showLoading.percent));

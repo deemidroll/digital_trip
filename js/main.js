@@ -9,13 +9,6 @@ var stones = DT.collections.stones,
     coins = DT.collections.coins,
     bonuses = DT.collections.bonuses,
     caughtBonuses = DT.collections.caughtBonuses;
-// ParticleEngine
-    // stardust
-// DT.engine = new ParticleEngine(),
-    // clock = new THREE.Clock();
-    // DT.engine.setValues(DT.startunnel);
-    // DT.engine.initialize();
-    // DT.engine.particleMaterial.uniforms.texture
 
 // DT.renderer
 DT.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -49,6 +42,20 @@ DT.scene.add(DT.lights.directionalLight);
 // DT.shield
 DT.shield.material.color = DT.sphere.material.color;
 DT.shield.position = DT.sphere.position;
+
+// DT.dust
+var dustMaterial = new THREE.ParticleSystemMaterial({size: 0.25}),
+    dustGeometry = new THREE.Geometry({}),
+    dustNumber = 100;
+for (var i = 0; i < dustNumber; i++) {
+        var x = DT.genRandomBetween(-10, 10),
+            y = DT.genRandomBetween(-10, 10),
+            z = DT.genRandomBetween(-100, 0);
+    dustGeometry.vertices.push(new THREE.Vector3(x, y, z));
+}
+DT.dust = new THREE.ParticleSystem(dustGeometry, dustMaterial);
+DT.dust.visible = false;
+DT.scene.add(DT.dust);
 
 // create the emitter for sphere tail
 emitter = Fireworks.createEmitter({nParticles : 100})
@@ -126,7 +133,6 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 //                 for( var i = 0; i < emitt.nParticles(); i++ ){
 //                     geometry.colors[i]  = new THREE.Color("green");
 //                 }
-                
 //                 DT.scene.add(particleSystem);
 //                 particleSystem.position = {x:0, y:0, z:0};
 
@@ -135,14 +141,13 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 //         }).back()
 //     .start();
 //     console.log(DT.emittFragments);
+
+
+
 //////////////////////////////////////////////
 // ON RENDER 
 //////////////////////////////////////////////
-// Particle DT.Engine - stardust
-// DT.onRenderFcts.push(function() {
-//     var dt = clock.getDelta();
-//     DT.engine.update( dt * 0.5 );
-// });
+
 
 // EMITTER Particle system - sphere tail
 DT.onRenderFcts.push(function() {
@@ -176,9 +181,9 @@ DT.onRenderFcts.push(function(delta, now) {
     stats.update();
     stats2.update();
     DT.speed.increase();
-    // DT.engine.velocityBase.z = DT.speed.getValue();
 });
 
+// game timer
 DT.gameTimer = 0;
 DT.onRenderFcts.push(function () {
     DT.gameTimer += 1;
@@ -274,21 +279,21 @@ DT.onRenderFcts.push(function() {
         el.position.z += 0.1 * DT.speed.getValue();
     });
 });
-// fragments lifecicle
-DT.onRenderFcts.push(function() {
-    if (fragments.length) {
-        fragments.forEach(function(el, ind, arr) {
-            el.frames += 1;
-            el.position.x *= 1.2;
-            el.position.y *= 1.2;
-            el.position.z += 0;
-            if (el.frames > el.TTL) {
-                DT.scene.remove(el);
-                arr.splice(ind, 1);
-            }
-        });
-    }
-});
+// // fragments lifecicle
+// DT.onRenderFcts.push(function() {
+//     if (fragments.length) {
+//         fragments.forEach(function(el, ind, arr) {
+//             el.frames += 1;
+//             el.position.x *= 1.2;
+//             el.position.y *= 1.2;
+//             el.position.z += 0;
+//             if (el.frames > el.TTL) {
+//                 DT.scene.remove(el);
+//                 arr.splice(ind, 1);
+//             }
+//         });
+//     }
+// });
 // coins lifecicle
 DT.onRenderFcts.push(function() {
     if (!coins.length) {
@@ -372,7 +377,6 @@ DT.onRenderFcts.push(function() {
                     el.rotation.z += 0.2;
                 }
 
-                // el.position.z -= 0.095 * DT.speed.getValue();
                 el.scale.x *= 0.9;
                 el.scale.y *= 0.9;
                 el.scale.z *= 0.9;
@@ -466,19 +470,7 @@ DT.onRenderFcts.push(function() {
     }
     DT.blink.framesLeft -= 1;
 });
-var dustGeometry = new THREE.Geometry({});
-var dustNumber = 100;
-for (var i = 0; i < dustNumber; i++) {
-        var x = DT.genRandomBetween(-10, 10),
-            y = DT.genRandomBetween(-10, 10),
-            z = DT.genRandomBetween(-100, 0);
-    dustGeometry.vertices.push(new THREE.Vector3(x, y, z));
-}
-var dustMaterial = new THREE.ParticleSystemMaterial({size: 0.25});
-DT.dust = new THREE.ParticleSystem(dustGeometry, dustMaterial);
-DT.dust.visible = false;
-console.log(DT.dust);
-DT.scene.add(DT.dust);
+// DUST
 DT.onRenderFcts.push(function () {
     DT.dust.visible = true;
     DT.dust.geometry.verticesNeedUpdate = true; 
@@ -500,4 +492,19 @@ DT.onRenderFcts.push(function () {
         }
     });
 });
+
+// JUMP
+// DT.onRenderFcts.push(function () {
+//     if (DT.jumpLength !== 0 || DT.player.jump) {
+//         if (DT.jumpLength < 2 * DT.jumpOffset && !DT.player.jump) {
+//             DT.jumpLength = 2 * 2 * DT.jumpOffset - DT.jumpLength;
+//         }
+//         DT.jumpLength += 0.1 * (DT.speed.getValue() / 6);
+//         DT.sphere.position.y = -(0.5 * DT.jumpLength-DT.jumpOffset)*(0.5 * DT.jumpLength-DT.jumpOffset) + 2.5;
+//         if (DT.sphere.position.y < -2.5) {
+//             DT.player.jump = false;
+//             DT.jumpLength = 0;
+//         }
+//     }
+// });
 }());

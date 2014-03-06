@@ -63,7 +63,7 @@ var DT = {
     renderer: new THREE.WebGLRenderer(),
     camera: new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300),
     scene: new THREE.Scene(),
-    composer: null,
+    composer: null, // not used
     onRenderFcts: [],
     sphere: new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000})),
     lights: {
@@ -116,8 +116,11 @@ var DT = {
         dg: 0,
         db: 0
     },
-    emittFragments: null,
+    emittFragments: null, // not used
     bgTexture: THREE.ImageUtils.loadTexture( 'img/bg.jpg' ),
+    invulnerTimer: null,
+    jumpLength: 0, // not used
+    jumpOffset: 2.2, // not used
 };
 // auxiliary functions
 DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
@@ -163,7 +166,6 @@ DT.changeHelth = function(currHelth, delta) {
     return currHelth;
 };
 
-DT.invulnerTimer;
 DT.dontFeelPain = function (time) {
     DT.invulnerTimer = (time || 10000) / 1000 * 60;
     DT.player.isInvulnerability = true;
@@ -321,12 +323,13 @@ DT.genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
 };
 
 DT.genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
-    var listOfModels = DT.listOfModels;
-    var type = DT.genRandomFloorBetween(0, 2);
-    // var type = 1;
-    var geometry = listOfModels[type].geometry,
-        material = listOfModels[type].material,
-        bonus = new THREE.Mesh( geometry, material );
+    var listOfModels = DT.listOfModels,
+        type, geometry, material, bonus;
+    type = DT.genRandomFloorBetween(0, 2);
+    // type = 1;
+    geometry = listOfModels[type].geometry;
+    material = listOfModels[type].material;
+    bonus = new THREE.Mesh( geometry, material );
 
     bonus.position.x = x;
     bonus.position.y = y;
@@ -406,21 +409,6 @@ DT.changeDestPoint = function(dy, dx, destPoint) {
     //     DT.player.jump = false;
     // }
 };
-DT.jumpLength = 0;
-DT.jumpOffset = 2.2;
-DT.onRenderFcts.push(function () {
-    if (DT.jumpLength !== 0 || DT.player.jump) {
-        if (DT.jumpLength < 2 * DT.jumpOffset && !DT.player.jump) {
-            DT.jumpLength = 2 * 2 * DT.jumpOffset - DT.jumpLength;
-        }
-        DT.jumpLength += 0.1 * (DT.speed.getValue() / 6);
-        DT.sphere.position.y = -(0.5 * DT.jumpLength-DT.jumpOffset)*(0.5 * DT.jumpLength-DT.jumpOffset) + 2.5;
-        if (DT.sphere.position.y < -2.5) {
-            DT.player.jump = false;
-            DT.jumpLength = 0;
-        }
-    }
-});
 
 DT.moveSphere = function(sphere, destPoint, n) {
     for (var i = 0; i < n; i++) {
@@ -715,6 +703,7 @@ vblur.renderToScreen = true;
 composer.addPass( vblur );
 DT.composer = composer;
 winResizeBlur   = new THREEx.WindowResize(composer, camera);
+
 // add update function to webaudio prototype
 WebAudio.Sound.prototype.update = function() {
     this.volume(DT.param.globalVolume);
@@ -746,56 +735,6 @@ THREE.IcosahedronGeometry = function ( radius, detail ) {
 
 };
 THREE.IcosahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
-
-// THREE.DodecahedronGeometry = function ( radius, detail ) {
-//     this.radius = radius;
-//     this.detail = detail;
-//     var p = (1 + Math.sqrt(5))/2, q = 1/p;
-
-//     var vertices = [
-//         [ 0,  q,  p], //  0  green
-//         [ 0,  q, -p], //  1
-//         [ 0, -q,  p], //  2
-//         [ 0, -q, -p], //  3
-//         [ p,  0,  q], //  4  pink
-//         [ p,  0, -q], //  5
-//         [-p,  0,  q], //  6
-//         [-p,  0, -q], //  7
-//         [ q,  p,  0], //  8  blue
-//         [ q, -p,  0], //  9
-//         [-q,  p,  0], // 10
-//         [-q, -p,  0], // 11
-//         [ 1,  1,  1], // 12  orange
-//         [ 1,  1, -1], // 13
-//         [ 1, -1,  1], // 14
-//         [ 1, -1, -1], // 15
-//         [-1,  1,  1], // 16
-//         [-1,  1, -1], // 17
-//         [-1, -1,  1], // 18
-//         [-1, -1, -1]  // 19
-//     ]; 
-
-//     var faces = [
-//         [16,0,2,18,6],
-
-//         [16,10,8,12,0],
-//         [0,12,4,14,2],
-//         [2,14,9,11,18],
-//         [18,11,19,7,6],
-//         [6,7,17,10,16],
-
-//         [1,17,10,8,13],
-//         [13,8,12,4,5],
-//         [5,4,14,9,15],
-//         [15,9,11,19,3],
-//         [3,19,7,17,1],
-
-//         [1,13,5,15,3]
-//     ];
-//     THREE.PolyhedronGeometry.call( this, vertices, faces, radius, detail );
-// };
-
-// THREE.DodecahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
 
 // add method repeat
 String.prototype.repeat = function(num) {

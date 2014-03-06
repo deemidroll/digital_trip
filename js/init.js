@@ -108,32 +108,6 @@ var DT = {
             rotation: {x: 0, y: 0, z: 0}
     }],
     valueAudio: 0,
-    startunnel: {
-        positionStyle  : Type.CUBE,
-        positionBase   : new THREE.Vector3( 0, 0, -100 ),
-        positionSpread : new THREE.Vector3( 0, 0, 0 ),
-
-        velocityStyle  : Type.CUBE,
-        velocityBase   : new THREE.Vector3( 0, 0, 100 ),
-        velocitySpread : new THREE.Vector3( 0, 0, 0 ), 
-        
-        angleBase               : 0,
-        angleSpread             : 0,
-        angleVelocityBase       : 0,
-        angleVelocitySpread     : 0,
-        
-        particleTexture : THREE.ImageUtils.loadTexture( 'img/spikey3.png' ),
-
-        sizeBase    : 0.5,
-        sizeSpread  : 0,
-        colorBase   : new THREE.Vector3(0.0, 0.0, 0.1), // H,S,L
-        opacityBase : 0.5,
-        blendStyle  : THREE.AdditiveBlending,
-
-        particlesPerSecond : 500,
-        particleDeathAge   : 4.0,
-        emitterDeathAge    : 300
-    },
     blink: {
         color: new THREE.Color(),
         frames: 0,
@@ -834,7 +808,7 @@ var loader = new THREE.JSONLoader(), // init the loader util
 
 // init loading
 loadModel = function(modelObj) {
-    loader.load('js/' + modelObj.name + '.js', function (geometry, materials) {
+    loader.load('js/models/' + modelObj.name + '.js', function (geometry, materials) {
     // create a new material
     modelObj.material = new THREE.MeshFaceMaterial( materials );
     // shining of bonuses

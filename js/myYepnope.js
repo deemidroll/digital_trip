@@ -1,3 +1,15 @@
+yepnope.loadCounter = 0;
+yepnope.percent = 0;
+yepnope.showLoading = function (n) {
+    yepnope.percent += 10;
+    yepnope.loadCounter += 1;
+    $(function () {
+        $(".startGame").html(Math.floor(yepnope.percent));
+        if (n === 3) {
+            DT.runApp();
+        }
+    });
+};
 yepnope([{
     load: [
         "js/vendor/jquery.min.js",
@@ -7,38 +19,38 @@ yepnope([{
         "js/vendor/fireworks-bundle.js",
         "js/vendor/Stats.js",
         "js/vendor/webaudio.js",
-        "socket.io/socket.io.js"
+        "/socket.io/socket.io.js"
     ],
     callback: {
         "jquery.min.js": function () {
-            console.log("jquery.min.js loaded!");
+            yepnope.showLoading();
         },
         "three.min.js": function () {
-            console.log("three.min.js loaded!");
+            yepnope.showLoading();
         },
         "Detector.js": function () {
-            console.log("Detector.js loaded!");
+            yepnope.showLoading();
         },
         "threex.windowresize.js": function () {
-            console.log("threex.windowresize.js loaded!");
+            yepnope.showLoading();
         },
         "fireworks-bundle.js": function () {
-            console.log("fireworks-bundle.js loaded!");
+            yepnope.showLoading();
         },
         "Stats.js": function () {
-            console.log("Stats.js loaded!");
+            yepnope.showLoading();
         },
         "webaudio.js": function () {
-            console.log("webaudio.js loaded!");
+            yepnope.showLoading();
         },
         "socket.io.js": function () {
-            console.log("socket.io.js loaded!");
+            yepnope.showLoading();
         },
         "init.js": function () {
-            console.log("init.js loaded!");
+            yepnope.showLoading();
         },
         "main.js": function () {
-            console.log("main.js loaded!");
+            yepnope.showLoading();
         }
     }
 }, {

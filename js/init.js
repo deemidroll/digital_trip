@@ -480,30 +480,6 @@ DT.bump = function (amp) {
             });
  };
 
-DT.showLoading = function (n) {
-    DT.showLoading.percent += 100/3;
-    $(function () {
-        $(".startGame").animate({left: DT.showLoading.percent}, {
-            duration: 500, 
-            progress: function () {
-                var cur = $(".startGame").html();
-                cur = +cur + 1;
-                if (cur < DT.showLoading.percent) {
-                    // console.log(cur);
-                    $(".startGame").html(cur);
-                }
-            },
-            complete: function () {
-                $(".startGame").html(Math.floor(DT.showLoading.percent));
-                if (n === 3) {
-                    DT.runApp();
-                }
-            }
-        });
-    });
-};
-DT.showLoading.percent = 0;
-
 $(function(){
     $(".menu_button").click(function() {
         $(".menu_page").css({"display": "table"});
@@ -673,7 +649,7 @@ initSound = function(arrayBuffer, bufferIndex) {
         buffers[bufferIndex] = decodedArrayBuffer;
         console.log("ready sound " + bufferIndex);
         counter += 1;
-        DT.showLoading(counter);
+        yepnope.showLoading(counter);
     }, function(e) {
         console.log('Error decoding file', e);
     });

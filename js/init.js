@@ -459,6 +459,49 @@ DT.bump = function (amp) {
     }
  };
 
+ DT.runApp = function () {
+    DT.playSound(2);
+            $(function() {
+                $(".loader").fadeOut(250);
+                $(".choose_control").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 250);
+                $(".choose_wasd").click(function() {
+                    $(".choose_control").fadeOut(250, function() {
+                        DT.startGame();
+                        DT.stopSound(2);
+                        DT.playSound(0);
+                    });
+                });
+                $(".choose_mobile").click(function() {
+                    DT.initPhoneController();
+                });
+                $(".choose_webcam").click(function() {
+                    DT.enableWebcam();
+                });
+            });
+ };
+
+DT.showLoading = function (n) {
+    DT.showLoading.percent += 100/3;
+    $(function () {
+        $(".startGame").animate({left: DT.showLoading.percent}, {
+            duration: 400, 
+            progress: function () {
+                var cur = $(".startGame").html();
+                cur = +cur + 1;
+                console.log(cur);
+                $(".startGame").html(+cur++);
+            },
+            complete: function () {
+                $(".startGame").html(Math.floor(DT.showLoading.percent));
+                if (n === 3) {
+                    DT.runApp();
+                }
+            }
+        });
+    });
+};
+DT.showLoading.percent = 0;
+
 $(function(){
     $(".menu_button").click(function() {
         $(".menu_page").css({"display": "table"});
@@ -630,26 +673,7 @@ initSound = function(arrayBuffer, bufferIndex) {
         buffers[bufferIndex] = decodedArrayBuffer;
         console.log("ready sound " + bufferIndex);
         counter += 1;
-        if (counter === 3) {
-            DT.playSound(2);
-            $(function() {
-                $(".loader").fadeOut(250);
-                $(".choose_control").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 250);
-                $(".choose_wasd").click(function() {
-                    $(".choose_control").fadeOut(250, function() {
-                        DT.startGame();
-                        DT.stopSound(2);
-                        DT.playSound(0);
-                    });
-                });
-                $(".choose_mobile").click(function() {
-                    DT.initPhoneController();
-                });
-                $(".choose_webcam").click(function() {
-                    DT.enableWebcam();
-                });
-            });
-        }
+        DT.showLoading(counter);
     }, function(e) {
         console.log('Error decoding file', e);
     });

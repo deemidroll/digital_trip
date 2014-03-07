@@ -811,12 +811,17 @@ DT.enableWebcam = function () {
         overthresh=1000,
         avg=0,
         state=0;//States: 0 waiting for gesture, 1 waiting for next move after gesture, 2 waiting for gesture to end
-    navigator.webkitGetUserMedia({audio:false,video:true}, function (stream) {
+
+    var GetUserMedia = "webkitGetUserMedia";
+    if (!navigator.webkitGetUserMedia) {
+        GetUserMedia = "mozGetUserMedia";
+    }
+    navigator[GetUserMedia]({audio:false,video:true}, function (stream) {
         DT.startGame();
         DT.stopSound(2);
         DT.playSound(0);
         $(".choose_control").fadeOut(250);
-        video.src=window.webkitURL.createObjectURL(stream);
+        video.src=window.URL.createObjectURL(stream);
         video.addEventListener('play', function () {
             setInterval(dump,1000/25);
         });

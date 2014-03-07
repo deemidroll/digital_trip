@@ -49,16 +49,19 @@ var DT = {
     },
     webaudio: new WebAudio(),
     sounds: {
-        soundCoin: 'sounds/coin.ogg',
-        soundGameover: 'sounds/gameover.ogg',
-        soundPause: 'sounds/pause.ogg',
-        soundStoneDestroy: 'sounds/stoneDestroy.ogg',
-        soundStoneMiss: 'sounds/stoneMiss.ogg'
+        soundCoin: 'sounds/coin.',
+        soundGameover: 'sounds/gameover.',
+        soundPause: 'sounds/pause.',
+        soundStoneDestroy: 'sounds/stoneDestroy.',
+        soundStoneMiss: 'sounds/stoneMiss.'
     },
     music: {
         0: 'sounds/theField_overTheIce.ogg',
         1: 'sounds/heart.ogg',
-        2: 'sounds/space_ambient2.ogg'
+        2: 'sounds/space_ambient2.ogg',
+        3: 'sounds/theField_overTheIce.mp3',
+        4: 'sounds/heart.mp3',
+        5: 'sounds/space_ambient2.mp3'
     },
     renderer: new THREE.WebGLRenderer(),
     camera: new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300),
@@ -553,12 +556,7 @@ DT.backgroundMesh.material.depthTest = false;
 DT.backgroundMesh.material.depthWrite = false;
 DT.backgroundMesh.visible = false;
 DT.scene.add(DT.backgroundMesh);
-// SOUNDS
-DT.soundCoin = DT.webaudio.createSound().load(DT.sounds.soundCoin);
-DT.soundGameover = DT.webaudio.createSound().load(DT.sounds.soundGameover);
-DT.soundPause = DT.webaudio.createSound().load(DT.sounds.soundPause);
-DT.soundStoneDestroy = DT.webaudio.createSound().load(DT.sounds.soundStoneDestroy);
-DT.soundStoneMiss = DT.webaudio.createSound().load(DT.sounds.soundStoneMiss);
+
 
 // MUSIC
 var context,
@@ -571,6 +569,9 @@ var context,
     onRenderFcts = DT.onRenderFcts,
     globalVolume = DT.param.globalVolume;
 
+var audio = new Audio();
+var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs="vorbis"') != "";
+console.log("canPlayOgg", canPlayOgg);
 try {
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     context = new AudioContext();
@@ -644,6 +645,7 @@ DT.pauseSoundOff = function() {
 
 };
 
+
 initSound = function(arrayBuffer, bufferIndex) {
     context.decodeAudioData(arrayBuffer, function(decodedArrayBuffer) {
         buffers[bufferIndex] = decodedArrayBuffer;
@@ -655,9 +657,13 @@ initSound = function(arrayBuffer, bufferIndex) {
     });
 }
 
-loadSoundFile = function(url, bufferIndex) {
+loadSoundFile = function(urlArr, bufferIndex) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    if (canPlayOgg) {
+        xhr.open('GET', urlArr[bufferIndex], true);
+    } else {
+        xhr.open('GET', urlArr[bufferIndex + 3], true);
+    }
     xhr.responseType = 'arraybuffer';
     xhr.onload = function(e) {
         initSound(this.response, bufferIndex); // this.response is an ArrayBuffer.
@@ -665,9 +671,9 @@ loadSoundFile = function(url, bufferIndex) {
     xhr.send();
 }
 
-loadSoundFile(DT.music[0], 0);
-loadSoundFile(DT.music[1], 1);
-loadSoundFile(DT.music[2], 2);
+loadSoundFile(DT.music, 0);
+loadSoundFile(DT.music, 1);
+loadSoundFile(DT.music, 2);
 
 visualize = function(index) {
     freqDomain[index] = new Uint8Array(analysers[index].frequencyBinCount);
@@ -680,6 +686,18 @@ getFrequencyValue = function(frequency, bufferIndex) {
         index = Math.round(frequency/nyquist * freqDomain[bufferIndex].length);
     return freqDomain[bufferIndex][index];
 };
+
+// SOUNDS
+var ext = "ogg";
+if (!canPlayOgg) {
+    ext = "mp3";
+}
+DT.soundCoin = DT.webaudio.createSound().load(DT.sounds.soundCoin + ext);
+DT.soundGameover = DT.webaudio.createSound().load(DT.sounds.soundGameover + ext);
+DT.soundPause = DT.webaudio.createSound().load(DT.sounds.soundPause + ext);
+DT.soundStoneDestroy = DT.webaudio.createSound().load(DT.sounds.soundStoneDestroy + ext);
+DT.soundStoneMiss = DT.webaudio.createSound().load(DT.sounds.soundStoneMiss + ext);
+
 
 // BLUR
 // var renderer = DT.renderer,
@@ -991,6 +1009,9 @@ DT.enableWebcam = function () {
 };
 
 DT.initPhoneController = function() {
+    if (DT.initPhoneController.message) {
+        $(".message").html(DT.initPhoneController.message);
+    }
     // Game config
     var leftBreakThreshold = -3;
     var leftTurnThreshold = -20;
@@ -1002,9 +1023,8 @@ DT.initPhoneController = function() {
     } else { // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.37:8888';
+            server = 'http://192.168.1.38:8888';
         }
-        $("#gameConnect").html("Please open <span style=\"color: red\">" + server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
         var socket = io.connect(server);
         // When initial welcome message, reply with 'game' device type
         socket.on('welcome', function(data) {
@@ -1012,8 +1032,9 @@ DT.initPhoneController = function() {
         })
         // We receive our game code to show the user
         socket.on("initialize", function(gameCode) {
-            $("#gameConnect").show();
+            $(".message").html("Please open <span style=\"color: red\">" + server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
             $("#socketId").html(gameCode);
+            DT.initPhoneController.message = $(".message").html();
         });
         // When the user inputs the code into the phone client,
         //  we become 'connected'.  Start the game.

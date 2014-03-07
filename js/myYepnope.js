@@ -4,10 +4,17 @@ yepnope.showLoading = function (n) {
     yepnope.percent += 10;
     yepnope.loadCounter += 1;
     $(function () {
-        $(".startGame").html(Math.floor(yepnope.percent));
-        if (n === 3) {
-            DT.runApp();
-        }
+        $(".loading").animate({left: yepnope.percent+"px"}, {
+            duration: 100,
+            queue: true,
+            step: function () {
+                var current = parseInt($(".loading").css("left"));
+                $(".startGame").html(Math.floor(current));
+                if (n === 3) {
+                    DT.runApp();
+                }
+            }
+        });
     });
 };
 yepnope([{

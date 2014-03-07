@@ -4,10 +4,10 @@ yepnope.showLoading = function (n) {
     yepnope.percent += 10;
     yepnope.loadCounter += 1;
     $(function () {
-        $(".loading").animate({left: yepnope.percent+"px"}, {
+        $(".loading").animate({minWidth: yepnope.percent+"px"}, {
             duration: 100,
             progress: function () {
-                var current = parseInt($(".loading").css("left"));
+                var current = parseInt($(".loading").css("minWidth"), 10);
                 $(".startGame").html(Math.floor(current));
             },
             complete: function () {

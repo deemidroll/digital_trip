@@ -5,11 +5,12 @@ yepnope.showLoading = function (n) {
     yepnope.loadCounter += 1;
     $(function () {
         $(".loading").animate({left: yepnope.percent+"px"}, {
-            duration: 100,
-            queue: true,
-            step: function () {
+            duration: 500,
+            progress: function () {
                 var current = parseInt($(".loading").css("left"));
                 $(".startGame").html(Math.floor(current));
+            },
+            complete: function () {
                 if (n === 3) {
                     DT.runApp();
                 }

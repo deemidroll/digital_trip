@@ -31,6 +31,11 @@ var socketCodes = {};
 io.sockets.on('connection', function(socket) {
     // Confirm the connection
     socket.emit("welcome", {});
+
+    socket.on("vibr", function (data) {
+        // ...emit a "message" event to every other socket
+        socket.broadcast.emit("vibr", data);
+    });
     
     // Receive the client device type
     socket.on("device", function(device) {

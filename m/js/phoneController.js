@@ -11,10 +11,11 @@ var initPhoneController = function() {
         status = $("#status");
 
     if (server === "http://127.0.0.1:8888") {
-        server = 'http://192.168.1.38:8888';
+        server = 'http://192.168.1.37:8888';
     }
     // If client is an Android Phone
-    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
+    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
+        console.log(navigator.userAgent);
         // Show the controller ui with gamecode input
         controller.show();
         // When connect is pushed, establish socket connection
@@ -26,8 +27,15 @@ var initPhoneController = function() {
                 // Send 'controller' device type with our entered game code
                 socket.emit("device", {"type":"controller", "gameCode":gameCode});
             });
+            socket.on("vibr", function(data) {
+                if (data.gameCode === gameCode) {
+                    console.log("vibtare", data.time);
+                    navigator.vibrate(data.time);
+                }
+            });
             // When game code is validated, we can begin playing...
             socket.on("connected", function(data) {
+
                 // Hide game code input, and show the vehicle wheel UI
                 $("#socket").hide();
                 wheel.show();
@@ -53,12 +61,12 @@ var initPhoneController = function() {
                         g = event.gamma; // forward/back 'tilt'
                     // Regardless of phone direction, 
                     //  left/right tilt should behave the same
-                    var turn = b;
-                    if( a > 270 || a < 90 ) {
-                        turn = 0 - b;
-                    } else {
-                        turn = b;
-                    }
+                    var turn = g;
+                    // if( a > 270 || a < 90 ) {
+                    //     turn = 0 - g;
+                    // } else {
+                    //     turn = g;
+                    // }
                     // Update controller UI
                     updateController(turn);
                     // Tell game to turn the vehicle

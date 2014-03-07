@@ -1028,15 +1028,17 @@ DT.initPhoneController = function() {
     } else { // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.38:8888';
+            server = 'http://192.168.1.37:8888';
         }
-        var socket = io.connect(server);
+        DT.initPhoneController.socket = io.connect(server);
+        var socket = DT.initPhoneController.socket;
         // When initial welcome message, reply with 'game' device type
         socket.on('welcome', function(data) {
             socket.emit("device", {"type":"game"});
         })
         // We receive our game code to show the user
         socket.on("initialize", function(gameCode) {
+            socket.gameCode = gameCode;
             $(".message").html("Please open <span style=\"color: red\">" + server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
             $("#socketId").html(gameCode);
             DT.initPhoneController.message = $(".message").html();
@@ -1051,6 +1053,7 @@ DT.initPhoneController = function() {
             DT.playSound(0);
             $(".choose_control").fadeOut(250);
         });
+
         // When the phone is turned, turn the vehicle
         socket.on('turn', function(turn) {
             if(turn < leftBreakThreshold) {

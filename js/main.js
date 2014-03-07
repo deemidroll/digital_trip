@@ -324,9 +324,9 @@ DT.onRenderFcts.push(function() {
             if (distanceBerweenCenters < 0.9) {
                 DT.soundCoin.update();
                 DT.soundCoin.play();
-                // if (DT.initPhoneController.socket) {
-                //     DT.initPhoneController.socket.emit("vibr", {"time": 10, "gameCode": DT.initPhoneController.socket.gameCode});
-                // }
+                if (DT.initPhoneController.socket) {
+                    DT.initPhoneController.socket.emit("vibr", {"time": 10, "gameCode": DT.initPhoneController.socket.gameCode});
+                }
                 DT.blink.doBlink(0xcfb53b, 60);
                 DT.bump();
                 DT.scene.remove(el);

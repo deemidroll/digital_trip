@@ -28,10 +28,8 @@ var initPhoneController = function() {
                 socket.emit("device", {"type":"controller", "gameCode":gameCode});
             });
             socket.on("vibr", function(data) {
-                if (data.gameCode === gameCode) {
-                    console.log("vibtare", data.time);
-                    navigator.vibrate(data.time);
-                }
+                console.log("vibtare", data.time);
+                navigator.vibrate(data.time);
             });
             // When game code is validated, we can begin playing...
             socket.on("connected", function(data) {

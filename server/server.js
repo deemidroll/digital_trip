@@ -34,7 +34,13 @@ io.sockets.on('connection', function(socket) {
 
     socket.on("vibr", function (data) {
         // ...emit a "message" event to every other socket
-        socket.broadcast.emit("vibr", data);
+        for (var socket in io.sockets.sockets) {
+            if (io.sockets.sockets.hasOwnProperty(socket)) {
+                if (io.sockets.sockets[socket].gameCode === data.gameCode) {
+                    io.sockets.sockets[socket].emit("vibr", data);
+                }
+            }
+        }
     });
     
     // Receive the client device type
@@ -67,8 +73,10 @@ io.sockets.on('connection', function(socket) {
                 
                 // start the game
                 socketCodes[device.gameCode].emit("connected", {});
+                socket.emit("vibr", {time: 100});
             } else {  // else game code is invalid, send fail message and disconnect
                 socket.emit("fail", {});
+                socket.emit("vibr", {time: 1000});
                 socket.disconnect();
             }
         }

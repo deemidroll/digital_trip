@@ -239,7 +239,7 @@ DT.onRenderFcts.push(function() {
             radiusesSum = DT.sphere.geometry.radius + el.geometry.radius;
             
         if (distanceBerweenCenters < radiusesSum) {
-            DT.soundStoneDestroy.update();
+            // DT.soundStoneDestroy.update();
             DT.soundStoneDestroy.play();
             if (DT.initPhoneController.socket) {
                 DT.initPhoneController.socket.emit("vibr", {"time": 200, "gameCode": DT.initPhoneController.socket.gameCode});
@@ -258,7 +258,7 @@ DT.onRenderFcts.push(function() {
             ///
         }
         if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - DT.sphere.position.z > 1) {
-            DT.soundStoneMiss.update();
+            // DT.soundStoneMiss.update();
             DT.soundStoneMiss.play();
         }
         // if (DT.valueAudio > 30 ) { 
@@ -322,7 +322,7 @@ DT.onRenderFcts.push(function() {
             }
             var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position);
             if (distanceBerweenCenters < 0.9) {
-                DT.soundCoin.update();
+                // DT.soundCoin.update();
                 DT.soundCoin.play();
                 if (DT.initPhoneController.socket) {
                     DT.initPhoneController.socket.emit("vibr", {"time": 10, "gameCode": DT.initPhoneController.socket.gameCode});
@@ -513,4 +513,5 @@ DT.onRenderFcts.push(function () {
 //         }
 //     }
 // });
+
 }());

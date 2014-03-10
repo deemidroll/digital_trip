@@ -9,6 +9,10 @@ yepnope.showLoading = function (n) {
             progress: function () {
                 var current = parseInt($(".loading").css("minWidth"), 10);
                 $(".startGame").html(Math.floor(current));
+                $("title").html(Math.floor(current) + "% " + "digital trip");
+                if (current === 100) {
+                    $("title").html("digital trip");
+                }
             },
             complete: function () {
                 if (n === 3) {

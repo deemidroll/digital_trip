@@ -10,6 +10,11 @@ var app = express();
 // Create our HTTP server
 var server = http.createServer(app);
 
+var genRandomFloorBetween = function (min, max) {
+    var rand = min - 0.5 + Math.random()*(max-min+1);
+    rand = Math.round(rand);
+    return rand;
+};
 // Configure the app's document root to be HexGl/
 app.configure(function() {
     app.use(
@@ -48,11 +53,13 @@ io.sockets.on('connection', function(socket) {
         // if client is a browser game
         if(device.type == "game") {
             // Generate a code
-            var gameCode = crypto.randomBytes(3).toString('hex');
+            // var gameCode = crypto.randomBytes(3).toString('hex');
+            var gameCode = genRandomFloorBetween(100000, 999999).toString();
             
             // Ensure uniqueness
             while(gameCode in socketCodes) {
-                gameCode = crypto.randomBytes(3).toString('hex');
+                // gameCode = crypto.randomBytes(3).toString('hex');
+                gameCode = genRandomFloorBetween(100000, 999999).toString();
             }
             
             // Store game code -> socket association

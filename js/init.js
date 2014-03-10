@@ -15,7 +15,8 @@ var DT = {
         opacityCoord: 2,
         dieCoord: 7,
         stonesCloseness: 18,
-        globalVolume: 1
+        globalVolume: 1,
+        prevGlobalVolume: 1
     },
     speed: {
         value: 6,
@@ -92,6 +93,46 @@ var DT = {
                 onRenderFct(deltaMsec / 1000, nowMsec / 1000);
             });
         });
+        if (!DT.gameWasStarted) {
+            // control
+            $(document).keydown(function(event) {
+                var destPoint = DT.player.destPoint,
+                    changeDestPoint = DT.changeDestPoint,
+                    k = event.keyCode;
+                // arrows control
+                if (k === 38) changeDestPoint(1, 0, destPoint);
+                if (k === 40) changeDestPoint(-1, 0, destPoint);
+                if (k === 37) changeDestPoint(0, -1, destPoint);
+                if (k === 39) changeDestPoint(0, 1, destPoint);
+                // speedUp
+                if (k === 16) {
+                    DT.speed.setChanger(6);
+                    if (DT.player.isFun) {
+                        DT.stopSound(1);
+                        DT.playSound(0);
+                        clearInterval(DT.rainbow);
+                        DT.player.isFun === false;
+                        DT.blink.doBlink("red", 2);
+                    }
+                }
+                if (k === 17) {
+                    DT.makeFun();
+                }
+            });
+
+            $(document).keyup(function(event) {
+                var k = event.keyCode;
+                // speedDown
+                if (k === 16) {
+                    DT.speed.setChanger(0);
+                    DT.funTimer = 0;
+                }
+                if (k === 32) {
+                    DT.pauseOn();
+                    DT.pauseOff();
+                }
+            });
+        }
     },
     makeFunTimer: null,
     rainbow: null,
@@ -124,7 +165,8 @@ var DT = {
     invulnerTimer: null,
     jumpLength: 0, // not used
     jumpOffset: 2.2, // not used
-    gameWasStarted: false
+    gameWasStarted: false,
+    gameWasPaused: false
 };
 // auxiliary functions
 DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
@@ -199,7 +241,7 @@ DT.gameOver = function() {
     clearTimeout(DT.player.isFun);
     DT.stopSound(0);
     DT.stopSound(1);
-    DT.soundGameover.update();
+    // DT.soundGameover.update();
     DT.soundGameover.play();
     $(function(){
         $(".total_coins").text(DT.currentScore);
@@ -484,69 +526,53 @@ DT.bump = function (amp) {
             });
  };
 
+DT.pauseOn = function () {
+    if (DT.gameWasPaused) {
+        $(".menu_page").css({"display": "none"});
+        DT.pauseSoundOff();
+        // DT.soundPause.update();
+        DT.soundPause.play();
+        DT.startGame();
+        DT.gameWasPaused = false;
+    }
+};
+
+DT.pauseOff = function () {
+    if (!DT.gameWasPaused) {
+        $(".menu_page").css({"display": "table"});
+        DT.pauseSoundOn();
+        // DT.soundPause.update();
+        DT.soundPause.play();
+        cancelAnimationFrame(DT.id);
+        DT.gameWasPaused = true;
+    }
+};
+
 $(function(){
     $(".menu_button").click(function() {
-        $(".menu_page").css({"display": "table"});
-        DT.soundPause.update();
-        DT.soundPause.play();
-        DT.pauseSoundOn();
-        cancelAnimationFrame(DT.id);
+        DT.pauseOn();
     });
-    $(".menu_page").click(function() {
-        $(".menu_page").css({"display": "none"});
-        DT.soundPause.update();
-        DT.soundPause.play();
-        DT.pauseSoundOff();
-        DT.startGame();
+    $(".resume").click(function() {
+        DT.pauseOff();
     });
     $(".music_button").click(function() {
-        if (DT.param.globalVolume) {
+        if (DT.param.globalVolume === 1) {
             DT.param.globalVolume = 0;
             $(".music_button").html("N");
         } else {
             DT.param.globalVolume = 1;
             $(".music_button").html("M");
         }
-        DT.gainNodes.forEach(function(el) {
+        if (DT.param.prevGlobalVolume !== DT.param.globalVolume) {
+            DT.gainNodes.forEach(function(el) {
                 if (el) {
                     el.gain.value = DT.param.globalVolume;
                 }
-        });
-    });
-    // control
-    $(document).keydown(function(event) {
-        var destPoint = DT.player.destPoint,
-            changeDestPoint = DT.changeDestPoint,
-            k = event.keyCode;
-        // arrows control
-        if (k === 38) changeDestPoint(1, 0, destPoint);
-        if (k === 40) changeDestPoint(-1, 0, destPoint);
-        if (k === 37) changeDestPoint(0, -1, destPoint);
-        if (k === 39) changeDestPoint(0, 1, destPoint);
-        // speedUp
-        if (k === 16) {
-            DT.speed.setChanger(6);
-            if (DT.player.isFun) {
-                DT.stopSound(1);
-                DT.playSound(0);
-                clearInterval(DT.rainbow);
-                DT.player.isFun === false;
-                DT.blink.doBlink("red", 2);
-            }
-        }
-        if (k === 17) {
-            DT.makeFun();
+            });
+            DT.param.prevGlobalVolume = DT.param.globalVolume;
         }
     });
 
-    $(document).keyup(function(event) {
-        var k = event.keyCode;
-        // speedDown
-        if (k === 16) {
-            DT.speed.setChanger(0);
-            DT.funTimer = 0;
-        }
-    });
 // BACKGROUND
 DT.backgroundMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(44, 22, 0),
@@ -604,7 +630,7 @@ DT.playSound = function(index){
         destination = context.destination;
 
         gainNodes[index] = context.createGain();
-        gainNodes[index].gain.value = globalVolume;
+        gainNodes[index].gain.value = DT.param.globalVolume;
 
         analysers[index] = context.createAnalyser();
         analysers[index].fftSize = 2048;
@@ -726,6 +752,29 @@ DT.soundStoneMiss = DT.webaudio.createSound().load(DT.sounds.soundStoneMiss + ex
 // add update function to webaudio prototype
 WebAudio.Sound.prototype.update = function() {
     this.volume(DT.param.globalVolume);
+};
+WebAudio.Sound.prototype.play       = function(time){
+    this.volume(DT.param.globalVolume);
+    // handle parameter polymorphism
+    if( time ===  undefined )   time    = 0;
+    // if not yet playable, ignore
+    // - usefull when the sound download isnt yet completed
+    if( this.isPlayable() === false )   return;
+    // clone the bufferSource
+    var clonedNode  = this._chain.cloneBufferSource();
+    // set the noteOn
+    clonedNode.start(time);
+    // create the source object
+    var source  = {
+        node    : clonedNode,
+        stop    : function(time){
+            if( time ===  undefined )   time    = 0;
+            this.node.stop(time);
+            return source;  // for chained API
+        }
+    }
+    // return it
+    return source;
 };
 // change IcosahedronGeometry prototype
 THREE.IcosahedronGeometry = function ( radius, detail ) {

@@ -1028,7 +1028,7 @@ DT.initPhoneController = function() {
     } else { // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.37:8888';
+            server = 'http://192.168.1.38:8888';
         }
         DT.initPhoneController.socket = io.connect(server);
         var socket = DT.initPhoneController.socket;

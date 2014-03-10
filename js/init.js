@@ -839,10 +839,10 @@ listOfModels.map(function(el) {
 // WEBCAM CONTROL
 DT.enableWebcam = function () {
     // Game config
-    var leftBreakThreshold = -3;
-    var leftTurnThreshold = -7;
-    var rightBreakThreshold = 3;
-    var rightTurnThreshold = 7;
+    var leftBreakThreshold = -5;
+    var leftTurnThreshold = -10;
+    var rightBreakThreshold = 5;
+    var rightTurnThreshold = 10;
     // Получаем элементы video и canvas
     
     var videoInput = document.getElementById('vid');

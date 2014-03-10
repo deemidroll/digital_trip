@@ -124,6 +124,7 @@ var DT = {
     invulnerTimer: null,
     jumpLength: 0, // not used
     jumpOffset: 2.2, // not used
+    gameWasStarted: false
 };
 // auxiliary functions
 DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
@@ -789,25 +790,24 @@ listOfModels.map(function(el) {
 // WEBCAM CONTROL
 DT.enableWebcam = function () {
     // Game config
-    var leftBreakThreshold = -3;
+    var leftBreakThreshold = -5;
     var leftTurnThreshold = -10;
-    var rightBreakThreshold = 3;
+    var rightBreakThreshold = 5;
     var rightTurnThreshold = 10;
     // Получаем элементы video и canvas
     
     var videoInput = document.getElementById('vid');
     var canvasInput = document.getElementById('compare');
-    var canvasOverlay = document.getElementById('overlay')
     var debugOverlay = document.getElementById('debug');
-    var overlayContext = canvasOverlay.getContext('2d');
-    
-    canvasOverlay.style.display = 'none';
-    debugOverlay.style.position = "absolute";
-    debugOverlay.style.top = '0px';
-    debugOverlay.style.left = '50%';
-    debugOverlay.style.marginLeft = '-160px';
-    debugOverlay.style.zIndex = '100002';
-    debugOverlay.style.display = 'block';
+
+    var canvasContext = canvasInput.getContext('2d');
+    // переворачиваем canvas зеркально по горизонтали
+    canvasContext.translate(canvasInput.width, 0);
+    canvasContext.scale(-1, 1);
+
+    debugOverlay.style.height = '100%';
+    debugOverlay.style.opacity = '0.1';
+    debugOverlay.style.zIndex = '0';
     
     // Определяем сообщения, выдаваемые библиотекой
     
@@ -828,8 +828,17 @@ DT.enableWebcam = function () {
     document.addEventListener("headtrackrStatus", function(event) {
         if (event.status in supportMessages) {
             console.log(supportMessages[event.status]);
+            $(".message").html(supportMessages[event.status])
         } else if (event.status in statusMessages) {
             console.log(statusMessages[event.status]);
+            $(".message").html(statusMessages[event.status])
+        }
+        if (event.status === "found" && !DT.gameWasStarted) {
+            DT.startGame();
+            DT.stopSound(2);
+            DT.playSound(0);
+            $(".choose_control").fadeOut(250);
+            DT.gameWasStarted = true;
         }
     }, true);
     
@@ -842,26 +851,18 @@ DT.enableWebcam = function () {
     // Рисуем прямоугольник вокруг «пойманного» лица
     
     document.addEventListener("facetrackingEvent", function( event ) {
-        // clear canvas
-        overlayContext.clearRect(0,0,320,240);
         // once we have stable tracking, draw rectangle
         if (event.detection == "CS") {
-            overlayContext.translate(event.x, event.y)
-            overlayContext.rotate(event.angle-(Math.PI/2));
-            overlayContext.strokeStyle = "#CC0000";
-            overlayContext.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
-            overlayContext.rotate((Math.PI/2)-event.angle);
-            overlayContext.translate(-event.x, -event.y);
             var angle = Number(event.angle *(180/ Math.PI)-90);
-            console.log(angle);
-            if(-angle < leftBreakThreshold) {
-                if(-angle > leftTurnThreshold) {
+            // console.log(angle);
+            if(angle < leftBreakThreshold) {
+                if(angle > leftTurnThreshold) {
                     DT.player.destPoint.x = 0;
                 } else {
                     DT.player.destPoint.x = -DT.param.spacing;
                 }
-            } else if (-angle > rightBreakThreshold) {
-                if(-angle < rightTurnThreshold) {
+            } else if (angle > rightBreakThreshold) {
+                if(angle < rightTurnThreshold) {
                     DT.player.destPoint.x = 0;
                 } else {
                     DT.player.destPoint.x = DT.param.spacing;
@@ -871,16 +872,6 @@ DT.enableWebcam = function () {
             }
         }
     });
-    
-    // Включение\выключение показа дебаг режима (вероятности)
-    function showProbabilityCanvas() {
-        var debugCanvas = document.getElementById('debug');
-        if (debugCanvas.style.display == 'none') {
-            debugCanvas.style.display = 'block';
-        } else {
-            debugCanvas.style.display = 'none';
-        }
-    }
 };
 
 DT.initPhoneController = function() {
@@ -918,10 +909,13 @@ DT.initPhoneController = function() {
         socket.on("connected", function(data) {
             $("#gameConnect").hide();
             $("#status").hide();
-            DT.startGame();
-            DT.stopSound(2);
-            DT.playSound(0);
-            $(".choose_control").fadeOut(250);
+            if (!DT.gameWasStarted) {
+                DT.startGame();
+                DT.stopSound(2);
+                DT.playSound(0);
+                $(".choose_control").fadeOut(250);
+                DT.gameWasStarted = true;
+            }
         });
 
         // When the phone is turned, turn the vehicle

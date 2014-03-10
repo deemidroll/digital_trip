@@ -169,7 +169,7 @@ body {
 }
 
 .menu_button {
-    z-index: 0;
+    z-index: 1;
     right: 30px;
     top: 30px;
 }

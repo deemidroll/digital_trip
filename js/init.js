@@ -790,10 +790,10 @@ listOfModels.map(function(el) {
 // WEBCAM CONTROL
 DT.enableWebcam = function () {
     // Game config
-    var leftBreakThreshold = -5;
-    var leftTurnThreshold = -10;
-    var rightBreakThreshold = 5;
-    var rightTurnThreshold = 10;
+    var leftBreakThreshold = -3;
+    var leftTurnThreshold = -7;
+    var rightBreakThreshold = 3;
+    var rightTurnThreshold = 7;
     // Получаем элементы video и canvas
     
     var videoInput = document.getElementById('vid');
@@ -814,7 +814,7 @@ DT.enableWebcam = function () {
     statusMessages = {
         "whitebalance" : "Проверка камеры или баланса белого",
         "detecting" : "Обнаружено лицо",
-        "hints" : "Что-то не так, обнаружение затянулось",
+        "hints" : "Что-то не так, обнаружение затянулось. Попробуйте сместиться относительно камеры",
         "redetecting" : "Лицо потеряно, поиск..",
         "lost" : "Лицо потеряно",
         "found" : "Слежение за лицом"

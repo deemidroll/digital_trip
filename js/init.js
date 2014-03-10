@@ -786,229 +786,99 @@ listOfModels.map(function(el) {
 });
 
 
-// WEBCAM GESTURE
+// WEBCAM CONTROL
 DT.enableWebcam = function () {
-    var video=document.getElementById('video'),
-        canvas=document.getElementById('canvas2'),
-        _=canvas.getContext('2d'),
-        ccanvas=document.getElementById('comp'),
-        c_=ccanvas.getContext('2d'),
-        compression=5, width = 0, height=0,
-        huemin=0.0,
-        huemax=0.10,
-        satmin=0.0,
-        satmax=1.0,
-        valmin=0.4,
-        valmax=1.0,
-        draw,
-        skin_filter,
-        last=false,
-        thresh=150,
-        down=false,
-        wasdown=false,
-        movethresh=2,
-        brightthresh=300,
-        overthresh=1000,
-        avg=0,
-        state=0;//States: 0 waiting for gesture, 1 waiting for next move after gesture, 2 waiting for gesture to end
-
-    var GetUserMedia = "webkitGetUserMedia";
-    if (!navigator.webkitGetUserMedia) {
-        GetUserMedia = "mozGetUserMedia";
-    }
-    navigator[GetUserMedia]({audio:false,video:true}, function (stream) {
-        DT.startGame();
-        DT.stopSound(2);
-        DT.playSound(0);
-        $(".choose_control").fadeOut(250);
-        video.src=window.URL.createObjectURL(stream);
-        video.addEventListener('play', function () {
-            setInterval(dump,1000/25);
-        });
-    }, function () {
-        console.log('OOOOOOOH! DEEEEENIED!');
-        $(function() {
-            $(".message").html("sorry, webcam is not available. please choose another control");
-        });
+    // Game config
+    var leftBreakThreshold = -3;
+    var leftTurnThreshold = -10;
+    var rightBreakThreshold = 3;
+    var rightTurnThreshold = 10;
+    // Получаем элементы video и canvas
+    
+    var videoInput = document.getElementById('vid');
+    var canvasInput = document.getElementById('compare');
+    var canvasOverlay = document.getElementById('overlay')
+    var debugOverlay = document.getElementById('debug');
+    var overlayContext = canvasOverlay.getContext('2d');
+    
+    canvasOverlay.style.display = 'none';
+    debugOverlay.style.position = "absolute";
+    debugOverlay.style.top = '0px';
+    debugOverlay.style.left = '50%';
+    debugOverlay.style.marginLeft = '-160px';
+    debugOverlay.style.zIndex = '100002';
+    debugOverlay.style.display = 'block';
+    
+    // Определяем сообщения, выдаваемые библиотекой
+    
+    statusMessages = {
+        "whitebalance" : "Проверка камеры или баланса белого",
+        "detecting" : "Обнаружено лицо",
+        "hints" : "Что-то не так, обнаружение затянулось",
+        "redetecting" : "Лицо потеряно, поиск..",
+        "lost" : "Лицо потеряно",
+        "found" : "Слежение за лицом"
+    };
+    
+    supportMessages = {
+        "no getUserMedia" : "Браузер не поддерживает getUserMedia",
+        "no camera" : "Не обнаружена камера."
+    };
+    
+    document.addEventListener("headtrackrStatus", function(event) {
+        if (event.status in supportMessages) {
+            console.log(supportMessages[event.status]);
+        } else if (event.status in statusMessages) {
+            console.log(statusMessages[event.status]);
+        }
+    }, true);
+    
+    // Установка отслеживания
+    
+    var htracker = new headtrackr.Tracker({altVideo : {ogv : "", mp4 : ""}, calcAngles : true, ui : false, headPosition : false, debug : debugOverlay});
+    htracker.init(videoInput, canvasInput);
+    htracker.start();
+    
+    // Рисуем прямоугольник вокруг «пойманного» лица
+    
+    document.addEventListener("facetrackingEvent", function( event ) {
+        // clear canvas
+        overlayContext.clearRect(0,0,320,240);
+        // once we have stable tracking, draw rectangle
+        if (event.detection == "CS") {
+            overlayContext.translate(event.x, event.y)
+            overlayContext.rotate(event.angle-(Math.PI/2));
+            overlayContext.strokeStyle = "#CC0000";
+            overlayContext.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
+            overlayContext.rotate((Math.PI/2)-event.angle);
+            overlayContext.translate(-event.x, -event.y);
+            var angle = Number(event.angle *(180/ Math.PI)-90);
+            console.log(angle);
+            if(-angle < leftBreakThreshold) {
+                if(-angle > leftTurnThreshold) {
+                    DT.player.destPoint.x = 0;
+                } else {
+                    DT.player.destPoint.x = -DT.param.spacing;
+                }
+            } else if (-angle > rightBreakThreshold) {
+                if(-angle < rightTurnThreshold) {
+                    DT.player.destPoint.x = 0;
+                } else {
+                    DT.player.destPoint.x = DT.param.spacing;
+                }
+            } else {
+                DT.player.destPoint.x = 0;
+            }
+        }
     });
     
-    function dump() {
-        if(canvas.width!=video.videoWidth) {
-            width=Math.floor(video.videoWidth/compression)
-            height=Math.floor(video.videoHeight/compression)
-            canvas.width=ccanvas.width=width
-            canvas.height=ccanvas.height=height
-        }
-        _.drawImage(video,width,0,-width,height);
-        draw=_.getImageData(0,0,width,height);
-        //c_.putImageData(draw,0,0);
-        skinfilter();
-        test();
-    };
-
-    function skinfilter() {
-        
-        skin_filter = _.getImageData(0,0,width,height);
-        var total_pixels = skin_filter.width * skin_filter.height,
-            index_value = total_pixels * 4,
-            count_data_big_array = 0;
-        for (var y = 0; y < height; y++)
-        {
-            for (var x = 0; x < width; x++)
-            {
-                index_value = x + y * width
-                r = draw.data[count_data_big_array]
-                g = draw.data[count_data_big_array+1]
-                b = draw.data[count_data_big_array+2]
-                a = draw.data[count_data_big_array+3]
-
-                hsv = rgb2Hsv(r,g,b);
-                //When the hand is too lose (hsv[0] > 0.59 && hsv[0] < 1.0)
-                //Skin Range on HSV values
-                if(((hsv[0] > huemin && hsv[0] < huemax)||(hsv[0] > 0.59 && hsv[0] < 1.0))&&(hsv[1] > satmin && hsv[1] < satmax)&&(hsv[2] > valmin && hsv[2] < valmax)){
-
-                    skin_filter[count_data_big_array] = r;
-                    skin_filter[count_data_big_array + 1] = g;
-                    skin_filter[count_data_big_array + 2] = b;
-                    skin_filter[count_data_big_array + 3] = a;
-                } else {
-    
-                    skin_filter.data[count_data_big_array] =
-                    skin_filter.data[count_data_big_array+1] =
-                    skin_filter.data[count_data_big_array+2] = 
-                    skin_filter.data[count_data_big_array+3] = 0;
-                }
-    
-                count_data_big_array = index_value * 4;
-            }
-        }
-        draw = skin_filter;
-    }
-
-    function rgb2Hsv(r, g, b) {
-        
-        r = r/255
-        g = g/255
-        b = b/255;
-    
-        var max = Math.max(r, g, b),
-            min = Math.min(r, g, b),
-            h, s, v = max,
-            d = max - min;
-        s = max == 0 ? 0 : d / max;
-        if (max == min){
-            h = 0; // achromatic
+    // Включение\выключение показа дебаг режима (вероятности)
+    function showProbabilityCanvas() {
+        var debugCanvas = document.getElementById('debug');
+        if (debugCanvas.style.display == 'none') {
+            debugCanvas.style.display = 'block';
         } else {
-            switch(max){
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: h = (b - r) / d + 2; break;
-                case b: h = (r - g) / d + 4; break;
-            }
-            h /= 6;
-        }
-        return [h, s, v];
-    }
-    
-    function test() {
-        delt = _.createImageData(width,height);
-        if (last !== false) {
-            var totalx = 0, totaly = 0, totald = 0, totaln = delt.width * delt.height, 
-                dscl = 0,
-                pix = totaln * 4;
-            while (pix -= 4) {
-                var d=Math.abs(
-                    draw.data[pix]-last.data[pix]
-                )+Math.abs(
-                    draw.data[pix+1]-last.data[pix+1]
-                )+Math.abs(
-                    draw.data[pix+2]-last.data[pix+2]
-                )
-                if(d > thresh){
-                    delt.data[pix] = 160;
-                    delt.data[pix + 1] = 255;
-                        delt.data[pix + 2] =
-                    delt.data[pix + 3] = 255;
-                    totald += 1;
-                    totalx += ((pix/4)%width);
-                    totaly += (Math.floor((pix / 4) / delt.height))
-                }
-                else{
-                    delt.data[pix] = delt.data[pix + 1] = delt.data[pix + 2] = 0;
-                    delt.data[pix + 3] = 0;
-                }
-            }
-        }
-        //slide.setAttribute('style','display:initial')
-        //slide.value=(totalx/totald)/width
-        if(totald) {
-            down = {
-                x: totalx / totald,
-                y: totaly / totald,
-                d: totald
-            }
-            handledown()
-        }
-        //console.log(totald)
-        last = draw
-        c_.putImageData(delt, 0, 0);
-    }
-    
-    function calibrate() {
-        wasdown = {
-            x: down.x,
-            y: down.y,
-            d: down.d
-        }
-    }
-    
-    function handledown() {
-        avg = 0.9 * avg + 0.1 * down.d;
-        var davg = down.d -avg, good = davg > brightthresh;
-        // console.log(davg)
-        switch (state) {
-            case 0:
-                if (good) {//Found a gesture, waiting for next move
-                    state = 1;
-                    calibrate();
-                }
-                break;
-            case 2://Wait for gesture to end
-                if (!good) {//Gesture ended
-                    state = 0;
-                }
-                break;
-            case 1://Got next move, do something based on direction
-                var dx = down.x - wasdown.x, dy = down.y - wasdown.y,
-                    dirx = Math.abs(dy) < Math.abs(dx);//(dx,dy) is on a bowtie
-                console.log(good,davg);
-                if (dx <- movethresh && dirx) {
-                    console.log('right');
-                    DT.changeDestPoint(0, 1, DT.player.destPoint);
-                    
-                } else if (dx > movethresh && dirx) {
-                    console.log('left');
-                    DT.changeDestPoint(0, -1, DT.player.destPoint);
-                    
-                }
-                if (dy > movethresh &&! dirx) {
-                    if (davg > overthresh) {
-                        console.log('over up');
-                        // DT.changeDestPoint(1, 0, DT.player.destPoint);
-                    } else {
-                        console.log('up');
-                        DT.changeDestPoint(1, 0, DT.player.destPoint);
-                    }
-                } else if (dy <- movethresh &&! dirx) {
-                    if (davg > overthresh) {
-                        console.log('over down');
-                        // DT.changeDestPoint(-1, 0, DT.player.destPoint);
-                    } else {
-                        console.log('down');
-                        DT.changeDestPoint(-1, 0, DT.player.destPoint);
-                    }
-                }
-                state = 2;
-                break;
+            debugCanvas.style.display = 'none';
         }
     }
 };

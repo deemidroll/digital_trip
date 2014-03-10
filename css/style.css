@@ -177,13 +177,6 @@ body {
     font-size: 2em;
 }
 
-#disp {
-    display: block;
-    position: absolute;
-    top: 40%;
-    left: 0;
-}
-
 .color {
     width: 100px;
     height: 100px;
@@ -207,4 +200,8 @@ a:hover {
 }
 
 .loading {
+}
+
+#compare, #vid, #overlay, #debug {
+    position: absolute;
 }

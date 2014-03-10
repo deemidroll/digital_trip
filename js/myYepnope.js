@@ -27,6 +27,7 @@ yepnope([{
         "js/vendor/fireworks-bundle.js",
         "js/vendor/Stats.js",
         "js/vendor/webaudio.js",
+        "js/vendor/headtrackr.js",
         "/socket.io/socket.io.js"
     ],
     callback: {

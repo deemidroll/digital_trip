@@ -244,7 +244,7 @@ DT.gameOver = function() {
     // DT.soundGameover.update();
     DT.soundGameover.play();
     $(function(){
-        $(".total_coins").text(DT.currentScore);
+        $(".total_coins").text(DT.player.currentScore);
         $(".game_over").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 1000);
         $(document).unbind("keydown").unbind("keyup");
     });

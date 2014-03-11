@@ -103,6 +103,12 @@ io.sockets.on('connection', function(socket) {
             socketCodes[socket.gameCode].emit("turn", data.turn);
         }
     });
+    // send click command to game client
+    socket.on("click", function(data) {
+        if(socket.gameCode && socket.gameCode in socketCodes) {
+            socketCodes[socket.gameCode].emit("click", data.click);
+        }
+    });
 });
 
 // When a client disconnects...

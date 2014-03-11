@@ -70,6 +70,15 @@ var initPhoneController = function() {
                     // Tell game to turn the vehicle
                     socket.emit("turn", {'turn':turn, 'g':a});
                 }, false);
+                $("#turnLeft").click(function () {
+                    socket.emit("click", {"click":"left"});
+                });
+                $("#turnRight").click(function () {
+                    socket.emit("click", {"click":"right"});
+                });
+                $("#onMoreTime").click(function () {
+                    socket.emit("click", {"click":"onMoreTime"});
+                });
             });
             socket.on("fail", function() {
                 status.html("Failed to connect");

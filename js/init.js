@@ -1003,6 +1003,17 @@ DT.initPhoneController = function() {
                 DT.player.destPoint.x = 0;
             }
         });
+        socket.on('click', function(click) {
+            if (click === "left") {
+                DT.changeDestPoint(0, -1, DT.player.destPoint);
+            }
+            if (click === "right") {
+                DT.changeDestPoint(0, 1, DT.player.destPoint);
+            }
+            if (click === "onMoreTime") {
+                DT.onMoreTime();
+            }
+        });
     }
 };
 

@@ -8,14 +8,14 @@ var initPhoneController = function() {
         controller = $("#controller"),
         gameConnect = $("#gameConnect"),
         wheel = $("#wheel"),
-        status = $("#status");
+        status = $("#status"),
+        turned = false;
 
     if (server === "http://127.0.0.1:8888") {
         server = 'http://192.168.1.37:8888';
     }
     // If client is an Android Phone
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
-        console.log(navigator.userAgent);
         // Show the controller ui with gamecode input
         controller.show();
         // When connect is pushed, establish socket connection
@@ -57,28 +57,43 @@ var initPhoneController = function() {
                     var a = event.alpha, // "direction"
                         b = event.beta,  // left/right 'tilt'
                         g = event.gamma; // forward/back 'tilt'
-                    // Regardless of phone direction, 
-                    //  left/right tilt should behave the same
                     var turn = g;
-                    // if( a > 270 || a < 90 ) {
-                    //     turn = 0 - g;
-                    // } else {
-                    //     turn = g;
-                    // }
-                    // Update controller UI
                     updateController(turn);
-                    // Tell game to turn the vehicle
                     socket.emit("turn", {'turn':turn, 'g':a});
                 }, false);
-                $("#turnLeft").click(function () {
-                    socket.emit("click", {"click":"left"});
-                });
-                $("#turnRight").click(function () {
-                    socket.emit("click", {"click":"right"});
-                });
-                $("#onMoreTime").click(function () {
-                    socket.emit("click", {"click":"onMoreTime"});
-                });
+
+                window.addEventListener('MozOrientation', function(event) {
+                    var a = event.alpha, // "direction"
+                        b = event.beta,  // left/right 'tilt'
+                        g = event.gamma; // forward/back 'tilt'
+                    var turn = g;
+                    updateController(turn);
+                    socket.emit("turn", {'turn':turn, 'g':a});
+                }, false);
+
+                // window.addEventListener( 'orientationchange', function(event) {
+                //     if (window.orientation === -90) {
+                //         socket.emit("turn", {'turn':40, 'g':0});
+                //     }
+                //     if (window.orientation === 90) {
+                //         socket.emit("turn", {'turn':-40, 'g':0});
+                //     }
+                //     if (window.orientation === 0 || window.orientation === 180) {
+                //         socket.emit("turn", {'turn':0, 'g':0});
+                //     }
+                // }, false );
+                if (!turned) {
+                    $("#turnLeft").click(function () {
+                        socket.emit("click", {"click":"left"});
+                    });
+                    $("#turnRight").click(function () {
+                        socket.emit("click", {"click":"right"});
+                    });
+                    $("#onMoreTime").click(function () {
+                        socket.emit("click", {"click":"onMoreTime"});
+                    });
+                }
+
             });
             socket.on("fail", function() {
                 status.html("Failed to connect");
@@ -87,6 +102,7 @@ var initPhoneController = function() {
     }
     // Helper function to update controller UI
     function updateController(turn) {
+        turned = true;
         // Rotate forward indicator towards direction of vehicle
         $('#forward').css('transform', 'rotate(' + (turn) + 'deg)');
         // Activate/Deactivate turn / airbreak signals based on turn degree

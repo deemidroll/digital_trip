@@ -19,8 +19,7 @@ a {
 #controller{
    width:100%;
    height:100%;
-   background: url('../img/bg.png') repeat-x;
-   background-size:contain;
+   background-color: #000;
 }
 #wheel{
    position:relative;
@@ -28,58 +27,15 @@ a {
    height:100%;
 }
 
-#forward{
-   position:absolute;
-   top:0;
-   left:0;
-   width:100%;
-   height: 100%;
-   background-image: url('../img/forward.png');
-   background-repeat:no-repeat;
-   background-position: center center;
-   background-size:auto 75%;
-}
-
-#forward.active{
-   background-image: url('../img/forwardon.png');
-}
-
-#stopRight{
-   position:absolute;
-   top:0;
-   left:0;
-   width:100%;
-   height: 100%;
-   background-image: url('../img/stop.png');
-   background-repeat:no-repeat;
-   background-position: 98% center;
-   background-size:auto 40%;
-}
-#stopLeft{
-   position:absolute;
-   top:0;
-   left:0;
-   width:100%;
-   height: 100%;
-   background-image: url('../img/stop.png');
-   background-repeat:no-repeat;
-   background-position: 2% center;
-   background-size:auto 40%;
-}
-
-#stopRight.active, #stopLeft.active{
-   background-image: url('../img/stopon.png');
-}
-
 #turnLeft{
    position:absolute;
    bottom:0;
    left:0;
    width:50%;
-   height: 50%;
+   height: 100%;
    background-image: url('../img/turn.png');
    background-repeat:no-repeat;
-   background-position: 98% 95%;
+   background-position: 98% 50%;
    background-size:auto 20%;
    -webkit-transform:scaleX(-1);
 }
@@ -93,9 +49,9 @@ a {
    bottom:0;
    right:0;
    width:50%;
-   height: 50%;
+   height: 100%;
    background-image: url('../img/turn.png');
    background-repeat:no-repeat;
-   background-position: 98% 95%;
+   background-position: 98% 50%;
    background-size:auto 20%;
 }

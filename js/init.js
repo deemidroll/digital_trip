@@ -377,7 +377,7 @@ DT.genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
     var listOfModels = DT.listOfModels,
         type, geometry, material, bonus;
     type = DT.genRandomFloorBetween(0, 2);
-    type = 2;
+    // type = 1;
     geometry = listOfModels[type].geometry;
     material = listOfModels[type].material;
     bonus = new THREE.Mesh( geometry, material );
@@ -827,7 +827,7 @@ var loader = new THREE.JSONLoader(true), // init the loader util
 loadModel = function(modelObj) {
     loader.load('js/models/' + modelObj.name + '.js', function (geometry, materials) {
     // create a new material
-    if (modelObj.name = "bonusE") {
+    if (modelObj.name === "bonusE") {
         modelObj.material = new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } );
         modelObj.material.emissive.r = modelObj.material.color.r * 0.5;
         modelObj.material.emissive.g = modelObj.material.color.g * 0.5;

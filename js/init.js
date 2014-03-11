@@ -153,7 +153,7 @@ var DT = {
         },
         {
             name: "bonusE",
-            scale: {x: 0.5, y: 0.5, z: 0.5},
+            scale: {x: 0.025, y: 0.025, z: 0.025},
             rotation: {x: 0, y: 0, z: 0}
     }],
     valueAudio: 0,
@@ -377,7 +377,7 @@ DT.genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
     var listOfModels = DT.listOfModels,
         type, geometry, material, bonus;
     type = DT.genRandomFloorBetween(0, 2);
-    // type = 1;
+    type = 2;
     geometry = listOfModels[type].geometry;
     material = listOfModels[type].material;
     bonus = new THREE.Mesh( geometry, material );
@@ -398,6 +398,11 @@ DT.genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
 
     arr.push(bonus);
     scene.add(bonus);
+
+    if (type === 2) {
+        DT.animation = new THREE.MorphAnimation(bonus);
+        DT.animation.play();
+    }
 };
 
 DT.useBonuses = function (type) {
@@ -814,7 +819,7 @@ String.prototype.repeat = function(num) {
     return new Array( num + 1 ).join( this );
 };
 // LOADER
-var loader = new THREE.JSONLoader(), // init the loader util
+var loader = new THREE.JSONLoader(true), // init the loader util
     loadModel,
     listOfModels = DT.listOfModels;
 
@@ -822,13 +827,20 @@ var loader = new THREE.JSONLoader(), // init the loader util
 loadModel = function(modelObj) {
     loader.load('js/models/' + modelObj.name + '.js', function (geometry, materials) {
     // create a new material
-    modelObj.material = new THREE.MeshFaceMaterial( materials );
-    // shining of bonuses
-    modelObj.material.materials.forEach(function (el) {
-        el.emissive.r = el.color.r * 0.5;
-        el.emissive.g = el.color.g * 0.5;
-        el.emissive.b = el.color.b * 0.5;
-    });
+    if (modelObj.name = "bonusE") {
+        modelObj.material = new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } );
+        modelObj.material.emissive.r = modelObj.material.color.r * 0.5;
+        modelObj.material.emissive.g = modelObj.material.color.g * 0.5;
+        modelObj.material.emissive.b = modelObj.material.color.b * 0.5;
+    } else {
+        modelObj.material = new THREE.MeshFaceMaterial( materials );
+        // shining of bonuses
+        modelObj.material.materials.forEach(function (el) {
+            el.emissive.r = el.color.r * 0.5;
+            el.emissive.g = el.color.g * 0.5;
+            el.emissive.b = el.color.b * 0.5;
+        });
+    }
 
     modelObj.geometry = geometry;
 
@@ -839,7 +851,6 @@ loadModel = function(modelObj) {
 listOfModels.map(function(el) {
     loadModel(el);
 });
-
 
 // WEBCAM CONTROL
 DT.enableWebcam = function () {

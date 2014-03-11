@@ -171,7 +171,7 @@ DT.onRenderFcts.push(function() {
 //         }
 //     });
 // });
-
+var prevTime = Date.now();
 // render the scene
 DT.onRenderFcts.push(function(delta, now) {
     DT.renderer.render(DT.scene, DT.camera);
@@ -181,6 +181,11 @@ DT.onRenderFcts.push(function(delta, now) {
     stats.update();
     stats2.update();
     DT.speed.increase();
+    if ( DT.animation ) {
+        var time = Date.now();
+        DT.animation.update( time - prevTime );
+        prevTime = time;
+    }
 });
 
 // game timer
@@ -359,7 +364,7 @@ DT.onRenderFcts.push(function() {
                 el.rotation.z += 0.05;
             }
             if (el.type === 2) {
-                el.rotation.y += 0.05;
+                // el.rotation.y += 0.05;
             }
             el.position.z += 0.1 * DT.speed.getValue();
             if (el.position.z > dieCoord) {
@@ -380,7 +385,7 @@ DT.onRenderFcts.push(function() {
                     el.rotation.y += 0.2;
                 }
                 if (el.type === 2) {
-                    el.rotation.z += 0.2;
+                    // el.rotation.z += 0.2;
                 }
 
                 el.scale.x *= 0.9;

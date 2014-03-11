@@ -128,10 +128,15 @@ var DT = {
                     DT.funTimer = 0;
                 }
                 if (k === 32) {
-                    DT.pauseOn();
-                    DT.pauseOff();
+                    if (!DT.gameWasPaused) {
+                        DT.pauseOn();
+                    } else {
+                        DT.pauseOff();
+                    }
                 }
             });
+
+            DT.gameWasStarted = true;
         }
     },
     makeFunTimer: null,
@@ -524,27 +529,27 @@ DT.bump = function (amp) {
                     DT.enableWebcam();
                 });
             });
- };
+};
 
 DT.pauseOn = function () {
-    if (DT.gameWasPaused) {
-        $(".menu_page").css({"display": "none"});
-        DT.pauseSoundOff();
+    if (!DT.gameWasPaused) {
+        $(".menu_page").css({"display": "table"});
+        DT.stopSoundBeforPause();
         // DT.soundPause.update();
         DT.soundPause.play();
-        DT.startGame();
-        DT.gameWasPaused = false;
+        cancelAnimationFrame(DT.id);
+        DT.gameWasPaused = !DT.gameWasPaused;
     }
 };
 
 DT.pauseOff = function () {
-    if (!DT.gameWasPaused) {
-        $(".menu_page").css({"display": "table"});
-        DT.pauseSoundOn();
+    if (DT.gameWasPaused) {
+        $(".menu_page").css({"display": "none"});
+        DT.playSoundAfterPause();
         // DT.soundPause.update();
         DT.soundPause.play();
-        cancelAnimationFrame(DT.id);
-        DT.gameWasPaused = true;
+        DT.startGame();
+        DT.gameWasPaused = !DT.gameWasPaused;
     }
 };
 
@@ -618,9 +623,10 @@ DT.stopSound = function(index){
     }
 };
 
+DT.gainNodes = [];
 DT.playSound = function(index){
 
-    var gainNodes = DT.gainNodes = [];
+    var gainNodes = DT.gainNodes;
     if (!started[index]) {
         started[index] = true;
 
@@ -656,20 +662,19 @@ DT.playSound = function(index){
     }
 };
 
-DT.pauseSoundOn = function() {
+DT.stopSoundBeforPause = function() {
     stopped.forEach(function(el, i) {
         paused[i] = el;
         DT.stopSound(i);
     });
 };
 
-DT.pauseSoundOff = function() {
+DT.playSoundAfterPause = function() {
     paused.forEach(function(el, i) {
-        if (!el) DT.playSound(i);
-        el = false;
-        startedAt[i] = 0;
+        if (!el) {
+            DT.playSound(i);
+        }
     });
-
 };
 
 
@@ -887,7 +892,6 @@ DT.enableWebcam = function () {
             DT.stopSound(2);
             DT.playSound(0);
             $(".choose_control").fadeOut(250);
-            DT.gameWasStarted = true;
         }
     }, true);
     
@@ -933,12 +937,12 @@ DT.initPhoneController = function() {
     var rightBreakThreshold = 3;
     var rightTurnThreshold = 20;
 
-    // If client is an Android Phone
-    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
-    } else { // If client is browser game
+    // If client is not a phone
+    if( !/iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
+        // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.38:8888';
+            server = 'http://192.168.1.37:8888';
         }
         DT.initPhoneController.socket = io.connect(server);
         var socket = DT.initPhoneController.socket;

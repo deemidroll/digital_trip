@@ -275,12 +275,15 @@ DT.hit = function() {
 DT.generateStone = function (scene, arr, spawnCoord) {
     var radius, color, x, y, depth, geometry, material, stone,
         part = Math.random();
-    if (part > 0.5) {
-        x = Math.random() * 10 - 5;
-        y = Math.random() * 10 - 5;
+    if (part >= 0 && part < 0.16) {
+        x = DT.genRandomBetween(-15, -5);
+        y = DT.genRandomBetween(-15, -5);
+    } else if (part >= 0.16 && part < 0.32){
+        x = DT.genRandomBetween(5, 15);
+        y = DT.genRandomBetween(5, 15);
     } else {
-        x = Math.random() * 30 - 15;
-        y = Math.random() * 30 - 15;
+        x = DT.genRandomBetween(-5, 5);
+        y = DT.genRandomBetween(-5, 5);
     }
     if (Math.abs(x) > 5 || Math.abs(y) > 5) {
         radius = DT.genRandomBetween(1.5, 3);

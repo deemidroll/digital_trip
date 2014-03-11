@@ -238,7 +238,8 @@ DT.onRenderFcts.push(function() {
             arr.splice(ind, 1);
         } 
         if (el.position.z > DT.param.opacityCoord) {
-            el.material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, transparent: true, opacity: 0.75});
+            el.material.transparent = true;
+            el.material.opacity = 0.5;
         }
         var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position),
             radiusesSum = DT.sphere.geometry.radius + el.geometry.radius;
@@ -265,6 +266,16 @@ DT.onRenderFcts.push(function() {
         if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - DT.sphere.position.z > 1) {
             // DT.soundStoneMiss.update();
             DT.soundStoneMiss.play();
+        }
+
+        if (DT.getDistance(DT.sphere.position.x, DT.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < radiusesSum) {
+            el.material.emissive.r = el.material.color.r * 0.5;
+            el.material.emissive.g = el.material.color.g * 0.5;
+            el.material.emissive.b = el.material.color.b * 0.5;
+        } else {
+            el.material.emissive.r = 0;
+            el.material.emissive.g = 0;
+            el.material.emissive.b = 0;
         }
         // if (DT.valueAudio > 30 ) { 
             // var geometry = new THREE.IcosahedronGeometry(el.geometry.radius, 0),

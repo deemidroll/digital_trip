@@ -28,7 +28,7 @@ var initPhoneController = function() {
                     });
                 }, false );
         // When connect is pushed, establish socket connection
-        $("#connect").click(function() {
+        var connect = function() {
             $("#restart").click(function () {
                 socket.emit("click", {"click":"restart"});
                 $("#gameover").hide();
@@ -80,6 +80,7 @@ var initPhoneController = function() {
                         g = event.gamma; // forward/back 'tilt'
                     var turn = g;
                     updateController(turn);
+                    // $('body').trigger('touchstart');
                     socket.emit("turn", {'turn':turn, 'g':a});
                 }, false);
 
@@ -103,9 +104,18 @@ var initPhoneController = function() {
 
             });
             socket.on("fail", function() {
-                status.html("Failed to connect");
+                status.html("Failed to connect! Reload!");
             });
-        });
+            $(document).unbind("keyup", connnectOnEnter);
+        };
+        var connnectOnEnter = function (event) {
+            var k = event.keyCode;
+            if (k === 13) {
+                connect();
+            }
+        };
+        $("#connect").click(connect);
+        $(document).bind("keyup", connnectOnEnter);
     }
     // Helper function to update controller UI
     function updateController(turn) {

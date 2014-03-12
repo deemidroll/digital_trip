@@ -608,6 +608,12 @@ $(function(){
             DT.handlers.mute();
         }
     });
+    $(document).keyup(function(event) {
+        var k = event.keyCode;
+        if (k === 70) {
+            THREEx.FullScreen.request();
+        }
+    });
 
 
 // BACKGROUND

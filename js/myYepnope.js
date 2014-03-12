@@ -32,6 +32,7 @@ yepnope([{
         "js/vendor/Stats.js",
         "js/vendor/webaudio.js",
         "js/vendor/headtrackr.js",
+        "js/vendor/THREEx.FullScreen.js",
         "/socket.io/socket.io.js"
     ],
     callback: {

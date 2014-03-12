@@ -37,7 +37,7 @@ a {
     height: 100%;
     background-image: url('../img/turn.png');
     background-repeat:no-repeat;
-    background-position: 98% 50%;
+    background-position: 50% 50%;
     background-size:auto 20%;
     -webkit-transform:scaleX(-1);
 }
@@ -54,7 +54,7 @@ a {
     height: 100%;
     background-image: url('../img/turn.png');
     background-repeat:no-repeat;
-    background-position: 98% 50%;
+    background-position: 50% 50%;
     background-size:auto 20%;
 }
 

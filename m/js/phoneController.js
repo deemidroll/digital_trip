@@ -1,6 +1,6 @@
 var initPhoneController = function() {
     // Game config
-   var server = window.location.origin,
+    var server = window.location.origin,
         leftBreakThreshold = -3,
         leftTurnThreshold = -20,
         rightBreakThreshold = 3,
@@ -18,6 +18,15 @@ var initPhoneController = function() {
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
         // Show the controller ui with gamecode input
         controller.show();
+                window.addEventListener('orientationchange', function(event) {
+                    var rotate = 0 - window.orientation;
+                    $("body").css({
+                        "transform": "rotate("+rotate+"deg)",
+                        "-ms-transform": "rotate("+rotate+"deg)",
+                        "-webkit-transform": "rotate("+rotate+"deg)",
+                        "-moz-transform": "rotate("+rotate+"deg)"
+                    });
+                }, false );
         // When connect is pushed, establish socket connection
         $("#connect").click(function() {
             $("#restart").click(function () {
@@ -83,17 +92,6 @@ var initPhoneController = function() {
                     socket.emit("turn", {'turn':turn, 'g':a});
                 }, false);
 
-                // window.addEventListener( 'orientationchange', function(event) {
-                //     if (window.orientation === -90) {
-                //         socket.emit("turn", {'turn':40, 'g':0});
-                //     }
-                //     if (window.orientation === 90) {
-                //         socket.emit("turn", {'turn':-40, 'g':0});
-                //     }
-                //     if (window.orientation === 0 || window.orientation === 180) {
-                //         socket.emit("turn", {'turn':0, 'g':0});
-                //     }
-                // }, false );
                 if (!turned) {
                     $("#turnLeft").click(function () {
                         socket.emit("click", {"click":"left"});

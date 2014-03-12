@@ -703,10 +703,7 @@ DT.playSound = function(index){
         DT.music.started[index] = true;
 
         sources[index] = context.createBufferSource();
-        sources[index].onended = function () {
-            DT.stopSound(index);
-            DT.playSound(index);
-        };
+        sources[index].loop = true;
         sources[index].buffer = buffers[index];
 
         destination = context.destination;

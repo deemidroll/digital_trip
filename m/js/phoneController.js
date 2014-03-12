@@ -12,7 +12,7 @@ var initPhoneController = function() {
         turned = false;
 
     if (server === "http://127.0.0.1:8888") {
-        server = 'http://192.168.1.37:8888';
+        server = 'http://192.168.1.34:8888';
     }
     // If client is an Android Phone
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
@@ -20,6 +20,11 @@ var initPhoneController = function() {
         controller.show();
         // When connect is pushed, establish socket connection
         $("#connect").click(function() {
+            $("#restart").click(function () {
+                socket.emit("click", {"click":"restart"});
+                $("#gameover").hide();
+                controller.show();
+            });
             var gameCode = $("#socket input").val(),
             socket = io.connect(server);
             // When server replies with initial welcome...
@@ -27,9 +32,16 @@ var initPhoneController = function() {
                 // Send 'controller' device type with our entered game code
                 socket.emit("device", {"type":"controller", "gameCode":gameCode});
             });
-            socket.on("vibr", function(data) {
-                console.log("vibtare", data.time);
-                navigator.vibrate(data.time);
+            socket.on("message", function(data) {
+                if (data.type === "vibr") {
+                    console.log("vibtare", data.time);
+                    navigator.vibrate(data.time);
+                }
+                if (data.type === "gameover") {
+                    console.log("gameover");
+                    controller.hide();
+                    $("#gameover").show();
+                }
             });
             // When game code is validated, we can begin playing...
             socket.on("connected", function(data) {
@@ -88,9 +100,6 @@ var initPhoneController = function() {
                     });
                     $("#turnRight").click(function () {
                         socket.emit("click", {"click":"right"});
-                    });
-                    $("#onMoreTime").click(function () {
-                        socket.emit("click", {"click":"onMoreTime"});
                     });
                 }
 

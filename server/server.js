@@ -37,12 +37,12 @@ io.sockets.on('connection', function(socket) {
     // Confirm the connection
     socket.emit("welcome", {});
 
-    socket.on("vibr", function (data) {
+    socket.on("message", function (data) {
         // ...emit a "message" event to every other socket
         for (var socket in io.sockets.sockets) {
             if (io.sockets.sockets.hasOwnProperty(socket)) {
                 if (io.sockets.sockets[socket].gameCode === data.gameCode) {
-                    io.sockets.sockets[socket].emit("vibr", data);
+                    io.sockets.sockets[socket].emit("message", data);
                 }
             }
         }
@@ -80,10 +80,10 @@ io.sockets.on('connection', function(socket) {
                 
                 // start the game
                 socketCodes[device.gameCode].emit("connected", {});
-                socket.emit("vibr", {time: 100});
+                socket.emit("message", {type: "vibr", time: 100});
             } else {  // else game code is invalid, send fail message and disconnect
                 socket.emit("fail", {});
-                socket.emit("vibr", {time: 1000});
+                socket.emit("message", {type: "vibr", time: 1000});
                 socket.disconnect();
             }
         }

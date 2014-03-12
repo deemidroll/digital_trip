@@ -62,7 +62,13 @@ var DT = {
         2: 'sounds/space_ambient2.ogg',
         3: 'sounds/theField_overTheIce.mp3',
         4: 'sounds/heart.mp3',
-        5: 'sounds/space_ambient2.mp3'
+        5: 'sounds/space_ambient2.mp3',
+        started: [],
+        startedAt: [],
+        pausedAt: [],
+        stopped: [],
+        paused: [],
+        started: []
     },
     renderer: new THREE.WebGLRenderer(),
     camera: new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300),
@@ -165,7 +171,8 @@ var DT = {
     jumpOffset: 2.2, // not used
     gameWasStarted: false,
     gameWasPaused: false,
-    handlers: {}
+    handlers: {},
+    snapshot: null, // for restart
 };
 // HANDLERS
 DT.handlers.mute = function() {
@@ -187,7 +194,6 @@ DT.handlers.mute = function() {
 }
 DT.handlers.pauseOnSpace = function(event) {
     var k = event.keyCode;
-    // speedDown
     if (k === 32) {
         if (!DT.gameWasPaused) {
             DT.pauseOn();
@@ -197,11 +203,9 @@ DT.handlers.pauseOnSpace = function(event) {
     }
 };
 DT.handlers.restartOnSpace = function(event) {
-    $(document).unbind("keyup", DT.handlers.restartOnSpace);
     var k = event.keyCode;
-    // speedDown
     if (k === 32) {
-        location.reload();
+        DT.restart();
     }
 };
 // auxiliary functions
@@ -282,17 +286,48 @@ DT.gameOver = function() {
     $(function(){
         $(".total_coins").text(DT.player.currentScore);
         $(".game_over").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 1000);
-        $(document).unbind("keydown").unbind("keyup");
+        // $(document).unbind("keydown").unbind("keyup");
     });
     setTimeout(function() {
         cancelAnimationFrame(DT.id);
     }, 300);
+    if (DT.initPhoneController.socket) {
+        DT.initPhoneController.socket.emit("message", {"type": "gameover", "gameCode": DT.initPhoneController.socket.gameCode});
+    }
     DT.prepareToRestart();
 };
 
+DT.restart = function () {
+    $(".game_over").hide();
+
+    for (var collection in DT.collections) {
+        if (DT.collections.hasOwnProperty(collection)) {
+            DT.collections[collection].forEach(function (el) {
+                DT.scene.remove(el);
+            });
+        }
+    }
+    DT.player = $.extend(true, {}, DT.snapshot.player);
+
+    $(".current_coins").html("0");
+    $(".bonus").html("");
+    $(".gameTimer").html("0:00");
+    $(".helth").css({width: "100%"});
+    DT.speed = $.extend(true, {}, DT.snapshot.speed);
+    DT.collections = $.extend(true, {}, DT.snapshot.collections);
+    DT.gameTimer = 0;
+    // DT.gameWasStarted = false;
+    DT.music.startedAt = [], DT.music.pausedAt = [], DT.music.stopped = [], DT.music.paused = [], DT.music.started = [];
+
+    DT.startGame();
+    DT.playSound(0);
+    $(document).bind("keyup", DT.handlers.pauseOnSpace);
+    $(document).unbind("keyup", DT.handlers.restartOnSpace);
+    $('#one_more_time').unbind("click");
+};
 DT.prepareToRestart = function() {
-    $('.one_more_time').click(function() {
-        location.reload();
+    $('#one_more_time').click(function (event) {
+        DT.restart();
     });
     $(document).unbind("keyup", DT.handlers.pauseOnSpace);
     $(document).bind("keyup", DT.handlers.restartOnSpace);
@@ -632,7 +667,6 @@ DT.scene.add(DT.backgroundMesh);
 var context,
     counter = 0,
     buffers = [], sources=[], destination, analysers = [],
-    startedAt = [], pausedAt = [], stopped = [], paused = [], started = [],
     freqDomain = [],
     initSound, loadSoundFile,
     visualize, getFrequencyValue,
@@ -651,13 +685,13 @@ catch(e) {
 }
 
 DT.stopSound = function(index){
-    if (stopped[index] === false) {
-        if (index === 0 || paused[index] === false) {
-            pausedAt[index] = Date.now() - startedAt[index];
+    if (DT.music.stopped[index] === false) {
+        if (index === 0 || DT.music.paused[index] === false) {
+            DT.music.pausedAt[index] = Date.now() - DT.music.startedAt[index];
         } 
         sources[index].stop(index);
-        stopped[index] = true;
-        started[index] = false;
+        DT.music.stopped[index] = true;
+        DT.music.started[index] = false;
     }
 };
 
@@ -665,8 +699,8 @@ DT.gainNodes = [];
 DT.playSound = function(index){
 
     var gainNodes = DT.gainNodes;
-    if (!started[index]) {
-        started[index] = true;
+    if (!DT.music.started[index]) {
+        DT.music.started[index] = true;
 
         sources[index] = context.createBufferSource();
         sources[index].buffer = buffers[index];
@@ -689,26 +723,26 @@ DT.playSound = function(index){
             visualize(index);
         });
 
-        stopped[index] = false;
-        if (pausedAt[index]) {
-            startedAt[index] = Date.now() - pausedAt[index];
-            sources[index].start(index, pausedAt[index] / 1000);
+        DT.music.stopped[index] = false;
+        if (DT.music.pausedAt[index]) {
+            DT.music.startedAt[index] = Date.now() - DT.music.pausedAt[index];
+            sources[index].start(index, DT.music.pausedAt[index] / 1000);
         } else {
-            startedAt[index] = Date.now();
+            DT.music.startedAt[index] = Date.now();
             sources[index].start(index);
         }
     }
 };
 
 DT.stopSoundBeforPause = function() {
-    stopped.forEach(function(el, i) {
-        paused[i] = el;
+    DT.music.stopped.forEach(function(el, i) {
+        DT.music.paused[i] = el;
         DT.stopSound(i);
     });
 };
 
 DT.playSoundAfterPause = function() {
-    paused.forEach(function(el, i) {
+    DT.music.paused.forEach(function(el, i) {
         if (!el) {
             DT.playSound(i);
         }
@@ -986,7 +1020,7 @@ DT.initPhoneController = function() {
         // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.37:8888';
+            server = 'http://192.168.1.34:8888';
         }
         DT.initPhoneController.socket = io.connect(server);
         var socket = DT.initPhoneController.socket;
@@ -1040,8 +1074,9 @@ DT.initPhoneController = function() {
             if (click === "right") {
                 DT.changeDestPoint(0, 1, DT.player.destPoint);
             }
-            if (click === "onMoreTime") {
-                // DT.onMoreTime();
+            if (click === "restart") {
+                console.log(click);
+                DT.restart();
             }
         });
     }

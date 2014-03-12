@@ -1,14 +1,8 @@
-(function(){
+(function (){
 // when resize
 var winResize = new THREEx.WindowResize(DT.renderer, DT.camera);
 // service variables
 var dieCoord, lens, emitter, fragmentsPosition = {x: -1000, y: 0, z: 0}, fragmentsCounter = 0;
-// collections
-var stones = DT.collections.stones,
-    fragments = DT.collections.fragments,
-    coins = DT.collections.coins,
-    bonuses = DT.collections.bonuses,
-    caughtBonuses = DT.collections.caughtBonuses;
 
 // DT.renderer
 DT.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -225,6 +219,7 @@ DT.onRenderFcts.push(function() {
 });
 // stones lifecicle, rotation and moving
 DT.onRenderFcts.push(function() {
+    var stones = DT.collections.stones;
     if (!stones.length) {
         DT.generateStone(DT.scene, stones, DT.param.spawnCoord);
     }
@@ -248,7 +243,7 @@ DT.onRenderFcts.push(function() {
             // DT.soundStoneDestroy.update();
             DT.soundStoneDestroy.play();
             if (DT.initPhoneController.socket) {
-                DT.initPhoneController.socket.emit("vibr", {"time": 200, "gameCode": DT.initPhoneController.socket.gameCode});
+                DT.initPhoneController.socket.emit("message", {"type": "vibr", "time": 200, "gameCode": DT.initPhoneController.socket.gameCode});
             }
             // bump(0.2);
             DT.scene.remove(el);
@@ -300,6 +295,7 @@ DT.onRenderFcts.push(function() {
 });
 // // fragments lifecicle
 // DT.onRenderFcts.push(function() {
+    // fragments = DT.collections.fragments;
 //     if (fragments.length) {
 //         fragments.forEach(function(el, ind, arr) {
 //             el.frames += 1;
@@ -315,6 +311,7 @@ DT.onRenderFcts.push(function() {
 // });
 // coins lifecicle
 DT.onRenderFcts.push(function() {
+    var coins = DT.collections.coins;
     if (!coins.length) {
         var x = DT.genCoord(),
             y = -2.5;
@@ -341,7 +338,7 @@ DT.onRenderFcts.push(function() {
                 // DT.soundCoin.update();
                 DT.soundCoin.play();
                 if (DT.initPhoneController.socket) {
-                    DT.initPhoneController.socket.emit("vibr", {"time": 10, "gameCode": DT.initPhoneController.socket.gameCode});
+                    DT.initPhoneController.socket.emit("message", {"type": "vibr", "time": 10, "gameCode": DT.initPhoneController.socket.gameCode});
                 }
                 DT.blink.doBlink(0xcfb53b, 60);
                 DT.bump();
@@ -360,6 +357,7 @@ DT.onRenderFcts.push(function() {
 });
 // bonuses lifecicle
 DT.onRenderFcts.push(function() {
+    var bonuses = DT.collections.bonuses;
     if (!bonuses.length) {
         var x = DT.genCoord(),
             y = -2.5;
@@ -531,3 +529,4 @@ DT.onRenderFcts.push(function () {
 // });
 
 }());
+DT.snapshot = $.extend(true, {}, DT);

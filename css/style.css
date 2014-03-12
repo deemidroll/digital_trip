@@ -41,7 +41,7 @@ body {
 }
 
 .game_over div {
-    margin: 10% 0 0 0;
+    margin: 50px 0 0 0;
 }
 
 .choose_control {
@@ -128,7 +128,7 @@ body {
     font-size: 5em;
 }
 
-.one_more_time {
+#one_more_time {
     display: inline-block;
     border: 2px #eee solid;
     padding: 5px;

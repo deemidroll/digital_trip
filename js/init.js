@@ -127,15 +127,8 @@ var DT = {
                     DT.speed.setChanger(0);
                     DT.funTimer = 0;
                 }
-                if (k === 32) {
-                    if (!DT.gameWasPaused) {
-                        DT.pauseOn();
-                    } else {
-                        DT.pauseOff();
-                    }
-                }
             });
-
+            $(document).keyup(DT.handlers.pauseOnSpace);
             DT.gameWasStarted = true;
         }
     },
@@ -171,7 +164,45 @@ var DT = {
     jumpLength: 0, // not used
     jumpOffset: 2.2, // not used
     gameWasStarted: false,
-    gameWasPaused: false
+    gameWasPaused: false,
+    handlers: {}
+};
+// HANDLERS
+DT.handlers.mute = function() {
+    if (DT.param.globalVolume === 1) {
+        DT.param.globalVolume = 0;
+        $(".music_button").html("N");
+    } else {
+        DT.param.globalVolume = 1;
+        $(".music_button").html("M");
+    }
+    if (DT.param.prevGlobalVolume !== DT.param.globalVolume) {
+        DT.gainNodes.forEach(function(el) {
+            if (el) {
+                el.gain.value = DT.param.globalVolume;
+            }
+        });
+        DT.param.prevGlobalVolume = DT.param.globalVolume;
+    }
+}
+DT.handlers.pauseOnSpace = function(event) {
+    var k = event.keyCode;
+    // speedDown
+    if (k === 32) {
+        if (!DT.gameWasPaused) {
+            DT.pauseOn();
+        } else {
+            DT.pauseOff();
+        }
+    }
+};
+DT.handlers.restartOnSpace = function(event) {
+    $(document).unbind("keyup", DT.handlers.restartOnSpace);
+    var k = event.keyCode;
+    // speedDown
+    if (k === 32) {
+        location.reload();
+    }
 };
 // auxiliary functions
 DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
@@ -256,13 +287,15 @@ DT.gameOver = function() {
     setTimeout(function() {
         cancelAnimationFrame(DT.id);
     }, 300);
-    DT.oneMoreTime();
+    DT.prepareToRestart();
 };
 
-DT.oneMoreTime = function() {
+DT.prepareToRestart = function() {
     $('.one_more_time').click(function() {
         location.reload();
     });
+    $(document).unbind("keyup", DT.handlers.pauseOnSpace);
+    $(document).bind("keyup", DT.handlers.restartOnSpace);
 }
 
 DT.hit = function() {
@@ -568,23 +601,14 @@ $(function(){
     $(".resume").click(function() {
         DT.pauseOff();
     });
-    $(".music_button").click(function() {
-        if (DT.param.globalVolume === 1) {
-            DT.param.globalVolume = 0;
-            $(".music_button").html("N");
-        } else {
-            DT.param.globalVolume = 1;
-            $(".music_button").html("M");
-        }
-        if (DT.param.prevGlobalVolume !== DT.param.globalVolume) {
-            DT.gainNodes.forEach(function(el) {
-                if (el) {
-                    el.gain.value = DT.param.globalVolume;
-                }
-            });
-            DT.param.prevGlobalVolume = DT.param.globalVolume;
+    $(".music_button").click(DT.handlers.mute);
+    $(document).keyup(function(event) {
+        var k = event.keyCode;
+        if (k === 77) {
+            DT.handlers.mute();
         }
     });
+
 
 // BACKGROUND
 DT.backgroundMesh = new THREE.Mesh(
@@ -1011,7 +1035,7 @@ DT.initPhoneController = function() {
                 DT.changeDestPoint(0, 1, DT.player.destPoint);
             }
             if (click === "onMoreTime") {
-                DT.onMoreTime();
+                // DT.onMoreTime();
             }
         });
     }

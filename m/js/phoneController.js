@@ -12,28 +12,23 @@ var initPhoneController = function() {
         turned = false;
 
     if (server === "http://127.0.0.1:8888") {
-        server = 'http://192.168.1.34:8888';
+        server = 'http://192.168.1.38:8888';
     }
     // If client is an Android Phone
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
         // Show the controller ui with gamecode input
         controller.show();
-                window.addEventListener('orientationchange', function(event) {
-                    var rotate = 0 - window.orientation;
-                    $("body").css({
-                        "transform": "rotate("+rotate+"deg)",
-                        "-ms-transform": "rotate("+rotate+"deg)",
-                        "-webkit-transform": "rotate("+rotate+"deg)",
-                        "-moz-transform": "rotate("+rotate+"deg)"
-                    });
-                }, false );
+        window.addEventListener('orientationchange', function(event) {
+            var rotate = 0 - window.orientation;
+            $("body").css({
+                "transform": "rotate("+rotate+"deg)",
+                "-ms-transform": "rotate("+rotate+"deg)",
+                "-webkit-transform": "rotate("+rotate+"deg)",
+                "-moz-transform": "rotate("+rotate+"deg)"
+            });
+        }, false );
         // When connect is pushed, establish socket connection
         var connect = function() {
-            $("#restart").click(function () {
-                socket.emit("click", {"click":"restart"});
-                $("#gameover").hide();
-                controller.show();
-            });
             var gameCode = $("#socket input").val(),
             socket = io.connect(server);
             // When server replies with initial welcome...
@@ -101,6 +96,22 @@ var initPhoneController = function() {
                         socket.emit("click", {"click":"right"});
                     });
                 }
+
+                $(".button").show();
+                $("#F").click(function () {
+                socket.emit("click", {"click":"fullscreen"});
+                });
+                $("#M").click(function () {
+                    socket.emit("click", {"click":"mute"});
+                });
+                $("#P").click(function () {
+                    socket.emit("click", {"click":"pause"});
+                });
+                $("#restart").click(function () {
+                    socket.emit("click", {"click":"restart"});
+                    $("#gameover").hide();
+                    controller.show();
+                });
 
             });
             socket.on("fail", function() {

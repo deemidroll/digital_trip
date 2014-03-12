@@ -8,7 +8,7 @@ body {
     text-align: center;
 }
 
-.helthbar, .menu_button, .music_button, .score, .bonus{
+.helthbar, .menu_button, .music_button, .fs_button, .score, .bonus{
     position: absolute;
     opacity: 0.5;
 }
@@ -156,13 +156,19 @@ body {
 }
 
 
-.music_button, .menu_button {
+.music_button, .menu_button, .fs_button {
     width: 40px;
     height: 40px;
     border: 1px #ffffff solid;
     font-size: 32px;
     text-align: center;
     cursor: pointer;
+}
+
+.fs_button {
+    z-index: 2;
+    right: 120px;
+    top: 30px;
 }
 
 .music_button {

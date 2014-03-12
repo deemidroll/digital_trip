@@ -172,7 +172,19 @@ var DT = {
     gameWasStarted: false,
     gameWasPaused: false,
     handlers: {},
+    triggers: {},
     snapshot: null, // for restart
+};
+// TRIGGERS
+DT.triggers.fullscreen = function () {
+    THREEx.FullScreen.activated() ? THREEx.FullScreen.cancel() : THREEx.FullScreen.request(document.body);
+}
+DT.triggers.pause = function () {
+    if (!DT.gameWasPaused) {
+        DT.pauseOn();
+    } else {
+        DT.pauseOff();
+    }
 };
 // HANDLERS
 DT.handlers.mute = function() {
@@ -195,11 +207,7 @@ DT.handlers.mute = function() {
 DT.handlers.pauseOnSpace = function(event) {
     var k = event.keyCode;
     if (k === 32) {
-        if (!DT.gameWasPaused) {
-            DT.pauseOn();
-        } else {
-            DT.pauseOff();
-        }
+        DT.triggers.pause();
     }
 };
 DT.handlers.restartOnSpace = function(event) {
@@ -637,6 +645,7 @@ $(function(){
         DT.pauseOff();
     });
     $(".music_button").click(DT.handlers.mute);
+    $(".fs_button").click(DT.triggers.fullscreen);
     $(document).keyup(function(event) {
         var k = event.keyCode;
         if (k === 77) {
@@ -646,7 +655,7 @@ $(function(){
     $(document).keyup(function(event) {
         var k = event.keyCode;
         if (k === 70) {
-            THREEx.FullScreen.request();
+            DT.triggers.fullscreen();
         }
     });
 
@@ -1021,7 +1030,7 @@ DT.initPhoneController = function() {
         // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.34:8888';
+            server = 'http://192.168.1.38:8888';
         }
         DT.initPhoneController.socket = io.connect(server);
         var socket = DT.initPhoneController.socket;
@@ -1069,6 +1078,7 @@ DT.initPhoneController = function() {
             }
         });
         socket.on('click', function(click) {
+            console.log(click);
             if (click === "left") {
                 DT.changeDestPoint(0, -1, DT.player.destPoint);
             }
@@ -1076,8 +1086,16 @@ DT.initPhoneController = function() {
                 DT.changeDestPoint(0, 1, DT.player.destPoint);
             }
             if (click === "restart") {
-                console.log(click);
                 DT.restart();
+            }
+            if (click === "fullscreen") {
+                DT.triggers.fullscreen();
+            }
+            if (click === "mute") {
+                DT.handlers.mute();
+            }
+            if (click === "pause") {
+                DT.triggers.pause();
             }
         });
     }

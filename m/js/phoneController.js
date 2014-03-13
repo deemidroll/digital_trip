@@ -98,9 +98,6 @@ var initPhoneController = function() {
                 }
 
                 $(".button").show();
-                $("#F").click(function () {
-                socket.emit("click", {"click":"fullscreen"});
-                });
                 $("#M").click(function () {
                     socket.emit("click", {"click":"mute"});
                 });

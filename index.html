@@ -93,6 +93,12 @@
             <canvas id="debug" width="320" height="240"></canvas>
         </div>
     </div>
+<!-- alt cam control -->
+<div id="canvasLayers" width="320" height="240" style="position: absolute; left: 0px; top: 0px;">
+    <canvas id="videoCanvas" width="320" height="240" style="z-index: 1; position: absolute; left:0px; top:0px;"></canvas>
+</div>
+<canvas id="blendCanvas" style="display: none; position: absolute; left: 320px; top: 240px; width: 320px; height: 240px;"></canvas>
+
 
     <!-- <div class="color"></div> -->
     <script src="js/vendor/yepnope.1.5.4-min.js"></script>

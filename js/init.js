@@ -931,88 +931,270 @@ listOfModels.map(function(el) {
 
 // WEBCAM CONTROL
 DT.enableWebcam = function () {
-    // Game config
-    var leftBreakThreshold = -5;
-    var leftTurnThreshold = -10;
-    var rightBreakThreshold = 5;
-    var rightTurnThreshold = 10;
-    // Получаем элементы video и canvas
+    // // Game config
+    // var leftBreakThreshold = -5;
+    // var leftTurnThreshold = -10;
+    // var rightBreakThreshold = 5;
+    // var rightTurnThreshold = 10;
+    // // Получаем элементы video и canvas
     
-    var videoInput = document.getElementById('vid');
-    var canvasInput = document.getElementById('compare');
-    var debugOverlay = document.getElementById('debug');
+    // var videoInput = document.getElementById('vid');
+    // var canvasInput = document.getElementById('compare');
+    // var debugOverlay = document.getElementById('debug');
 
-    var canvasContext = canvasInput.getContext('2d');
-    // переворачиваем canvas зеркально по горизонтали
-    canvasContext.translate(canvasInput.width, 0);
-    canvasContext.scale(-1, 1);
+    // var canvasContext = canvasInput.getContext('2d');
+    // // переворачиваем canvas зеркально по горизонтали
+    // canvasContext.translate(canvasInput.width, 0);
+    // canvasContext.scale(-1, 1);
 
-    debugOverlay.style.height = '100%';
-    debugOverlay.style.opacity = '0.1';
-    debugOverlay.style.zIndex = '0';
+    // debugOverlay.style.height = '100%';
+    // debugOverlay.style.opacity = '0.1';
+    // debugOverlay.style.zIndex = '0';
     
-    // Определяем сообщения, выдаваемые библиотекой
+    // // Определяем сообщения, выдаваемые библиотекой
     
-    statusMessages = {
-        "whitebalance" : "Проверка камеры или баланса белого",
-        "detecting" : "Обнаружено лицо",
-        "hints" : "Что-то не так, обнаружение затянулось. Попробуйте сместиться относительно камеры",
-        "redetecting" : "Лицо потеряно, поиск..",
-        "lost" : "Лицо потеряно",
-        "found" : "Слежение за лицом"
-    };
+    // statusMessages = {
+    //     "whitebalance" : "Проверка камеры или баланса белого",
+    //     "detecting" : "Обнаружено лицо",
+    //     "hints" : "Что-то не так, обнаружение затянулось. Попробуйте сместиться относительно камеры",
+    //     "redetecting" : "Лицо потеряно, поиск..",
+    //     "lost" : "Лицо потеряно",
+    //     "found" : "Слежение за лицом"
+    // };
     
-    supportMessages = {
-        "no getUserMedia" : "Браузер не поддерживает getUserMedia",
-        "no camera" : "Не обнаружена камера."
-    };
+    // supportMessages = {
+    //     "no getUserMedia" : "Браузер не поддерживает getUserMedia",
+    //     "no camera" : "Не обнаружена камера."
+    // };
     
-    document.addEventListener("headtrackrStatus", function(event) {
-        if (event.status in supportMessages) {
-            console.log(supportMessages[event.status]);
-            $(".message").html(supportMessages[event.status])
-        } else if (event.status in statusMessages) {
-            console.log(statusMessages[event.status]);
-            $(".message").html(statusMessages[event.status])
+    // document.addEventListener("headtrackrStatus", function(event) {
+    //     if (event.status in supportMessages) {
+    //         console.log(supportMessages[event.status]);
+    //         $(".message").html(supportMessages[event.status])
+    //     } else if (event.status in statusMessages) {
+    //         console.log(statusMessages[event.status]);
+    //         $(".message").html(statusMessages[event.status])
+    //     }
+    //     if (event.status === "found" && !DT.gameWasStarted) {
+    //         DT.startGame();
+    //         DT.stopSound(2);
+    //         DT.playSound(0);
+    //         $(".choose_control").fadeOut(250);
+    //     }
+    // }, true);
+    
+    // // Установка отслеживания
+    
+    // var htracker = new headtrackr.Tracker({altVideo : {ogv : "", mp4 : ""}, calcAngles : true, ui : false, headPosition : false, debug : debugOverlay});
+    // htracker.init(videoInput, canvasInput);
+    // htracker.start();
+    
+    // // Рисуем прямоугольник вокруг «пойманного» лица
+    
+    // document.addEventListener("facetrackingEvent", function( event ) {
+    //     // once we have stable tracking, draw rectangle
+    //     if (event.detection == "CS") {
+    //         var angle = Number(event.angle *(180/ Math.PI)-90);
+    //         // console.log(angle);
+    //         if(angle < leftBreakThreshold) {
+    //             if(angle > leftTurnThreshold) {
+    //                 DT.player.destPoint.x = 0;
+    //             } else {
+    //                 DT.player.destPoint.x = -DT.param.spacing;
+    //             }
+    //         } else if (angle > rightBreakThreshold) {
+    //             if(angle < rightTurnThreshold) {
+    //                 DT.player.destPoint.x = 0;
+    //             } else {
+    //                 DT.player.destPoint.x = DT.param.spacing;
+    //             }
+    //         } else {
+    //             DT.player.destPoint.x = 0;
+    //         }
+    //     }
+    // });
+
+// alt realization
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+window.URL = window.URL || window.webkitURL;
+
+var camvideo = document.getElementById('vid');
+
+    if (!navigator.getUserMedia) 
+    {
+        $(".message").html('Sorry. <code>navigator.getUserMedia()</code> is not available.');
+    }
+    navigator.getUserMedia({video: true}, gotStream, noStream);
+
+function gotStream(stream) 
+{
+    if (window.URL) 
+    {   camvideo.src = window.URL.createObjectURL(stream);   } 
+    else // Opera
+    {   camvideo.src = stream;   }
+
+    camvideo.onerror = function(e) 
+    {   stream.stop();   };
+
+    stream.onended = noStream;
+    //start game
+    if (!DT.gameWasStarted) {
+        DT.startGame();
+        DT.stopSound(2);
+        DT.playSound(0);
+        $(".choose_control").fadeOut(250);
+    }
+    //
+}
+
+function noStream(e) 
+{
+    var msg = 'No camera available.';
+    if (e.code == 1) 
+    {   msg = 'User denied access to use camera.';   }
+    console.log(msg);
+}
+
+// assign global variables to HTML elements
+var video = document.getElementById( 'vid' );
+var videoCanvas = document.getElementById( 'videoCanvas' );
+var videoContext = videoCanvas.getContext( '2d' );
+$("#videoCanvas").css({
+    "height": window.innerHeight,
+    "width": window.innerWidth,
+    "opacity": 0.1
+});
+
+var blendCanvas  = document.getElementById( "blendCanvas" );
+var blendContext = blendCanvas.getContext('2d');
+$("#blendCanvas").css({
+    "height": window.innerHeight,
+    "width": window.innerWidth,
+    "opacity": 0.1
+});
+
+var messageArea = document.getElementById( "messageArea" );
+
+// these changes are permanent
+videoContext.translate(320, 0);
+videoContext.scale(-1, 1);
+        
+// background color if no video present
+videoContext.fillStyle = '#005337';
+videoContext.fillRect( 0, 0, videoCanvas.width, videoCanvas.height );
+
+var buttons = [];
+
+var button1 = new Image();
+button1.src ="img/lr.png";
+var buttonData1 = { name:"left", image:button1, x:0, y:0, w:100, h:240, coord: -2.5 };
+buttons.push( buttonData1 );
+
+var button2 = new Image();
+button2.src ="img/lr.png";
+var buttonData2 = { name:"right", image:button2, x:220, y:0, w:100, h:240, coord: 2.5 };
+buttons.push( buttonData2 );
+
+var button3 = new Image();
+button3.src ="img/c.png";
+var buttonData3 = { name:"center", image:button3, x:100, y:0, w:120, h:240, coord: 0 };
+buttons.push( buttonData3 );
+
+// start the loop               
+animate();
+
+function animate() 
+{
+    requestAnimationFrame( animate );
+    
+    render();   
+    blend();    
+    checkAreas();
+}
+
+function render() 
+{   
+    if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
+    {
+        // mirror video
+        videoContext.drawImage( video, 0, 0, videoCanvas.width, videoCanvas.height );
+
+    }
+}
+
+var lastImageData;
+
+function blend() 
+{
+    var width  = videoCanvas.width;
+    var height = videoCanvas.height;
+    // get current webcam image data
+    var sourceData = videoContext.getImageData(0, 0, width, height);
+    // create an image if the previous image doesn�t exist
+    if (!lastImageData) lastImageData = videoContext.getImageData(0, 0, width, height);
+    // create a ImageData instance to receive the blended result
+    var blendedData = videoContext.createImageData(width, height);
+    // blend the 2 images
+    differenceAccuracy(blendedData.data, sourceData.data, lastImageData.data);
+    // draw the result in a canvas
+    blendContext.putImageData(blendedData, 0, 0);
+    // store the current webcam image
+    lastImageData = sourceData;
+}
+function differenceAccuracy(target, data1, data2) 
+{
+    if (data1.length != data2.length) return null;
+    var i = 0;
+    while (i < (data1.length * 0.25)) 
+    {
+        var average1 = (data1[4*i] + data1[4*i+1] + data1[4*i+2]) / 3;
+        var average2 = (data2[4*i] + data2[4*i+1] + data2[4*i+2]) / 3;
+        var diff = threshold(fastAbs(average1 - average2));
+        target[4*i]   = diff;
+        target[4*i+1] = diff;
+        target[4*i+2] = diff;
+        target[4*i+3] = 0xFF;
+        ++i;
+    }
+}
+function fastAbs(value) 
+{
+    return (value ^ (value >> 31)) - (value >> 31);
+}
+function threshold(value) 
+{
+    return (value > 0x15) ? 0xFF : 0;
+}
+
+// check if white region from blend overlaps area of interest (e.g. triggers)
+function checkAreas() 
+{
+    for (var b = 0; b < buttons.length; b++)
+    {
+        // get the pixels in a note area from the blended image
+        var blendedData = blendContext.getImageData( buttons[b].x, buttons[b].y, buttons[b].w, buttons[b].h );
+            
+        // calculate the average lightness of the blended data
+        var i = 0;
+        var sum = 0;
+        var countPixels = blendedData.data.length * 0.25;
+        while (i < countPixels) 
+        {
+            sum += (blendedData.data[i*4] + blendedData.data[i*4+1] + blendedData.data[i*4+2]);
+            ++i;
         }
-        if (event.status === "found" && !DT.gameWasStarted) {
-            DT.startGame();
-            DT.stopSound(2);
-            DT.playSound(0);
-            $(".choose_control").fadeOut(250);
+        // calculate an average between of the color values of the note area [0-255]
+        var average = Math.round(sum / (3 * countPixels));
+        if (average > 30) // more than 20% movement detected
+        {
+            console.log( "Button " + buttons[b].name + " triggered." ); // do stuff
+            // messageArea.innerHTML = "<font size='+4' color=white>"+ buttons[b].name + "</b></font>";
+            DT.player.destPoint.x = buttons[b].coord;
         }
-    }, true);
-    
-    // Установка отслеживания
-    
-    var htracker = new headtrackr.Tracker({altVideo : {ogv : "", mp4 : ""}, calcAngles : true, ui : false, headPosition : false, debug : debugOverlay});
-    htracker.init(videoInput, canvasInput);
-    htracker.start();
-    
-    // Рисуем прямоугольник вокруг «пойманного» лица
-    
-    document.addEventListener("facetrackingEvent", function( event ) {
-        // once we have stable tracking, draw rectangle
-        if (event.detection == "CS") {
-            var angle = Number(event.angle *(180/ Math.PI)-90);
-            // console.log(angle);
-            if(angle < leftBreakThreshold) {
-                if(angle > leftTurnThreshold) {
-                    DT.player.destPoint.x = 0;
-                } else {
-                    DT.player.destPoint.x = -DT.param.spacing;
-                }
-            } else if (angle > rightBreakThreshold) {
-                if(angle < rightTurnThreshold) {
-                    DT.player.destPoint.x = 0;
-                } else {
-                    DT.player.destPoint.x = DT.param.spacing;
-                }
-            } else {
-                DT.player.destPoint.x = 0;
-            }
-        }
-    });
+    }
+}
+
+
 };
 
 DT.initPhoneController = function() {

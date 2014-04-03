@@ -269,12 +269,12 @@ DT.dontFeelPain = function (time) {
 DT.blink.doBlink = function (color, frames, recover) {
     var defClr = {r: 1, g: 0, b: 0},
         blink = DT.blink;
-        blink.color = new THREE.Color(color);
-        blink.frames = frames;
-        blink.framesLeft = frames;
-        blink.dr = (defClr.r - blink.color.r)/frames;
-        blink.dg = (defClr.g - blink.color.g)/frames;
-        blink.db = (defClr.b - blink.color.b)/frames;
+    blink.color = new THREE.Color(color);
+    blink.frames = frames;
+    blink.framesLeft = frames;
+    blink.dr = (defClr.r - blink.color.r)/frames;
+    blink.dg = (defClr.g - blink.color.g)/frames;
+    blink.db = (defClr.b - blink.color.b)/frames;
 };
 
 DT.changeScore = function(currentScore, delta) {
@@ -1030,7 +1030,7 @@ DT.initPhoneController = function() {
         // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.38:8888';
+            server = 'http://192.168.1.44:8888';
         }
         DT.initPhoneController.socket = io.connect(server);
         var socket = DT.initPhoneController.socket;

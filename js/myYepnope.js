@@ -33,6 +33,8 @@ yepnope([{
         "js/vendor/webaudio.js",
         "js/vendor/headtrackr.js",
         "js/vendor/THREEx.FullScreen.js",
+        "js/vendor/ParallaxBarrierEffect.js",
+        "js/vendor/AnaglyphEffect.js",
         "/socket.io/socket.io.js"
     ],
     callback: {

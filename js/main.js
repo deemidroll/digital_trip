@@ -65,8 +65,8 @@ emitter = Fireworks.createEmitter({nParticles : 100})
                     texture = Fireworks.ProceduralTextures.buildTexture(),
                     material    = new THREE.ParticleBasicMaterial({
                         color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
-                        size        : 3.5,
-                        sizeAttenuation : true,
+                        size        : 100,
+                        sizeAttenuation : false,
                         vertexColors    : true,
                         map     : texture,
                         blending    : THREE.AdditiveBlending,
@@ -141,6 +141,14 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 //////////////////////////////////////////////
 // ON RENDER 
 //////////////////////////////////////////////
+// EFFECT PARALLAX
+var width = window.innerWidth || 2;
+var height = window.innerHeight || 2;
+console.log(width, height);
+// var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
+var effect = new THREE.AnaglyphEffect( DT.renderer );
+effect.setSize( width, height );
+
 
 
 // EMITTER Particle system - sphere tail
@@ -169,6 +177,8 @@ var prevTime = Date.now();
 // render the scene
 DT.onRenderFcts.push(function(delta, now) {
     DT.renderer.render(DT.scene, DT.camera);
+    DT.player.isFun && 
+    effect.render(DT.scene, DT.camera);
     DT.backgroundMesh.visible = true; // 1 раз
     emitter.update(delta).render();
     // DT.emittFragments.update(delta).render();
@@ -192,27 +202,27 @@ DT.onRenderFcts.push(function () {
 });
 // LENS
 DT.onRenderFcts.push(function() {
+    var camOffset = 6, camDelta = 0.1,
+        lensOffset = 18, lensDelta = 0.3;
     // var composer = DT.composer;
     if (DT.speed.getChanger() > 0) {
-        
-        DT.camera.position.z = Math.min(DT.camera.position.z += 0.05, DT.camera.z + 3);
-        lens = Math.max(lens -= 0.15, DT.camera.lens - 9);
+        DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
+        lens = Math.max(lens -= lensDelta, DT.camera.lens - lensOffset);
         // composer.render();
     } else if (DT.speed.getChanger() < 0) {
-        
-        DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z - 3);
-        lens = Math.min(lens += 0.15, DT.camera.lens + 9);
+        DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
+        lens = Math.min(lens += lensDelta, DT.camera.lens + lensOffset);
         // composer.render();
     } else {
         var delta = DT.camera.lens - lens;
         if (delta < 0) {
             
-            DT.camera.position.z = Math.max(DT.camera.position.z -= 0.05, DT.camera.z);
-            lens = Math.max(lens -= 0.15, DT.camera.lens);
+            DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
+            lens = Math.max(lens -= lensDelta, DT.camera.lens);
         } else {
             
-            DT.camera.position.z = Math.min(DT.camera.position.z += 0.05, DT.camera.z);
-            lens = Math.min(lens += 0.15, DT.camera.lens);
+            DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
+            lens = Math.min(lens += lensDelta, DT.camera.lens);
         }
     }
     DT.camera.setLens(lens);

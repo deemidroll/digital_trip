@@ -21,7 +21,7 @@ var DT = {
     speed: {
         value: 6,
         changer: 0,
-        step: 0.1,
+        step: 0.2,
         increase: function () {
             this.value += (this.step / 5 / 60);
         },
@@ -32,7 +32,7 @@ var DT = {
             return this.changer;
         },
         getValue: function () {
-            return this.value;
+            return this.value + this.changer;
         }
     },
     collections: {
@@ -565,7 +565,7 @@ DT.moveSphere = function(sphere, destPoint, n) {
 DT.makeFun = function(time) {
     DT.player.isFun = true;
     DT.funTimer = (time || 10000) / 1000 * 60;
-    DT.speed.setChanger(-5);
+    DT.speed.setChanger(-3);
     DT.stopSound(0);
     DT.playSound(1);
 };
@@ -1030,7 +1030,7 @@ DT.initPhoneController = function() {
         // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.44:8888';
+            server = 'http://192.168.1.38:8888';
         }
         DT.initPhoneController.socket = io.connect(server);
         var socket = DT.initPhoneController.socket;

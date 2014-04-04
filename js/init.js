@@ -1062,7 +1062,7 @@ var videoContext = videoCanvas.getContext( '2d' );
 $("#videoCanvas").css({
     "height": window.innerHeight,
     "width": window.innerWidth,
-    "opacity": 0.1
+    "opacity": 0.2
 });
 
 var blendCanvas  = document.getElementById( "blendCanvas" );
@@ -1070,7 +1070,7 @@ var blendContext = blendCanvas.getContext('2d');
 $("#blendCanvas").css({
     "height": window.innerHeight,
     "width": window.innerWidth,
-    "opacity": 0.1
+    "opacity": 0.2
 });
 
 var messageArea = document.getElementById( "messageArea" );

@@ -1048,7 +1048,6 @@ function gotStream(stream)
         DT.playSound(0);
         $(".choose_control").fadeOut(250);
     }
-    //
 }
 
 function noStream(e) 
@@ -1060,24 +1059,33 @@ function noStream(e)
 }
 
 // assign global variables to HTML elements
+console.log(window.innerHeight, window.innerWidth);
 var video = document.getElementById( 'vid' );
-var videoCanvas = document.getElementById( 'videoCanvas' );
+var videoCanvas = document.getElementById( 'debug' );
 var videoContext = videoCanvas.getContext( '2d' );
-$("#videoCanvas").css({
+$("#debug").css({
     "height": window.innerHeight,
     "width": window.innerWidth,
     "opacity": 0.2
 });
 
-var blendCanvas  = document.getElementById( "blendCanvas" );
+var blendCanvas  = document.getElementById( "compare" );
 var blendContext = blendCanvas.getContext('2d');
-$("#blendCanvas").css({
+$("#compare").css({
     "height": window.innerHeight,
     "width": window.innerWidth,
     "opacity": 0.2
 });
 
-var messageArea = document.getElementById( "messageArea" );
+$(".cam").css({
+    "background-color": "rgba(255,255,255,0.2)"
+});
+$(".center").css({
+    "background-color": "rgba(0,0,0,0.2)",
+    "width": "33%",
+    "height": "100%",
+    "margin-left": "33%"
+});
 
 // these changes are permanent
 videoContext.translate(320, 0);
@@ -1165,7 +1173,7 @@ function fastAbs(value)
 {
     return (value ^ (value >> 31)) - (value >> 31);
 }
-function threshold(value) 
+function threshold(value)  
 {
     return (value > 0x15) ? 0xFF : 0;
 }

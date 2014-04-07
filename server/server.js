@@ -2,7 +2,8 @@
 var express = require('express'),
     http = require('http'),
     io = require('socket.io'),
-    crypto = require('crypto');
+    crypto = require('crypto'),
+    mongo = require('mongodb').MongoClient;
 
 // Set up our app with Express framework
 var app = express();
@@ -72,11 +73,33 @@ io.sockets.on('connection', function(socket) {
             
             // Store game code -> socket association
             socketCodes[gameCode] = io.sockets.sockets[socket.id];
-            socket.gameCode = gameCode
+            socket.gameCode = gameCode;
             
             // Tell game client to initialize 
             //  and show the game code to the user
             socket.emit("initialize", gameCode);
+            // insert data into MongoDB
+            mongo.connect('mongodb://127.0.0.1:27017/DTdb', function(err, db) {
+                if(err) throw err;
+                var collection = db.collection('clients');
+                collection.insert({
+                        "clientId": socket.id,
+                        "clientIp": socket.handshake.address.address,
+                        "gameCode": gameCode,
+                        "timeStart": new Date(),
+                        "timeEnd": undefined,
+                        "coinsCollect": 0
+                    }, 
+                    function(err, docs) {
+                        console.log(
+                            "clientId", socket.id,
+                            "clientIp", socket.handshake.address.address,
+                            "gameCode", gameCode,
+                            "timeStart", new Date()
+                        );
+                        db.close();
+                    });
+            });
         } else if(device.type == "controller") { // if client is a phone controller
             // if game code is valid...
             if(device.gameCode in socketCodes) {

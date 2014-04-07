@@ -86,6 +86,10 @@ var DT = {
     id: null,
     lastTimeMsec: null,
     startGame: function() {
+        // for stats
+        setStats();
+        // for timer
+        $(".gameTimer").css({"display": "block"});
 
         requestAnimationFrame(function animate(nowMsec) {
             var deltaMsec = Math.min(200, nowMsec - DT.lastTimeMsec);
@@ -1212,7 +1216,7 @@ DT.initPhoneController = function() {
         // If client is browser game
         var server = window.location.origin;
         if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.38:8888';
+            server = 'http://192.168.1.36:8888';
         }
         DT.initPhoneController.socket = io.connect(server);
         var socket = DT.initPhoneController.socket;
@@ -1295,17 +1299,19 @@ DT.updateGameTimer = function (timer) {
 });
 
 // STATS
-var stats = new Stats();
+var stats, stats2;
+var setStats = function () {
+    var body = document.getElementsByTagName("body")[0];
+    stats = stats|| new Stats();
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '0px';
     stats.domElement.style.zIndex = 100;
-var body = document.getElementsByTagName("body")[0];
     body.appendChild( stats.domElement );
-var stats2 = new Stats();
+    stats2 = stats2 || new Stats();
     stats2.setMode(1); // 0: fps, 1: ms
     stats2.domElement.style.position = 'absolute';
     stats2.domElement.style.top = '0px';
     stats2.domElement.style.left = '80px';
     stats2.domElement.style.zIndex = 100;
-var body = document.getElementsByTagName("body")[0];
     body.appendChild( stats2.domElement );
+};

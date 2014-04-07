@@ -1302,6 +1302,7 @@ DT.updateGameTimer = function (timer) {
     sec = sec % 60;
     sec < 10 ? sec = "0" + sec.toString() : sec;
     $(".gameTimer").html(min + ":" + sec);
+    $("title").html(min + ":" + sec + " in digital trip");
 }
 
 });

@@ -1223,8 +1223,8 @@ DT.initPhoneController = function() {
     if( !/iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
         // If client is browser game
         var server = window.location.origin;
-        if (server === "http://127.0.0.1:8888") {
-            server = 'http://192.168.1.36:8888';
+        if (server === "http://localhost") {
+            server = 'http://192.168.1.36';
         }
         DT.initPhoneController.socket = io.connect(server);
         var socket = DT.initPhoneController.socket;

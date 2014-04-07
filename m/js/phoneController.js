@@ -11,9 +11,9 @@ var initPhoneController = function() {
         status = $("#status"),
         turned = false;
 
-    if (server === "http://127.0.0.1:8888") {
-        server = 'http://192.168.1.36:8888';
-    }
+    // if (server === "http://127.0.0.1") {
+    //     server = 'http://192.168.1.36';
+    // }
     // If client is an Android Phone
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
         // Show the controller ui with gamecode input

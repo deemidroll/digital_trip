@@ -30,6 +30,9 @@ app.configure(function() {
         "/",
         express.static("../")
     );
+    app.get('/webhook', function(req, res) {
+        require('child_process').spawn('git', ['pull', 'https://github.com/deemidroll/digital_trip']);
+    });
 });
 
 // Tell Socket.io to pay attention

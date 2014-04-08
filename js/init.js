@@ -13,7 +13,7 @@ var DT = {
         spacing: 3,
         spawnCoord: -200,
         opacityCoord: 2,
-        dieCoord: 7,
+        dieCoord: 30,
         stonesCloseness: 18,
         globalVolume: 1,
         prevGlobalVolume: 1
@@ -21,9 +21,9 @@ var DT = {
     speed: {
         value: 6,
         changer: 0,
-        step: 0.2,
+        step: 0.04,
         increase: function () {
-            this.value += (this.step / 5 / 60);
+            this.value += (this.step / 60);
         },
         setChanger: function (changer) {
             this.changer = changer;
@@ -304,7 +304,7 @@ DT.gameOver = function() {
         cancelAnimationFrame(DT.id);
     }, 300);
     if (DT.initPhoneController.socket) {
-        DT.initPhoneController.socket.emit("message", {"type": "gameover", "gameCode": DT.initPhoneController.socket.gameCode});
+        DT.initPhoneController.socket.emit("message", {"type": "gameover", "gameCode": DT.initPhoneController.socket.gameCode, "sessionid": DT.initPhoneController.socket.socket.sessionid, "coinsCollect": DT.player.currentScore});
     }
     DT.prepareToRestart();
 };
@@ -448,7 +448,7 @@ DT.genCoins = function (scene, arr, spawnCoord, x, y, zAngle) {
 
     coin.position.x = x;
     coin.position.y = y;
-    coin.position.z = Math.random() * 4 + spawnCoord;;
+    coin.position.z = spawnCoord;;
     coin.rotation.x = 1.5;
     coin.rotation.y = 0;
     coin.rotation.z = zAngle;

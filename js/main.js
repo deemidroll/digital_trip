@@ -14,7 +14,7 @@ DT.camera.position.set(0, 0.5, 15);
 DT.camera.position.z = DT.camera.z = 15;
 DT.camera.lens = 35;
 
-dieCoord = DT.camera.z + DT.param.dieCoord;
+dieCoord = DT.param.dieCoord;
 // LENS 
 lens = DT.camera.lens;
 

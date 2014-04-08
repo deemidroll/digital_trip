@@ -25,6 +25,66 @@ var genGameCode = function () {
     return code;
 };
 
+var useDB = function (method, args) {
+    mongo.connect('mongodb://127.0.0.1:27017/DTdb', function(err, db) {
+        if(err) throw err;
+        var collection = db.collection('clients');
+        var oldCallback = args[args.length - 1];
+        args[args.length - 1] = function (err, docs) {
+            db.close();
+            oldCallback(err, docs);
+        };
+        collection[method].apply(collection, args);
+    });
+};
+
+var insertDB = function (id, set, callback) {
+    useDB("insert",
+        [set, 
+        function(err, docs) {
+            callback && callback(id, docs[0]);
+        }]
+    );
+};
+
+var updateDB = function (id, set, callback) {
+    useDB("update",
+        [{"clientId": id},
+        {$set: set},
+        {multi: false},
+        function(err, doc) {
+            callback && callback(id, doc);
+        }]);
+};
+
+var getFromDB = function (id, set, callback) {
+    useDB("findOne",
+        [{"clientId": id},
+        function (err, doc) {
+            callback && callback(id, doc);
+        }]);
+};
+
+
+var checkClient = function (id, doc, timeEnd, coinsCollect) {
+    if (!doc) return false;
+    var time = timeEnd - doc.timeStart,
+        spawnCoord = 200,
+        numberOfCoins = 10,
+        coinsOffset = 10,
+        dieCoord = 30,
+        speedStart = 6,
+        acceleration = 0.04,
+        path,
+        maxCoins;
+
+    path = (speedStart * time) + (acceleration * time * time / 2);
+    maxCoins = path/(spawnCoord + (numberOfCoins - 1) * coinsOffset + dieCoord) * numberOfCoins;
+
+    return coinsCollect <= maxCoins;
+};
+
+// db.clients.find( {"clientId": id} ).limit(1).timeStart
 // Configure the app's document root to be HexGl/
 app.configure(function() {
     app.use(
@@ -56,6 +116,17 @@ io.sockets.on('connection', function(socket) {
                 }
             }
         }
+        if (data.type === "gameover") {
+            // update client in clients collection
+            var timeEnd = new Date();
+            getFromDB(data.sessionid, "timeStart", function (id, doc) {
+                updateDB(id, {
+                    "timeEnd": timeEnd,
+                    "coinsCollect": data.coinsCollect,
+                    "checkup": checkClient(id, doc, timeEnd, data.coinsCollect)
+                })
+            });
+        }
     });
     
     // Receive the client device type
@@ -79,26 +150,14 @@ io.sockets.on('connection', function(socket) {
             //  and show the game code to the user
             socket.emit("initialize", gameCode);
             // insert data into MongoDB
-            mongo.connect('mongodb://127.0.0.1:27017/DTdb', function(err, db) {
-                if(err) throw err;
-                var collection = db.collection('clients');
-                collection.insert({
-                        "clientId": socket.id,
-                        "clientIp": socket.handshake.address.address,
-                        "gameCode": gameCode,
-                        "timeStart": new Date(),
-                        "timeEnd": undefined,
-                        "coinsCollect": 0
-                    }, 
-                    function(err, docs) {
-                        console.log(
-                            "clientId", socket.id,
-                            "clientIp", socket.handshake.address.address,
-                            "gameCode", gameCode,
-                            "timeStart", new Date()
-                        );
-                        db.close();
-                    });
+            insertDB(socket.id, {
+                "clientId": socket.id,
+                "clientIp": socket.handshake.address.address,
+                "gameCode": gameCode,
+                "timeStart": new Date(),
+                "timeEnd": undefined,
+                "coinsCollect": null,
+                "checkup": false
             });
         } else if(device.type == "controller") { // if client is a phone controller
             // if game code is valid...

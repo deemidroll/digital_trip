@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>digital trip</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="icon" type="image/png" href="img/fav.png">
+</head>
+<body>
+    <div class="helthbar">
+        <div class="helth"></div>
+    </div>
+    <div class="gameTimer" style="display: none;">0:00</div>
+    <div class="fs_button">F</div>
+    <div class="music_button">M</div>
+    <div class="menu_button">P</div>
+    <div class="score"><span class="current_coins">0</span> D</div>
+    <div class="bonus"></div>
+    <div class="loader">
+        <div class="cont">
+            <span>DIGITAL TRIP</span>
+            <div class="loading"><b>LOADING <b class="startGame">0</b>%</b></div>
+        </div>
+    </div>
+    <div class="nogame">
+        <div class="cont">
+            <span>your browser is not supported</span>
+            <br>
+            <span>:(</span>
+        </div>
+    </div>
+    <div class="choose_control">
+        <div class="cont">
+            <span class="block bigfont">DIGITAL TRIP</span>
+            <br>
+            <span class="block message">choose controls</span>
+            <br>
+            <span class="block">
+                <span class="choose_wasd button">WASD</span>
+                <span class="choose_mobile button">Mobile</span>
+                <span class="choose_webcam button">Webcam</span>
+            </span>
+            <br>
+            <span>Press 'f' to fullscreen, 'm' to mute and 'space' to pause</span>
+            <span id="gameConnect" style="display:none">
+                Please open up this page with your phone and enter code <span style="font-weight:bold" id="socketId"></span>
+            </span>
+            <div id="status"></div>
+        </div>
+    </div>
+    <div class="menu_page">
+        <div class="cont">
+            <div class="menu">
+                <span class="block resume button">resume</span>
+                <hr>
+                <p>change controls</p>
+                <span class="block">
+                    <span class="change_wasd button">WASD</span>
+                    <span class="change_mobile button">Mobile</span>
+                    <span class="change_webcam button">Webcam</span>
+                </span>
+                <hr>
+                <span class="block">source on <a href="http://github.com/deemidroll/digital_trip">github</a></span>
+                <hr>
+                <span class="block"><a href="">web technologies used here</a></span>
+                <hr>
+                <span class="block">share F T g</span>
+                <hr>
+                <span class="block">it's a <a href="http://hotdot.pro/">Hot Dot</a> project</span>
+            </div>
+        </div>
+    </div>
+    <div class="hit">
+        <div class="cont">
+            <span class="error"></span>
+        </div>
+    </div>
+    <div class="game_over">
+        <div class="cont">
+            <div class="coins">
+                <span>such <span class="total_coins"></span> D</span>
+                <input type="text" value="your dogecoin id">
+                <input type="button" value="WOW">
+            </div>
+            <div>press space to restart</div>
+            <div id="one_more_time">one more time</div>
+        </div>
+    </div>
+    <div class="webcamcontrol">
+        <div class="cont cam">
+            <div class="center"></div>
+            <canvas id="compare" width="320" height="240" style="z-index: 1; position: absolute; left:0px; top:0px;"></canvas>
+            <video id="vid" autoplay loop width="320" height="240" style="display:none; z-index: 1; position: absolute; left:0px; top:0px;"></video>
+            <canvas id="debug" width="320" height="240" style="position: absolute; left:0; top:0;"></canvas>
+        </div>
+    </div>
+
+    <!-- <div class="color"></div> -->
+    <script src="js/vendor/yepnope.1.5.4-min.js"></script>
+    <script src="js/myYepnope.js"></script>
+
+    <!-- // <script src="js/vendor/jquery.min.js"></script> -->
+    <!-- // <script src="js/vendor/three.min.js"></script> -->
+    
+    <!-- // <script src="js/vendor/Detector.js"></script> -->
+    <!-- // <script src="js/vendor/threex.windowresize.js"></script> -->
+
+    <!-- scripts for blur.js -->
+    <!-- // <script src="js/vendor/blur/CopyShader.js"></script> -->
+    <!-- // <script src="js/vendor/blur/HorizontalBlurShader.js"></script> -->
+    <!-- // <script src="js/vendor/blur/VerticalBlurShader.js"></script> -->
+    <!-- // <script src="js/vendor/blur/EffectComposer.js"></script> -->
+    <!-- // <script src="js/vendor/blur/RenderPass.js"></script> -->
+    <!-- // <script src="js/vendor/blur/MaskPass.js"></script> -->
+    <!-- // <script src="js/vendor/blur/ShaderPass.js"></script> -->
+    <!-- end of scripts for blur.js -->
+
+    <!-- scripts for partical system -->
+    <!-- // <script src="js/vendor/fireworks-bundle.js"></script> -->
+    <!-- end of scripts for partical system -->
+
+    <!-- stats -->
+    <!-- // <script src="js/vendor/Stats.js"></script> -->
+    <!-- end of stats -->
+
+    <!-- audio -->
+    <!-- // <script src="js/vendor/webaudio.js"></script> -->
+    <!-- end of audio -->
+    
+    <!-- // <script src="js/init.js"></script> -->
+    <!-- // <script src="js/main.js"></script> -->
+    <!-- // <script src="/socket.io/socket.io.js"></script> -->
+</body>
+</html>

@@ -91,6 +91,7 @@ app.configure(function() {
         "/",
         express.static("../")
     );
+    app.use('/webhook', hookshot('deemidroll/digital_trip', 'git pull'));
 });
 
 // Tell Socket.io to pay attention

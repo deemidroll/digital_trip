@@ -179,6 +179,7 @@ var DT = {
     triggers: {},
     snapshot: null, // for restart
     server: window.location.origin !== "http://localhost" ? window.location.origin :'http://192.168.1.36',
+    wasMuted: false,
 };
 // TRIGGERS
 DT.triggers.fullscreen = function () {
@@ -191,15 +192,19 @@ DT.triggers.pause = function () {
         DT.pauseOff();
     }
 };
-// HANDLERS
-DT.handlers.mute = function() {
+DT.triggers.mute = function() {
     if (DT.param.globalVolume === 1) {
-        DT.param.globalVolume = 0;
+        DT.setVolume(0);
         $(".music_button").html("N");
+        DT.wasMuted = true;
     } else {
-        DT.param.globalVolume = 1;
+        DT.setVolume(1);
         $(".music_button").html("M");
+        DT.wasMuted = false;
     }
+}
+DT.setVolume = function (volume) {
+     DT.param.globalVolume = volume;
     if (DT.param.prevGlobalVolume !== DT.param.globalVolume) {
         DT.gainNodes.forEach(function(el) {
             if (el) {
@@ -208,7 +213,8 @@ DT.handlers.mute = function() {
         });
         DT.param.prevGlobalVolume = DT.param.globalVolume;
     }
-}
+};
+// HANDLERS
 DT.handlers.pauseOnSpace = function(event) {
     var k = event.keyCode;
     if (k === 32) {
@@ -650,12 +656,12 @@ $(function(){
     $(".resume").click(function() {
         DT.pauseOff();
     });
-    $(".music_button").click(DT.handlers.mute);
+    $(".music_button").click(DT.triggers.mute);
     $(".fs_button").click(DT.triggers.fullscreen);
     $(document).keyup(function(event) {
         var k = event.keyCode;
         if (k === 77) {
-            DT.handlers.mute();
+            DT.triggers.mute();
         }
     });
     $(document).keyup(function(event) {
@@ -1280,7 +1286,7 @@ DT.inintSocket = function() {
             DT.triggers.fullscreen();
         }
         if (click === "mute") {
-            DT.handlers.mute();
+            DT.triggers.mute();
         }
         if (click === "pause") {
             DT.triggers.pause();

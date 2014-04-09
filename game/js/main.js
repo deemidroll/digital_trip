@@ -136,6 +136,19 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 //     .start();
 //     console.log(DT.emittFragments);
 
+$(function() {
+    $(window).focus(function() {
+        console.log('Focus');
+        if (!DT.wasMuted) {
+            DT.setVolume(1);
+        }
+    });
+    $(window).blur(function() {
+        console.log('Blur');
+        DT.setVolume(0);
+    });
+});
+
 
 
 //////////////////////////////////////////////

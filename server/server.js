@@ -3,7 +3,8 @@ var express = require('express'),
     http = require('http'),
     io = require('socket.io'),
     crypto = require('crypto'),
-    mongo = require('mongodb').MongoClient;
+    mongo = require('mongodb').MongoClient,
+    hookshot = require('hookshot');
 
 // Set up our app with Express framework
 var app = express();

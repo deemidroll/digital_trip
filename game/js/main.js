@@ -265,8 +265,8 @@ DT.onRenderFcts.push(function() {
         if (distanceBerweenCenters < radiusesSum) {
             // DT.soundStoneDestroy.update();
             DT.soundStoneDestroy.play();
-            if (DT.initPhoneController.socket) {
-                DT.initPhoneController.socket.emit("message", {"type": "vibr", "time": 200, "gameCode": DT.initPhoneController.socket.gameCode});
+            if (DT.inintSocket.socket) {
+                DT.inintSocket.socket.emit("message", {"type": "vibr", "time": 200, "gameCode": DT.inintSocket.socket.gameCode});
             }
             // bump(0.2);
             DT.scene.remove(el);
@@ -360,8 +360,8 @@ DT.onRenderFcts.push(function() {
             if (distanceBerweenCenters < 0.9) {
                 // DT.soundCoin.update();
                 DT.soundCoin.play();
-                if (DT.initPhoneController.socket) {
-                    DT.initPhoneController.socket.emit("message", {"type": "vibr", "time": 10, "gameCode": DT.initPhoneController.socket.gameCode});
+                if (DT.inintSocket.socket) {
+                    DT.inintSocket.socket.emit("message", {"type": "vibr", "time": 10, "gameCode": DT.inintSocket.socket.gameCode});
                 }
                 DT.blink.doBlink(0xcfb53b, 60);
                 DT.bump();

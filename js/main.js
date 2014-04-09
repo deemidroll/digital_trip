@@ -300,7 +300,7 @@ DT.onRenderFcts.push(function() {
         // }
         el.rotation.y += 0.014;
         el.rotation.x += 0.014;
-        el.position.z += 0.1 * DT.speed.getValue();
+        el.position.z += DT.speed.getValue();
     });
 });
 // // fragments lifecicle
@@ -332,7 +332,7 @@ DT.onRenderFcts.push(function() {
     if (coins.length) {
         coins.forEach(function(el, ind, arr) {
             el.rotation.z += 0.05;
-            el.position.z += 0.1 * DT.speed.getValue();
+            el.position.z += DT.speed.getValue();
             if (el.position.z > dieCoord) {
                 DT.scene.remove(el);
                 arr.splice(ind, 1);
@@ -385,7 +385,7 @@ DT.onRenderFcts.push(function() {
             if (el.type === 2) {
                 // el.rotation.y += 0.05;
             }
-            el.position.z += 0.1 * DT.speed.getValue();
+            el.position.z += DT.speed.getValue();
             if (el.position.z > dieCoord) {
                 DT.scene.remove(el);
                 arr.splice(ind, 1);
@@ -514,7 +514,7 @@ DT.onRenderFcts.push(function () {
         DT.dust.material.color.b = DT.sphere.material.color.b || 1;
     }
     DT.dust.geometry.vertices.forEach(function (el) {
-        el.z += 0.1 * DT.speed.getValue();
+        el.z += DT.speed.getValue();
         if (el.z > 10) {
             el.x = DT.genRandomBetween(-10, 10);
             el.y = DT.genRandomBetween(-10, 10);
@@ -529,7 +529,7 @@ DT.onRenderFcts.push(function () {
 //         if (DT.jumpLength < 2 * DT.jumpOffset && !DT.player.jump) {
 //             DT.jumpLength = 2 * 2 * DT.jumpOffset - DT.jumpLength;
 //         }
-//         DT.jumpLength += 0.1 * (DT.speed.getValue() / 6);
+//         DT.jumpLength += (DT.speed.getValue() / 6);
 //         DT.sphere.position.y = -(0.5 * DT.jumpLength-DT.jumpOffset)*(0.5 * DT.jumpLength-DT.jumpOffset) + 2.5;
 //         if (DT.sphere.position.y < -2.5) {
 //             DT.player.jump = false;

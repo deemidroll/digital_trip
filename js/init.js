@@ -19,9 +19,9 @@ var DT = {
         prevGlobalVolume: 1
     },
     speed: {
-        value: 6,
+        value: 36,
         changer: 0,
-        step: 0.04,
+        step: 0.6,
         increase: function () {
             this.value += (this.step / 60);
         },
@@ -32,7 +32,7 @@ var DT = {
             return this.changer;
         },
         getValue: function () {
-            return this.value + this.changer;
+            return (this.value + this.changer)/60;
         }
     },
     collections: {
@@ -116,7 +116,7 @@ var DT = {
                 if (k === 39) changeDestPoint(0, 1, destPoint);
                 // speedUp
                 if (k === 16) {
-                    DT.speed.setChanger(6);
+                    DT.speed.setChanger(36);
                     if (DT.player.isFun) {
                         DT.stopSound(1);
                         DT.playSound(0);
@@ -569,7 +569,7 @@ DT.moveSphere = function(sphere, destPoint, n) {
 DT.makeFun = function(time) {
     DT.player.isFun = true;
     DT.funTimer = (time || 10000) / 1000 * 60;
-    DT.speed.setChanger(-3);
+    DT.speed.setChanger(-18);
     DT.stopSound(0);
     DT.playSound(1);
 };

@@ -68,19 +68,19 @@ var getFromDB = function (id, set, callback) {
 
 var checkClient = function (id, doc, timeEnd, coinsCollect) {
     if (!doc) return false;
-    var time = timeEnd - doc.timeStart,
+    var time = (timeEnd - doc.timeStart)/1000,
         spawnCoord = 200,
         numberOfCoins = 10,
         coinsOffset = 10,
         dieCoord = 30,
-        speedStart = 6,
-        acceleration = 0.04,
+        speedStart = 36,
+        acceleration = 0.6,
         path,
         maxCoins;
 
     path = (speedStart * time) + (acceleration * time * time / 2);
     maxCoins = path/(spawnCoord + (numberOfCoins - 1) * coinsOffset + dieCoord) * numberOfCoins;
-
+    console.log(time, path, maxCoins);
     return coinsCollect <= maxCoins;
 };
 
@@ -119,7 +119,7 @@ io.sockets.on('connection', function(socket) {
         if (data.type === "gameover") {
             // update client in clients collection
             var timeEnd = new Date();
-            getFromDB(data.sessionid, "timeStart", function (id, doc) {
+            getFromDB(data.sessionid, null, function (id, doc) {
                 updateDB(id, {
                     "timeEnd": timeEnd,
                     "coinsCollect": data.coinsCollect,
@@ -157,7 +157,7 @@ io.sockets.on('connection', function(socket) {
                 "timeStart": new Date(),
                 "timeEnd": undefined,
                 "coinsCollect": null,
-                "checkup": false
+                "checkup": null
             });
         } else if(device.type == "controller") { // if client is a phone controller
             // if game code is valid...

@@ -178,6 +178,7 @@ var DT = {
     handlers: {},
     triggers: {},
     snapshot: null, // for restart
+    server: window.location.origin !== "http://localhost" ? window.location.origin :'http://192.168.1.36',
 };
 // TRIGGERS
 DT.triggers.fullscreen = function () {
@@ -303,8 +304,8 @@ DT.gameOver = function() {
     setTimeout(function() {
         cancelAnimationFrame(DT.id);
     }, 300);
-    if (DT.initPhoneController.socket) {
-        DT.initPhoneController.socket.emit("message", {"type": "gameover", "gameCode": DT.initPhoneController.socket.gameCode, "sessionid": DT.initPhoneController.socket.socket.sessionid, "coinsCollect": DT.player.currentScore});
+    if (DT.inintSocket.socket) {
+        DT.inintSocket.socket.emit("message", {"type": "gameover", "gameCode": DT.inintSocket.socket.gameCode, "sessionid": DT.inintSocket.socket.socket.sessionid, "coinsCollect": DT.player.currentScore});
     }
     DT.prepareToRestart();
 };
@@ -599,6 +600,7 @@ DT.bump = function (amp) {
  };
 
  DT.runApp = function () {
+    DT.inintSocket();
     DT.playSound(2);
             $(function() {
                 $(".loader").fadeOut(250);
@@ -611,7 +613,7 @@ DT.bump = function (amp) {
                     });
                 });
                 $(".choose_mobile").click(function() {
-                    DT.initPhoneController();
+                    DT.initPhoneControl();
                 });
                 $(".choose_webcam").click(function() {
                     DT.enableWebcam();
@@ -1208,91 +1210,82 @@ function checkAreas()
 
 
 };
+DT.initPhoneControl = function() {
+    $(".message").html("Please open <span style=\"color: red\">" + DT.server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
+    $("#socketId").html(DT.inintSocket.socket.gameCode);
+};
 
-DT.initPhoneController = function() {
-    if (DT.initPhoneController.message) {
-        $(".message").html(DT.initPhoneController.message);
-    }
+DT.inintSocket = function() {
     // Game config
     var leftBreakThreshold = -3;
     var leftTurnThreshold = -20;
     var rightBreakThreshold = 3;
     var rightTurnThreshold = 20;
 
-    // If client is not a phone
-    if( !/iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
-        // If client is browser game
-        var server = window.location.origin;
-        if (server === "http://localhost") {
-            server = 'http://192.168.1.36';
+    // If client is browser game
+    DT.inintSocket.socket = io.connect(DT.server);
+    var socket = DT.inintSocket.socket;
+    // When initial welcome message, reply with 'game' device type
+    socket.on('welcome', function(data) {
+        socket.emit("device", {"type":"game"});
+    })
+    // We receive our game code to show the user
+    socket.on("initialize", function(gameCode) {
+        socket.gameCode = gameCode;
+    });
+    // When the user inputs the code into the phone client,
+    //  we become 'connected'.  Start the game.
+    socket.on("connected", function(data) {
+        $("#gameConnect").hide();
+        $("#status").hide();
+        if (!DT.gameWasStarted) {
+            DT.startGame();
+            DT.stopSound(2);
+            DT.playSound(0);
+            $(".choose_control").fadeOut(250);
+            DT.gameWasStarted = true;
         }
-        DT.initPhoneController.socket = io.connect(server);
-        var socket = DT.initPhoneController.socket;
-        // When initial welcome message, reply with 'game' device type
-        socket.on('welcome', function(data) {
-            socket.emit("device", {"type":"game"});
-        })
-        // We receive our game code to show the user
-        socket.on("initialize", function(gameCode) {
-            socket.gameCode = gameCode;
-            $(".message").html("Please open <span style=\"color: red\">" + server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
-            $("#socketId").html(gameCode);
-            DT.initPhoneController.message = $(".message").html();
-        });
-        // When the user inputs the code into the phone client,
-        //  we become 'connected'.  Start the game.
-        socket.on("connected", function(data) {
-            $("#gameConnect").hide();
-            $("#status").hide();
-            if (!DT.gameWasStarted) {
-                DT.startGame();
-                DT.stopSound(2);
-                DT.playSound(0);
-                $(".choose_control").fadeOut(250);
-                DT.gameWasStarted = true;
-            }
-        });
+    });
 
-        // When the phone is turned, turn the vehicle
-        socket.on('turn', function(turn) {
-            if(turn < leftBreakThreshold) {
-                if(turn > leftTurnThreshold) {
-                    DT.player.destPoint.x = 0;
-                } else {
-                    DT.player.destPoint.x = -DT.param.spacing;
-                }
-            } else if (turn > rightBreakThreshold) {
-                if(turn < rightTurnThreshold) {
-                    DT.player.destPoint.x = 0;
-                } else {
-                    DT.player.destPoint.x = DT.param.spacing;
-                }
-            } else {
+    // When the phone is turned, turn the vehicle
+    socket.on('turn', function(turn) {
+        if(turn < leftBreakThreshold) {
+            if(turn > leftTurnThreshold) {
                 DT.player.destPoint.x = 0;
+            } else {
+                DT.player.destPoint.x = -DT.param.spacing;
             }
-        });
-        socket.on('click', function(click) {
-            console.log(click);
-            if (click === "left") {
-                DT.changeDestPoint(0, -1, DT.player.destPoint);
+        } else if (turn > rightBreakThreshold) {
+            if(turn < rightTurnThreshold) {
+                DT.player.destPoint.x = 0;
+            } else {
+                DT.player.destPoint.x = DT.param.spacing;
             }
-            if (click === "right") {
-                DT.changeDestPoint(0, 1, DT.player.destPoint);
-            }
-            if (click === "restart") {
-                DT.restart();
-            }
-            if (click === "fullscreen") {
-                DT.triggers.fullscreen();
-            }
-            if (click === "mute") {
-                DT.handlers.mute();
-            }
-            if (click === "pause") {
-                DT.triggers.pause();
-            }
-        });
-    }
+        } else {
+            DT.player.destPoint.x = 0;
+        }
+    });
+    socket.on('click', function(click) {
+        console.log(click);
+        if (click === "left") {
+            DT.changeDestPoint(0, -1, DT.player.destPoint);
+        }
+        if (click === "right") {
+            DT.changeDestPoint(0, 1, DT.player.destPoint);
+        }
+        if (click === "restart") {
+            DT.restart();
+        }
+        if (click === "fullscreen") {
+            DT.triggers.fullscreen();
+        }
+        if (click === "mute") {
+            DT.handlers.mute();
+        }
+        if (click === "pause") {
+            DT.triggers.pause();
+        }
+    });
 };
 
 DT.updateGameTimer = function (timer) {

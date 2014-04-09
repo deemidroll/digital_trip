@@ -90,7 +90,7 @@ var checkClient = function (id, doc, timeEnd, coinsCollect) {
 app.configure(function() {
     app.use("/m", express.static("../m"));
     app.use("/", express.static("../game"));
-    app.use('/webhook', hookshot('deemidroll/digital_trip', 'git pull');
+    app.use('/webhook', hookshot('deemidroll/digital_trip', 'git pull'));
 });
 
 // Tell Socket.io to pay attention

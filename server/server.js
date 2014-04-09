@@ -88,10 +88,8 @@ var checkClient = function (id, doc, timeEnd, coinsCollect) {
 // db.clients.find( {"clientId": id} ).limit(1).timeStart
 // Configure the app's document root to be HexGl/
 app.configure(function() {
-    app.use(
-        "/",
-        express.static("../")
-    );
+    app.use("/m", express.static("../m"));
+    app.use("/", express.static("../game"));
     app.use('/webhook', hookshot('deemidroll/digital_trip', 'git pull'));
 });
 

@@ -64,17 +64,27 @@ var updateDB = function (criteria, set, callback) {
         }]);
 };
 
-var getFromDB = function (criteria, set, callback) {
+var getOneFromDB = function (criteria, set, callback) {
     useDB("findOne",
         [criteria,
         function (err, doc) {
             callback && callback(criteria, doc);
         }]);
 };
+var getFromDB = function (criteria, set, callback) {
+    useDB("find",
+        [criteria,
+        function (err, docs) {
+            callback && callback(criteria, docs);
+        }]);
+};
 
 //
 var checkClient = function (criteria, doc, timeEnd, coinsCollect) {
-    if (!doc) return false;
+    var result = null;
+    // fail
+    // if there is not record in DB
+    if (!doc) result = false;
     var time = (timeEnd - doc.timeStart)/1000,
         spawnCoord = 200,
         numberOfCoins = 10,
@@ -84,11 +94,18 @@ var checkClient = function (criteria, doc, timeEnd, coinsCollect) {
         acceleration = 0.6,
         path,
         maxCoins;
+    // if game time more than 10 min
+    if (time > 600) result = false;
 
-    path = (speedStart * time) + (acceleration * time * time / 2);
-    maxCoins = path/(spawnCoord + (numberOfCoins - 1) * coinsOffset + dieCoord) * numberOfCoins;
-    console.log(time, path, maxCoins);
-    return coinsCollect <= maxCoins;
+    getFromDB({ "cookieUID": doc.cookieUID}, null, function (criteria, docs) {
+        // check something
+        path = (speedStart * time) + (acceleration * time * time / 2);
+        maxCoins = path/(spawnCoord + (numberOfCoins - 1) * coinsOffset + dieCoord) * numberOfCoins;
+        console.log(time, path, maxCoins);
+        // if client recieve more coins than it may
+        result = coinsCollect <= maxCoins;
+        return result;
+    });
 };
 
 // Configure the app
@@ -143,7 +160,7 @@ io.sockets.on('connection', function(socket) {
         if (data.type === "gamestarted") {
             // update client in clients collection
             var timeStart = Date.now();
-            getFromDB({"clientId": data.sessionid}, null, function (criteria, doc) {
+            getOneFromDB({"clientId": data.sessionid}, null, function (criteria, doc) {
                 updateDB(criteria, {
                     "timeStart": timeStart
                 })
@@ -152,7 +169,7 @@ io.sockets.on('connection', function(socket) {
         if (data.type === "gameover") {
             // update client in clients collection
             var timeEnd = Date.now();
-            getFromDB({"clientId": data.sessionid}, null, function (criteria, doc) {
+            getOneFromDB({"clientId": data.sessionid}, null, function (criteria, doc) {
                 updateDB(criteria, {
                     "timeEnd": timeEnd,
                     "coinsCollect": data.coinsCollect,
@@ -183,7 +200,6 @@ io.sockets.on('connection', function(socket) {
             //  and show the game code to the user
             socket.emit("initialize", gameCode);
             // insert data into MongoDB
-            console.log(socket.handshake.headers);
             insertDB(null, {
                 "cookieUID": data.cookieUID,
                 "clientId": socket.id,

@@ -13,7 +13,7 @@ var app = express();
 var server = http.createServer(app);
 
 // db.clients.find( {"clientId": id} ).limit(1).timeStart
-// Configure the app's document root to be HexGl/
+// Configure the app
 app.configure(function() {
     app.use(express.cookieParser());
         // set a cookie
@@ -21,21 +21,17 @@ app.configure(function() {
         // check if client sent cookie
         var cookie = req.cookies.UID;
         if (cookie === undefined) {
-            // no: set a new cookie
-            var generatedCookie = genCookie();
-            console.log(generatedCookie);
-            res.cookie('UID', generatedCookie, { maxAge: 900000, httpOnly: true });
+            // no: gen a new cookie
+            cookie = genCookie();
             console.log('cookie have created successfully');
         } else {
             // yes, cookie was already present 
-            res.cookie('UID', cookie, { maxAge: 900000, httpOnly: true });
             console.log('cookie exists', cookie);
-        } 
+        }
+        // refresh cookie
+        res.cookie('UID', cookie, { maxAge: 900000, httpOnly: true });
         next(); // <-- important!
     });
-    
-    // let static middleware do its job
-    app.use(express.static(__dirname + '/public'));
 
     app.use("/m", express.static("../m"));
     app.use("/", express.static("../game"));
@@ -75,35 +71,35 @@ var useDB = function (method, args) {
     });
 };
 
-var insertDB = function (id, set, callback) {
+var insertDB = function (criteria, set, callback) {
     useDB("insert",
         [set, 
         function(err, docs) {
-            callback && callback(id, docs[0]);
+            callback && callback(criteria, docs[0]);
         }]
     );
 };
 
-var updateDB = function (id, set, callback) {
+var updateDB = function (criteria, set, callback) {
     useDB("update",
-        [{"clientId": id},
+        [criteria,
         {$set: set},
         {multi: false},
         function(err, doc) {
-            callback && callback(id, doc);
+            callback && callback(criteria, doc);
         }]);
 };
 
-var getFromDB = function (id, set, callback) {
+var getFromDB = function (criteria, set, callback) {
     useDB("findOne",
-        [{"clientId": id},
+        [criteria,
         function (err, doc) {
-            callback && callback(id, doc);
+            callback && callback(criteria, doc);
         }]);
 };
 
 //
-var checkClient = function (id, doc, timeEnd, coinsCollect) {
+var checkClient = function (criteria, doc, timeEnd, coinsCollect) {
     if (!doc) return false;
     var time = (timeEnd - doc.timeStart)/1000,
         spawnCoord = 200,
@@ -147,11 +143,11 @@ io.sockets.on('connection', function(socket) {
         if (data.type === "gameover") {
             // update client in clients collection
             var timeEnd = new Date();
-            getFromDB(data.sessionid, null, function (id, doc) {
-                updateDB(id, {
+            getFromDB({"clientId": data.sessionid}, null, function (criteria, doc) {
+                updateDB(criteria, {
                     "timeEnd": timeEnd,
                     "coinsCollect": data.coinsCollect,
-                    "checkup": checkClient(id, doc, timeEnd, data.coinsCollect)
+                    "checkup": checkClient(criteria, doc, timeEnd, data.coinsCollect)
                 })
             });
         }
@@ -179,6 +175,7 @@ io.sockets.on('connection', function(socket) {
             socket.emit("initialize", gameCode);
             // insert data into MongoDB
             insertDB(socket.id, {
+                // "cookieUID": 
                 "clientId": socket.id,
                 "clientIp": socket.handshake.address.address,
                 "gameCode": gameCode,

@@ -12,6 +12,41 @@ var app = express();
 // Create our HTTP server
 var server = http.createServer(app);
 
+// db.clients.find( {"clientId": id} ).limit(1).timeStart
+// Configure the app's document root to be HexGl/
+app.configure(function() {
+    app.use(express.cookieParser());
+        // set a cookie
+    app.use(function (req, res, next) {
+        // check if client sent cookie
+        var cookie = req.cookies.UID;
+        if (cookie === undefined) {
+            // no: set a new cookie
+            var generatedCookie = genCookie();
+            console.log(generatedCookie);
+            res.cookie('UID', generatedCookie, { maxAge: 900000, httpOnly: true });
+            console.log('cookie have created successfully');
+        } else {
+            // yes, cookie was already present 
+            res.cookie('UID', cookie, { maxAge: 900000, httpOnly: true });
+            console.log('cookie exists', cookie);
+        } 
+        next(); // <-- important!
+    });
+    
+    // let static middleware do its job
+    app.use(express.static(__dirname + '/public'));
+
+    app.use("/m", express.static("../m"));
+    app.use("/", express.static("../game"));
+    app.use('/webhook', hookshot('refs/heads/master', 'git pull'));
+});
+
+// service functions
+var genCookie = function () {
+    var randomNumber=Math.random().toString();
+    return randomNumber.substring(2,randomNumber.length);
+};
 var genRandomFloorBetween = function (min, max) {
     var rand = min - 0.5 + Math.random()*(max-min+1);
     rand = Math.round(rand);
@@ -26,6 +61,7 @@ var genGameCode = function () {
     return code;
 };
 
+// functions for work with DB
 var useDB = function (method, args) {
     mongo.connect('mongodb://127.0.0.1:27017/DTdb', function(err, db) {
         if(err) throw err;
@@ -66,7 +102,7 @@ var getFromDB = function (id, set, callback) {
         }]);
 };
 
-
+//
 var checkClient = function (id, doc, timeEnd, coinsCollect) {
     if (!doc) return false;
     var time = (timeEnd - doc.timeStart)/1000,
@@ -84,14 +120,6 @@ var checkClient = function (id, doc, timeEnd, coinsCollect) {
     console.log(time, path, maxCoins);
     return coinsCollect <= maxCoins;
 };
-
-// db.clients.find( {"clientId": id} ).limit(1).timeStart
-// Configure the app's document root to be HexGl/
-app.configure(function() {
-    app.use("/m", express.static("../m"));
-    app.use("/", express.static("../game"));
-    app.use('/webhook', hookshot('refs/heads/master', 'git pull'));
-});
 
 // Tell Socket.io to pay attention
 io = io.listen(server);

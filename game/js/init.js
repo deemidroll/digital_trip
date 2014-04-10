@@ -175,6 +175,7 @@ var DT = {
     jumpOffset: 2.2, // not used
     gameWasStarted: false,
     gameWasPaused: false,
+    gameWasOver: false,
     handlers: {},
     triggers: {},
     snapshot: null, // for restart
@@ -297,6 +298,7 @@ DT.changeScore = function(currentScore, delta) {
 };
 
 DT.gameOver = function() {
+    DT.gameWasOver = true;
     clearTimeout(DT.player.isFun);
     DT.stopSound(0);
     DT.stopSound(1);

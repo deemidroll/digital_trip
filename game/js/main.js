@@ -141,7 +141,7 @@ $(function() {
         !DT.wasMuted && DT.setVolume(1);
     });
     $(window).blur(function() {
-        DT.gameWasStarted && !DT.gameWasPaused && DT.triggers.pause();
+        DT.gameWasStarted && !DT.gameWasPaused && !DT.gameWasOver && DT.triggers.pause();
         DT.setVolume(0);
     });
 });

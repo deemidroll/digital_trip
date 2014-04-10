@@ -81,10 +81,9 @@ var getFromDB = function (criteria, set, callback) {
 
 //
 var checkClient = function (criteria, doc, timeEnd, coinsCollect) {
-    var result = null;
     // fail
     // if there is not record in DB
-    if (!doc) result = false;
+    if (!doc) return false;
     var time = (timeEnd - doc.timeStart)/1000,
         spawnCoord = 200,
         numberOfCoins = 10,
@@ -95,17 +94,13 @@ var checkClient = function (criteria, doc, timeEnd, coinsCollect) {
         path,
         maxCoins;
     // if game time more than 10 min
-    if (time > 600) result = false;
+    if (time > 600) return false;
 
-    getFromDB({ "cookieUID": doc.cookieUID}, null, function (criteria, docs) {
-        // check something
-        path = (speedStart * time) + (acceleration * time * time / 2);
-        maxCoins = path/(spawnCoord + (numberOfCoins - 1) * coinsOffset + dieCoord) * numberOfCoins;
-        console.log(time, path, maxCoins);
-        // if client recieve more coins than it may
-        result = coinsCollect <= maxCoins;
-        return result;
-    });
+    path = (speedStart * time) + (acceleration * time * time / 2);
+    maxCoins = path/(spawnCoord + (numberOfCoins - 1) * coinsOffset + dieCoord) * numberOfCoins;
+    console.log(time, path, maxCoins);
+    // if client recieve more coins than it may
+    return coinsCollect <= maxCoins;
 };
 
 // Configure the app
@@ -200,6 +195,7 @@ io.sockets.on('connection', function(socket) {
             //  and show the game code to the user
             socket.emit("initialize", gameCode);
             // insert data into MongoDB
+            console.log(socket.handshake.headers);
             insertDB(null, {
                 "cookieUID": data.cookieUID,
                 "clientId": socket.id,

@@ -1,5 +1,6 @@
 // define namespace object
 // Digital Trip
+'use strict';
 var DT = {
     player: {
         currentHelth: 100,
@@ -68,7 +69,6 @@ var DT = {
         pausedAt: [],
         stopped: [],
         paused: [],
-        started: []
     },
     renderer: new THREE.WebGLRenderer(),
     camera: new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300),

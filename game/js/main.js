@@ -1,4 +1,5 @@
 (function (){
+    'use strict';
 // when resize
 var winResize = new THREEx.WindowResize(DT.renderer, DT.camera);
 // service variables
@@ -134,7 +135,6 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 //             }
 //         }).back()
 //     .start();
-//     console.log(DT.emittFragments);
 
 $(function() {
     $(window).focus(function() {
@@ -148,22 +148,14 @@ $(function() {
         DT.setVolume(0);
     });
 });
-
+// EFFECT PARALLAX
+// var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
+var effect = new THREE.AnaglyphEffect( DT.renderer );
 
 
 //////////////////////////////////////////////
 // ON RENDER 
 //////////////////////////////////////////////
-// EFFECT PARALLAX
-var width = window.innerWidth || 2;
-var height = window.innerHeight || 2;
-console.log(width, height);
-// var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
-var effect = new THREE.AnaglyphEffect( DT.renderer );
-effect.setSize( width, height );
-
-
-
 // EMITTER Particle system - sphere tail
 DT.onRenderFcts.push(function() {
     emitter._particles.forEach(function(el) {
@@ -190,8 +182,10 @@ var prevTime = Date.now();
 // render the scene
 DT.onRenderFcts.push(function(delta, now) {
     DT.renderer.render(DT.scene, DT.camera);
-    DT.player.isFun && 
-    effect.render(DT.scene, DT.camera);
+    if (DT.player.isFun) {
+        effect.render(DT.scene, DT.camera);
+        effect.setSize( window.innerWidth, window.innerHeight );
+    }
     DT.backgroundMesh.visible = true; // 1 раз
     emitter.update(delta).render();
     // DT.emittFragments.update(delta).render();

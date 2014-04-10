@@ -138,13 +138,10 @@ emitter = Fireworks.createEmitter({nParticles : 100})
 
 $(function() {
     $(window).focus(function() {
-        console.log('Focus');
-        if (!DT.wasMuted) {
-            DT.setVolume(1);
-        }
+        !DT.wasMuted && DT.setVolume(1);
     });
     $(window).blur(function() {
-        console.log('Blur');
+        DT.gameWasStarted && !DT.gameWasPaused && DT.triggers.pause();
         DT.setVolume(0);
     });
 });

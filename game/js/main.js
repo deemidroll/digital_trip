@@ -1,5 +1,5 @@
+'use strict';
 (function (){
-    'use strict';
 // when resize
 var winResize = new THREEx.WindowResize(DT.renderer, DT.camera);
 // service variables

@@ -12,32 +12,6 @@ var app = express();
 // Create our HTTP server
 var server = http.createServer(app);
 
-// db.clients.find( {"clientId": id} ).limit(1).timeStart
-// Configure the app
-app.configure(function() {
-    app.use(express.cookieParser());
-        // set a cookie
-    app.use(function (req, res, next) {
-        // check if client sent cookie
-        var cookie = req.cookies.UID;
-        if (cookie === undefined) {
-            // no: gen a new cookie
-            cookie = genCookie();
-            console.log('cookie have created successfully');
-        } else {
-            // yes, cookie was already present 
-            console.log('cookie exists', cookie);
-        }
-        // refresh cookie
-        res.cookie('UID', cookie, { maxAge: 900000, httpOnly: true });
-        next(); // <-- important!
-    });
-
-    app.use("/m", express.static("../m"));
-    app.use("/", express.static("../game"));
-    app.use('/webhook', hookshot('refs/heads/master', 'git pull'));
-});
-
 // service functions
 var genCookie = function () {
     var randomNumber=Math.random().toString();
@@ -117,6 +91,32 @@ var checkClient = function (criteria, doc, timeEnd, coinsCollect) {
     return coinsCollect <= maxCoins;
 };
 
+// Configure the app
+app.configure(function() {
+    app.use(express.cookieParser());
+        // set a cookie
+    app.use(function (req, res, next) {
+        // check if client sent cookie
+        var cookie = req.cookies.UID;
+        if (cookie === undefined) {
+            // no: gen a new cookie
+            cookie = genCookie();
+            console.log('cookie have created successfully');
+        } else {
+            // yes, cookie was already present 
+            console.log('cookie exists', cookie);
+        }
+        // refresh cookie
+        res.cookie('UID', cookie, { maxAge: 900000 });
+        next(); // <-- important!
+    });
+
+    app.use("/m", express.static("../m"));
+    app.use("/", express.static("../game"));
+    app.use('/webhook', hookshot('refs/heads/master', 'git pull'));
+});
+
+
 // Tell Socket.io to pay attention
 io = io.listen(server);
 
@@ -140,9 +140,18 @@ io.sockets.on('connection', function(socket) {
                 }
             }
         }
+        if (data.type === "gamestarted") {
+            // update client in clients collection
+            var timeStart = Date.now();
+            getFromDB({"clientId": data.sessionid}, null, function (criteria, doc) {
+                updateDB(criteria, {
+                    "timeStart": timeStart
+                })
+            });
+        }
         if (data.type === "gameover") {
             // update client in clients collection
-            var timeEnd = new Date();
+            var timeEnd = Date.now();
             getFromDB({"clientId": data.sessionid}, null, function (criteria, doc) {
                 updateDB(criteria, {
                     "timeEnd": timeEnd,
@@ -154,9 +163,9 @@ io.sockets.on('connection', function(socket) {
     });
     
     // Receive the client device type
-    socket.on("device", function(device) {
+    socket.on("device", function(data) {
         // if client is a browser game
-        if(device.type == "game") {
+        if(data.type == "game") {
             // Generate a code
             // var gameCode = crypto.randomBytes(3).toString('hex');
             var gameCode = genGameCode();
@@ -174,27 +183,28 @@ io.sockets.on('connection', function(socket) {
             //  and show the game code to the user
             socket.emit("initialize", gameCode);
             // insert data into MongoDB
-            insertDB(socket.id, {
-                // "cookieUID": 
+            console.log(socket.handshake.headers);
+            insertDB(null, {
+                "cookieUID": data.cookieUID,
                 "clientId": socket.id,
                 "clientIp": socket.handshake.address.address,
                 "gameCode": gameCode,
-                "timeStart": new Date(),
-                "timeEnd": undefined,
+                "timeStart": null,
+                "timeEnd": null,
                 "coinsCollect": null,
                 "checkup": null
             });
-        } else if(device.type == "controller") { // if client is a phone controller
+        } else if(data.type == "controller") { // if client is a phone controller
             // if game code is valid...
-            if(device.gameCode in socketCodes) {
+            if(data.gameCode in socketCodes) {
                 // save the game code for controller commands
-                socket.gameCode = device.gameCode
+                socket.gameCode = data.gameCode
 
                 // initialize the controller
                 socket.emit("connected", {});
                 
                 // start the game
-                socketCodes[device.gameCode].emit("connected", {});
+                socketCodes[data.gameCode].emit("connected", {});
                 socket.emit("message", {type: "vibr", time: 100});
             } else {  // else game code is invalid, send fail message and disconnect
                 socket.emit("fail", {});

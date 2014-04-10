@@ -1,6 +1,6 @@
+'use strict';
 // define namespace object
 // Digital Trip
-'use strict';
 var DT = {
     player: {
         currentHelth: 100,
@@ -229,6 +229,15 @@ DT.handlers.restartOnSpace = function(event) {
     }
 };
 // auxiliary functions
+
+// возвращает cookie с именем name, если есть, если нет, то undefined
+DT.getCookie = function (name) {
+  var matches = document.cookie.match(new RegExp(
+    "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+  ));
+  return matches ? decodeURIComponent(matches[1]) : undefined;
+};
+
 DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
     return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2));
 };
@@ -312,9 +321,7 @@ DT.gameOver = function() {
     setTimeout(function() {
         cancelAnimationFrame(DT.id);
     }, 300);
-    if (DT.inintSocket.socket) {
-        DT.inintSocket.socket.emit("message", {"type": "gameover", "gameCode": DT.inintSocket.socket.gameCode, "sessionid": DT.inintSocket.socket.socket.sessionid, "coinsCollect": DT.player.currentScore});
-    }
+    DT.sendMessageToServer("gameover");
     DT.prepareToRestart();
 };
 
@@ -607,33 +614,45 @@ DT.bump = function (amp) {
     }
  };
 
- DT.runApp = function () {
+DT.sendMessageToServer = function (message) {
+    if (DT.inintSocket.socket) {
+        DT.inintSocket.socket.emit("message", {"type": message, "gameCode": DT.inintSocket.socket.gameCode, "sessionid": DT.inintSocket.socket.socket.sessionid, "coinsCollect": DT.player.currentScore});
+    }
+};
+
+DT.startAfterChooseControl = function () {
+    if (!DT.gameWasStarted) {
+        DT.startGame();
+        DT.stopSound(2);
+        DT.playSound(0);
+        $(".choose_control").fadeOut(250);
+        DT.gameWasStarted = true;
+        DT.sendMessageToServer("gamestarted");
+    }
+};
+
+DT.runApp = function () {
     DT.inintSocket();
     DT.playSound(2);
-            $(function() {
-                $(".loader").fadeOut(250);
-                $(".choose_control").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 250);
-                $(".choose_wasd").click(function() {
-                    $(".choose_control").fadeOut(250, function() {
-                        DT.startGame();
-                        DT.stopSound(2);
-                        DT.playSound(0);
-                    });
-                });
-                $(".choose_mobile").click(function() {
-                    DT.initPhoneControl();
-                });
-                $(".choose_webcam").click(function() {
-                    DT.enableWebcam();
-                });
-            });
+    $(function() {
+        $(".loader").fadeOut(250);
+        $(".choose_control").css({"display": "table", "opacity": "0"}).animate({"opacity": "1"}, 250);
+        $(".choose_wasd").click(function() {
+            DT.startAfterChooseControl();
+        });
+        $(".choose_mobile").click(function() {
+            DT.initPhoneControl();
+        });
+        $(".choose_webcam").click(function() {
+            DT.enableWebcam();
+        });
+    });
 };
 
 DT.pauseOn = function () {
     if (!DT.gameWasPaused) {
         $(".menu_page").css({"display": "table"});
         DT.stopSoundBeforPause();
-        // DT.soundPause.update();
         DT.soundPause.play();
         cancelAnimationFrame(DT.id);
         DT.gameWasPaused = !DT.gameWasPaused;
@@ -644,7 +663,6 @@ DT.pauseOff = function () {
     if (DT.gameWasPaused) {
         $(".menu_page").css({"display": "none"});
         DT.playSoundAfterPause();
-        // DT.soundPause.update();
         DT.soundPause.play();
         DT.startGame();
         DT.gameWasPaused = !DT.gameWasPaused;
@@ -672,639 +690,623 @@ $(function(){
             DT.triggers.fullscreen();
         }
     });
-
-
-// BACKGROUND
-DT.backgroundMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(44, 22, 0),
-    new THREE.MeshBasicMaterial({
-        map: DT.bgTexture
-    }));
-DT.backgroundMesh.material.depthTest = false;
-DT.backgroundMesh.material.depthWrite = false;
-DT.backgroundMesh.visible = false;
-DT.scene.add(DT.backgroundMesh);
-
-
-// MUSIC
-var context,
-    counter = 0,
-    buffers = [], sources=[], destination, analysers = [],
-    freqDomain = [],
-    initSound, loadSoundFile,
-    visualize, getFrequencyValue,
-    onRenderFcts = DT.onRenderFcts,
-    globalVolume = DT.param.globalVolume;
-
-var audio = new Audio();
-var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs="vorbis"') != "";
-console.log("canPlayOgg", canPlayOgg);
-try {
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    context = new AudioContext();
-}
-catch(e) {
-    alert('Opps.. Your browser do not support audio API');
-}
-
-DT.stopSound = function(index){
-    if (DT.music.stopped[index] === false) {
-        if (index === 0 || DT.music.paused[index] === false) {
-            DT.music.pausedAt[index] = Date.now() - DT.music.startedAt[index];
-        } 
-        sources[index].stop(index);
-        DT.music.stopped[index] = true;
-        DT.music.started[index] = false;
+    
+    
+    // BACKGROUND
+    DT.backgroundMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(44, 22, 0),
+        new THREE.MeshBasicMaterial({
+            map: DT.bgTexture
+        }));
+    DT.backgroundMesh.material.depthTest = false;
+    DT.backgroundMesh.material.depthWrite = false;
+    DT.backgroundMesh.visible = false;
+    DT.scene.add(DT.backgroundMesh);
+    
+    
+    // MUSIC
+    var context,
+        counter = 0,
+        buffers = [], sources=[], destination, analysers = [],
+        freqDomain = [],
+        onRenderFcts = DT.onRenderFcts,
+        globalVolume = DT.param.globalVolume;
+    
+    var audio = new Audio();
+    var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs="vorbis"') != "";
+    console.log("canPlayOgg", canPlayOgg);
+    try {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        context = new AudioContext();
     }
-};
-
-DT.gainNodes = [];
-DT.playSound = function(index){
-
-    var gainNodes = DT.gainNodes;
-    if (!DT.music.started[index]) {
-        DT.music.started[index] = true;
-
-        sources[index] = context.createBufferSource();
-        sources[index].loop = true;
-        sources[index].buffer = buffers[index];
-
-        destination = context.destination;
-
-        gainNodes[index] = context.createGain();
-        gainNodes[index].gain.value = DT.param.globalVolume;
-
-        analysers[index] = context.createAnalyser();
-        analysers[index].fftSize = 2048;
-        analysers[index].minDecibels = -50;
-        analysers[index].maxDecibels = -20;
-
-        sources[index].connect(gainNodes[index]);
-        gainNodes[index].connect(analysers[index]);
-        analysers[index].connect(destination);
-
-        onRenderFcts.push(function() {
-            visualize(index);
-        });
-
-        DT.music.stopped[index] = false;
-        if (DT.music.pausedAt[index]) {
-            DT.music.startedAt[index] = Date.now() - DT.music.pausedAt[index];
-            sources[index].start(index, DT.music.pausedAt[index] / 1000);
-        } else {
-            DT.music.startedAt[index] = Date.now();
-            sources[index].start(index);
+    catch(e) {
+        alert('Opps.. Your browser do not support audio API');
+    }
+    
+    DT.stopSound = function(index){
+        if (DT.music.stopped[index] === false) {
+            if (index === 0 || DT.music.paused[index] === false) {
+                DT.music.pausedAt[index] = Date.now() - DT.music.startedAt[index];
+            } 
+            sources[index].stop(index);
+            DT.music.stopped[index] = true;
+            DT.music.started[index] = false;
         }
-    }
-};
-
-DT.stopSoundBeforPause = function() {
-    DT.music.stopped.forEach(function(el, i) {
-        DT.music.paused[i] = el;
-        DT.stopSound(i);
-    });
-};
-
-DT.playSoundAfterPause = function() {
-    DT.music.paused.forEach(function(el, i) {
-        if (!el) {
-            DT.playSound(i);
-        }
-    });
-};
-
-
-initSound = function(arrayBuffer, bufferIndex) {
-    context.decodeAudioData(arrayBuffer, function(decodedArrayBuffer) {
-        buffers[bufferIndex] = decodedArrayBuffer;
-        console.log("ready sound " + bufferIndex);
-        counter += 1;
-        yepnope.showLoading(counter);
-    }, function(e) {
-        console.log('Error decoding file', e);
-    });
-}
-
-loadSoundFile = function(urlArr, bufferIndex) {
-    var xhr = new XMLHttpRequest();
-    if (canPlayOgg) {
-        xhr.open('GET', urlArr[bufferIndex], true);
-    } else {
-        xhr.open('GET', urlArr[bufferIndex + 3], true);
-    }
-    xhr.responseType = 'arraybuffer';
-    xhr.onload = function(e) {
-        initSound(this.response, bufferIndex); // this.response is an ArrayBuffer.
     };
-    xhr.send();
-}
-
-loadSoundFile(DT.music, 0);
-loadSoundFile(DT.music, 1);
-loadSoundFile(DT.music, 2);
-
-visualize = function(index) {
-    freqDomain[index] = new Uint8Array(analysers[index].frequencyBinCount);
-    analysers[index].getByteFrequencyData(freqDomain[index]);
-    DT.valueAudio = getFrequencyValue(DT.audio.frequency[index], index);
-};
-
-getFrequencyValue = function(frequency, bufferIndex) {
-    var nyquist = context.sampleRate/2,
-        index = Math.round(frequency/nyquist * freqDomain[bufferIndex].length);
-    return freqDomain[bufferIndex][index];
-};
-
-// SOUNDS
-var ext = "ogg";
-if (!canPlayOgg) {
-    ext = "mp3";
-}
-DT.soundCoin = DT.webaudio.createSound().load(DT.sounds.soundCoin + ext);
-DT.soundGameover = DT.webaudio.createSound().load(DT.sounds.soundGameover + ext);
-DT.soundPause = DT.webaudio.createSound().load(DT.sounds.soundPause + ext);
-DT.soundStoneDestroy = DT.webaudio.createSound().load(DT.sounds.soundStoneDestroy + ext);
-DT.soundStoneMiss = DT.webaudio.createSound().load(DT.sounds.soundStoneMiss + ext);
-
-
-// BLUR
-// var renderer = DT.renderer,
-//     scene = DT.scene,
-//     camera = DT.camera,
-//     composer,
-//     hblur, vblur,
-//     bluriness = 0,
-//     winResizeBlur;
-
-// composer = new THREE.EffectComposer( renderer );
-// composer.addPass( new THREE.RenderPass( scene, camera ) );
-
-// hblur = new THREE.ShaderPass( THREE.HorizontalBlurShader );
-// hblur.uniforms[ "h" ].value *= bluriness;
-// composer.addPass( hblur );
-
-// vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
-// vblur.uniforms[ "v" ].value *= bluriness;
-// vblur.renderToScreen = true;
-// composer.addPass( vblur );
-// DT.composer = composer;
-// winResizeBlur   = new THREEx.WindowResize(composer, camera);
-
-// add update function to webaudio prototype
-WebAudio.Sound.prototype.update = function() {
-    this.volume(DT.param.globalVolume);
-};
-WebAudio.Sound.prototype.play       = function(time){
-    this.volume(DT.param.globalVolume);
-    // handle parameter polymorphism
-    if( time ===  undefined )   time    = 0;
-    // if not yet playable, ignore
-    // - usefull when the sound download isnt yet completed
-    if( this.isPlayable() === false )   return;
-    // clone the bufferSource
-    var clonedNode  = this._chain.cloneBufferSource();
-    // set the noteOn
-    clonedNode.start(time);
-    // create the source object
-    var source  = {
-        node    : clonedNode,
-        stop    : function(time){
-            if( time ===  undefined )   time    = 0;
-            this.node.stop(time);
-            return source;  // for chained API
+    
+    DT.gainNodes = [];
+    DT.playSound = function(index){
+    
+        var gainNodes = DT.gainNodes;
+        if (!DT.music.started[index]) {
+            DT.music.started[index] = true;
+    
+            sources[index] = context.createBufferSource();
+            sources[index].loop = true;
+            sources[index].buffer = buffers[index];
+    
+            destination = context.destination;
+    
+            gainNodes[index] = context.createGain();
+            gainNodes[index].gain.value = DT.param.globalVolume;
+    
+            analysers[index] = context.createAnalyser();
+            analysers[index].fftSize = 2048;
+            analysers[index].minDecibels = -50;
+            analysers[index].maxDecibels = -20;
+    
+            sources[index].connect(gainNodes[index]);
+            gainNodes[index].connect(analysers[index]);
+            analysers[index].connect(destination);
+    
+            onRenderFcts.push(function() {
+                visualize(index);
+            });
+    
+            DT.music.stopped[index] = false;
+            if (DT.music.pausedAt[index]) {
+                DT.music.startedAt[index] = Date.now() - DT.music.pausedAt[index];
+                sources[index].start(index, DT.music.pausedAt[index] / 1000);
+            } else {
+                DT.music.startedAt[index] = Date.now();
+                sources[index].start(index);
+            }
+        }
+    };
+    
+    DT.stopSoundBeforPause = function() {
+        DT.music.stopped.forEach(function(el, i) {
+            DT.music.paused[i] = el;
+            DT.stopSound(i);
+        });
+    };
+    
+    DT.playSoundAfterPause = function() {
+        DT.music.paused.forEach(function(el, i) {
+            if (!el) {
+                DT.playSound(i);
+            }
+        });
+    };
+    
+    
+    var initSound = function(arrayBuffer, bufferIndex) {
+        context.decodeAudioData(arrayBuffer, function(decodedArrayBuffer) {
+            buffers[bufferIndex] = decodedArrayBuffer;
+            console.log("ready sound " + bufferIndex);
+            counter += 1;
+            yepnope.showLoading(counter);
+        }, function(e) {
+            console.log('Error decoding file', e);
+        });
+    }
+    
+    var loadSoundFile = function(urlArr, bufferIndex) {
+        var xhr = new XMLHttpRequest();
+        if (canPlayOgg) {
+            xhr.open('GET', urlArr[bufferIndex], true);
+        } else {
+            xhr.open('GET', urlArr[bufferIndex + 3], true);
+        }
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(e) {
+            initSound(this.response, bufferIndex); // this.response is an ArrayBuffer.
+        };
+        xhr.send();
+    }
+    
+    loadSoundFile(DT.music, 0);
+    loadSoundFile(DT.music, 1);
+    loadSoundFile(DT.music, 2);
+    
+    var visualize = function(index) {
+        freqDomain[index] = new Uint8Array(analysers[index].frequencyBinCount);
+        analysers[index].getByteFrequencyData(freqDomain[index]);
+        DT.valueAudio = getFrequencyValue(DT.audio.frequency[index], index);
+    };
+    
+    var getFrequencyValue = function(frequency, bufferIndex) {
+        var nyquist = context.sampleRate/2,
+            index = Math.round(frequency/nyquist * freqDomain[bufferIndex].length);
+        return freqDomain[bufferIndex][index];
+    };
+    
+    // SOUNDS
+    var ext = "ogg";
+    if (!canPlayOgg) {
+        ext = "mp3";
+    }
+    DT.soundCoin = DT.webaudio.createSound().load(DT.sounds.soundCoin + ext);
+    DT.soundGameover = DT.webaudio.createSound().load(DT.sounds.soundGameover + ext);
+    DT.soundPause = DT.webaudio.createSound().load(DT.sounds.soundPause + ext);
+    DT.soundStoneDestroy = DT.webaudio.createSound().load(DT.sounds.soundStoneDestroy + ext);
+    DT.soundStoneMiss = DT.webaudio.createSound().load(DT.sounds.soundStoneMiss + ext);
+    
+    
+    // BLUR
+    // var renderer = DT.renderer,
+    //     scene = DT.scene,
+    //     camera = DT.camera,
+    //     composer,
+    //     hblur, vblur,
+    //     bluriness = 0,
+    //     winResizeBlur;
+    
+    // composer = new THREE.EffectComposer( renderer );
+    // composer.addPass( new THREE.RenderPass( scene, camera ) );
+    
+    // hblur = new THREE.ShaderPass( THREE.HorizontalBlurShader );
+    // hblur.uniforms[ "h" ].value *= bluriness;
+    // composer.addPass( hblur );
+    
+    // vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
+    // vblur.uniforms[ "v" ].value *= bluriness;
+    // vblur.renderToScreen = true;
+    // composer.addPass( vblur );
+    // DT.composer = composer;
+    // winResizeBlur   = new THREEx.WindowResize(composer, camera);
+    
+    // add update function to webaudio prototype
+    WebAudio.Sound.prototype.update = function() {
+        this.volume(DT.param.globalVolume);
+    };
+    WebAudio.Sound.prototype.play       = function(time){
+        this.volume(DT.param.globalVolume);
+        // handle parameter polymorphism
+        if( time ===  undefined )   time    = 0;
+        // if not yet playable, ignore
+        // - usefull when the sound download isnt yet completed
+        if( this.isPlayable() === false )   return;
+        // clone the bufferSource
+        var clonedNode  = this._chain.cloneBufferSource();
+        // set the noteOn
+        clonedNode.start(time);
+        // create the source object
+        var source  = {
+            node    : clonedNode,
+            stop    : function(time){
+                if( time ===  undefined )   time    = 0;
+                this.node.stop(time);
+                return source;  // for chained API
+            }
+        }
+        // return it
+        return source;
+    };
+    // change IcosahedronGeometry prototype
+    THREE.IcosahedronGeometry = function ( radius, detail ) {
+        this.radius = radius;
+        this.detail = detail;
+        var t = ( 1 + Math.sqrt( 5 ) ) / 2;
+        var vertices = [
+            [ -1,  t,  0 ], [  1, t, 0 ], [ -1, -t,  0 ], [  1, -t,  0 ],
+            [  0, -1,  t ], [  0, 1, t ], [  0, -1, -t ], [  0,  1, -t ],
+            [  t,  0, -1 ], [  t, 0, 1 ], [ -t,  0, -1 ], [ -t,  0,  1 ]
+        ];
+    
+        vertices = vertices.map(function(el) {
+            return el.map(function(el) {
+                return el * Math.random();
+            });
+        });
+    
+        var faces = [
+            [ 0, 11,  5 ], [ 0,  5,  1 ], [  0,  1,  7 ], [  0,  7, 10 ], [  0, 10, 11 ],
+            [ 1,  5,  9 ], [ 5, 11,  4 ], [ 11, 10,  2 ], [ 10,  7,  6 ], [  7,  1,  8 ],
+            [ 3,  9,  4 ], [ 3,  4,  2 ], [  3,  2,  6 ], [  3,  6,  8 ], [  3,  8,  9 ],
+            [ 4,  9,  5 ], [ 2,  4, 11 ], [  6,  2, 10 ], [  8,  6,  7 ], [  9,  8,  1 ]
+        ];
+        THREE.PolyhedronGeometry.call( this, vertices, faces, radius, detail );
+    
+    };
+    THREE.IcosahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
+    
+    // add method repeat
+    String.prototype.repeat = function(num) {
+        return new Array( num + 1 ).join( this );
+    };
+    // LOADER
+    var loader = new THREE.JSONLoader(true), // init the loader util
+        loadModel,
+        listOfModels = DT.listOfModels;
+    
+    // init loading
+    loadModel = function(modelObj) {
+        loader.load('js/models/' + modelObj.name + '.js', function (geometry, materials) {
+        // create a new material
+        if (modelObj.name === "bonusE") {
+            modelObj.material = new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } );
+            modelObj.material.emissive.r = modelObj.material.color.r * 0.5;
+            modelObj.material.emissive.g = modelObj.material.color.g * 0.5;
+            modelObj.material.emissive.b = modelObj.material.color.b * 0.5;
+        } else {
+            modelObj.material = new THREE.MeshFaceMaterial( materials );
+            // shining of bonuses
+            modelObj.material.materials.forEach(function (el) {
+                el.emissive.r = el.color.r * 0.5;
+                el.emissive.g = el.color.g * 0.5;
+                el.emissive.b = el.color.b * 0.5;
+            });
+        }
+    
+        modelObj.geometry = geometry;
+    
+        });
+        return modelObj;
+    };
+    
+    listOfModels.map(function(el) {
+        loadModel(el);
+    });
+    
+    // WEBCAM CONTROL
+    DT.enableWebcam = function () {
+        // // Game config
+        // var leftBreakThreshold = -5;
+        // var leftTurnThreshold = -10;
+        // var rightBreakThreshold = 5;
+        // var rightTurnThreshold = 10;
+        // // Получаем элементы video и canvas
+        
+        // var videoInput = document.getElementById('vid');
+        // var canvasInput = document.getElementById('compare');
+        // var debugOverlay = document.getElementById('debug');
+    
+        // var canvasContext = canvasInput.getContext('2d');
+        // // переворачиваем canvas зеркально по горизонтали
+        // canvasContext.translate(canvasInput.width, 0);
+        // canvasContext.scale(-1, 1);
+    
+        // debugOverlay.style.height = '100%';
+        // debugOverlay.style.opacity = '0.1';
+        // debugOverlay.style.zIndex = '0';
+        
+        // // Определяем сообщения, выдаваемые библиотекой
+        
+        // statusMessages = {
+        //     "whitebalance" : "Проверка камеры или баланса белого",
+        //     "detecting" : "Обнаружено лицо",
+        //     "hints" : "Что-то не так, обнаружение затянулось. Попробуйте сместиться относительно камеры",
+        //     "redetecting" : "Лицо потеряно, поиск..",
+        //     "lost" : "Лицо потеряно",
+        //     "found" : "Слежение за лицом"
+        // };
+        
+        // supportMessages = {
+        //     "no getUserMedia" : "Браузер не поддерживает getUserMedia",
+        //     "no camera" : "Не обнаружена камера."
+        // };
+        
+        // document.addEventListener("headtrackrStatus", function(event) {
+        //     if (event.status in supportMessages) {
+        //         console.log(supportMessages[event.status]);
+        //         $(".message").html(supportMessages[event.status])
+        //     } else if (event.status in statusMessages) {
+        //         console.log(statusMessages[event.status]);
+        //         $(".message").html(statusMessages[event.status])
+        //     }
+        //     if (event.status === "found" && !DT.gameWasStarted) {
+                // DT.startAfterChooseControl();
+        //     }
+        // }, true);
+        
+        // // Установка отслеживания
+        
+        // var htracker = new headtrackr.Tracker({altVideo : {ogv : "", mp4 : ""}, calcAngles : true, ui : false, headPosition : false, debug : debugOverlay});
+        // htracker.init(videoInput, canvasInput);
+        // htracker.start();
+        
+        // // Рисуем прямоугольник вокруг «пойманного» лица
+        
+        // document.addEventListener("facetrackingEvent", function( event ) {
+        //     // once we have stable tracking, draw rectangle
+        //     if (event.detection == "CS") {
+        //         var angle = Number(event.angle *(180/ Math.PI)-90);
+        //         // console.log(angle);
+        //         if(angle < leftBreakThreshold) {
+        //             if(angle > leftTurnThreshold) {
+        //                 DT.player.destPoint.x = 0;
+        //             } else {
+        //                 DT.player.destPoint.x = -DT.param.spacing;
+        //             }
+        //         } else if (angle > rightBreakThreshold) {
+        //             if(angle < rightTurnThreshold) {
+        //                 DT.player.destPoint.x = 0;
+        //             } else {
+        //                 DT.player.destPoint.x = DT.param.spacing;
+        //             }
+        //         } else {
+        //             DT.player.destPoint.x = 0;
+        //         }
+        //     }
+        // });
+    
+    // alt realization
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    window.URL = window.URL || window.webkitURL;
+    
+    var camvideo = document.getElementById('vid');
+    
+        if (!navigator.getUserMedia) 
+        {
+            $(".message").html('Sorry. <code>navigator.getUserMedia()</code> is not available.');
+        }
+        navigator.getUserMedia({video: true}, gotStream, noStream);
+    
+    function gotStream(stream) 
+    {
+        if (window.URL) 
+        {   camvideo.src = window.URL.createObjectURL(stream);   } 
+        else // Opera
+        {   camvideo.src = stream;   }
+    
+        camvideo.onerror = function(e) 
+        {   stream.stop();   };
+    
+        stream.onended = noStream;
+        //start game
+        DT.startAfterChooseControl();
+    }
+    
+    function noStream(e) 
+    {
+        var msg = 'No camera available.';
+        if (e.code == 1) 
+        {   msg = 'User denied access to use camera.';   }
+        console.log(msg);
+    }
+    
+    // assign global variables to HTML elements
+    console.log(window.innerHeight, window.innerWidth);
+    var video = document.getElementById( 'vid' );
+    var videoCanvas = document.getElementById( 'debug' );
+    var videoContext = videoCanvas.getContext( '2d' );
+    $("#debug").css({
+        "height": window.innerHeight,
+        "width": window.innerWidth,
+        "opacity": 0.2
+    });
+    
+    var blendCanvas  = document.getElementById( "compare" );
+    var blendContext = blendCanvas.getContext('2d');
+    $("#compare").css({
+        "height": window.innerHeight,
+        "width": window.innerWidth,
+        "opacity": 0.2
+    });
+    
+    $(".cam").css({
+        "background-color": "rgba(255,255,255,0.2)"
+    });
+    $(".center").css({
+        "background-color": "rgba(0,0,0,0.2)",
+        "width": "33%",
+        "height": "100%",
+        "margin-left": "33%"
+    });
+    
+    // these changes are permanent
+    videoContext.translate(320, 0);
+    videoContext.scale(-1, 1);
+            
+    // background color if no video present
+    videoContext.fillStyle = '#005337';
+    videoContext.fillRect( 0, 0, videoCanvas.width, videoCanvas.height );
+    
+    var buttons = [];
+    
+    var button1 = new Image();
+    button1.src ="img/lr.png";
+    var buttonData1 = { name:"left", image:button1, x:0, y:0, w:100, h:240, coord: -2.5 };
+    buttons.push( buttonData1 );
+    
+    var button2 = new Image();
+    button2.src ="img/lr.png";
+    var buttonData2 = { name:"right", image:button2, x:220, y:0, w:100, h:240, coord: 2.5 };
+    buttons.push( buttonData2 );
+    
+    var button3 = new Image();
+    button3.src ="img/c.png";
+    var buttonData3 = { name:"center", image:button3, x:100, y:0, w:120, h:240, coord: 0 };
+    buttons.push( buttonData3 );
+    
+    // start the loop               
+    animate();
+    
+    function animate() 
+    {
+        requestAnimationFrame( animate );
+        
+        render();   
+        blend();    
+        checkAreas();
+    }
+    
+    function render() 
+    {   
+        if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
+        {
+            // mirror video
+            videoContext.drawImage( video, 0, 0, videoCanvas.width, videoCanvas.height );
+    
         }
     }
-    // return it
-    return source;
-};
-// change IcosahedronGeometry prototype
-THREE.IcosahedronGeometry = function ( radius, detail ) {
-    this.radius = radius;
-    this.detail = detail;
-    var t = ( 1 + Math.sqrt( 5 ) ) / 2;
-    var vertices = [
-        [ -1,  t,  0 ], [  1, t, 0 ], [ -1, -t,  0 ], [  1, -t,  0 ],
-        [  0, -1,  t ], [  0, 1, t ], [  0, -1, -t ], [  0,  1, -t ],
-        [  t,  0, -1 ], [  t, 0, 1 ], [ -t,  0, -1 ], [ -t,  0,  1 ]
-    ];
-
-    vertices = vertices.map(function(el) {
-        return el.map(function(el) {
-            return el * Math.random();
-        });
-    });
-
-    var faces = [
-        [ 0, 11,  5 ], [ 0,  5,  1 ], [  0,  1,  7 ], [  0,  7, 10 ], [  0, 10, 11 ],
-        [ 1,  5,  9 ], [ 5, 11,  4 ], [ 11, 10,  2 ], [ 10,  7,  6 ], [  7,  1,  8 ],
-        [ 3,  9,  4 ], [ 3,  4,  2 ], [  3,  2,  6 ], [  3,  6,  8 ], [  3,  8,  9 ],
-        [ 4,  9,  5 ], [ 2,  4, 11 ], [  6,  2, 10 ], [  8,  6,  7 ], [  9,  8,  1 ]
-    ];
-    THREE.PolyhedronGeometry.call( this, vertices, faces, radius, detail );
-
-};
-THREE.IcosahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
-
-// add method repeat
-String.prototype.repeat = function(num) {
-    return new Array( num + 1 ).join( this );
-};
-// LOADER
-var loader = new THREE.JSONLoader(true), // init the loader util
-    loadModel,
-    listOfModels = DT.listOfModels;
-
-// init loading
-loadModel = function(modelObj) {
-    loader.load('js/models/' + modelObj.name + '.js', function (geometry, materials) {
-    // create a new material
-    if (modelObj.name === "bonusE") {
-        modelObj.material = new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } );
-        modelObj.material.emissive.r = modelObj.material.color.r * 0.5;
-        modelObj.material.emissive.g = modelObj.material.color.g * 0.5;
-        modelObj.material.emissive.b = modelObj.material.color.b * 0.5;
-    } else {
-        modelObj.material = new THREE.MeshFaceMaterial( materials );
-        // shining of bonuses
-        modelObj.material.materials.forEach(function (el) {
-            el.emissive.r = el.color.r * 0.5;
-            el.emissive.g = el.color.g * 0.5;
-            el.emissive.b = el.color.b * 0.5;
-        });
-    }
-
-    modelObj.geometry = geometry;
-
-    });
-    return modelObj;
-};
-
-listOfModels.map(function(el) {
-    loadModel(el);
-});
-
-// WEBCAM CONTROL
-DT.enableWebcam = function () {
-    // // Game config
-    // var leftBreakThreshold = -5;
-    // var leftTurnThreshold = -10;
-    // var rightBreakThreshold = 5;
-    // var rightTurnThreshold = 10;
-    // // Получаем элементы video и canvas
     
-    // var videoInput = document.getElementById('vid');
-    // var canvasInput = document.getElementById('compare');
-    // var debugOverlay = document.getElementById('debug');
-
-    // var canvasContext = canvasInput.getContext('2d');
-    // // переворачиваем canvas зеркально по горизонтали
-    // canvasContext.translate(canvasInput.width, 0);
-    // canvasContext.scale(-1, 1);
-
-    // debugOverlay.style.height = '100%';
-    // debugOverlay.style.opacity = '0.1';
-    // debugOverlay.style.zIndex = '0';
+    var lastImageData;
     
-    // // Определяем сообщения, выдаваемые библиотекой
-    
-    // statusMessages = {
-    //     "whitebalance" : "Проверка камеры или баланса белого",
-    //     "detecting" : "Обнаружено лицо",
-    //     "hints" : "Что-то не так, обнаружение затянулось. Попробуйте сместиться относительно камеры",
-    //     "redetecting" : "Лицо потеряно, поиск..",
-    //     "lost" : "Лицо потеряно",
-    //     "found" : "Слежение за лицом"
-    // };
-    
-    // supportMessages = {
-    //     "no getUserMedia" : "Браузер не поддерживает getUserMedia",
-    //     "no camera" : "Не обнаружена камера."
-    // };
-    
-    // document.addEventListener("headtrackrStatus", function(event) {
-    //     if (event.status in supportMessages) {
-    //         console.log(supportMessages[event.status]);
-    //         $(".message").html(supportMessages[event.status])
-    //     } else if (event.status in statusMessages) {
-    //         console.log(statusMessages[event.status]);
-    //         $(".message").html(statusMessages[event.status])
-    //     }
-    //     if (event.status === "found" && !DT.gameWasStarted) {
-    //         DT.startGame();
-    //         DT.stopSound(2);
-    //         DT.playSound(0);
-    //         $(".choose_control").fadeOut(250);
-    //     }
-    // }, true);
-    
-    // // Установка отслеживания
-    
-    // var htracker = new headtrackr.Tracker({altVideo : {ogv : "", mp4 : ""}, calcAngles : true, ui : false, headPosition : false, debug : debugOverlay});
-    // htracker.init(videoInput, canvasInput);
-    // htracker.start();
-    
-    // // Рисуем прямоугольник вокруг «пойманного» лица
-    
-    // document.addEventListener("facetrackingEvent", function( event ) {
-    //     // once we have stable tracking, draw rectangle
-    //     if (event.detection == "CS") {
-    //         var angle = Number(event.angle *(180/ Math.PI)-90);
-    //         // console.log(angle);
-    //         if(angle < leftBreakThreshold) {
-    //             if(angle > leftTurnThreshold) {
-    //                 DT.player.destPoint.x = 0;
-    //             } else {
-    //                 DT.player.destPoint.x = -DT.param.spacing;
-    //             }
-    //         } else if (angle > rightBreakThreshold) {
-    //             if(angle < rightTurnThreshold) {
-    //                 DT.player.destPoint.x = 0;
-    //             } else {
-    //                 DT.player.destPoint.x = DT.param.spacing;
-    //             }
-    //         } else {
-    //             DT.player.destPoint.x = 0;
-    //         }
-    //     }
-    // });
-
-// alt realization
-navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-window.URL = window.URL || window.webkitURL;
-
-var camvideo = document.getElementById('vid');
-
-    if (!navigator.getUserMedia) 
+    function blend() 
     {
-        $(".message").html('Sorry. <code>navigator.getUserMedia()</code> is not available.');
+        var width  = videoCanvas.width;
+        var height = videoCanvas.height;
+        // get current webcam image data
+        var sourceData = videoContext.getImageData(0, 0, width, height);
+        // create an image if the previous image doesn�t exist
+        if (!lastImageData) lastImageData = videoContext.getImageData(0, 0, width, height);
+        // create a ImageData instance to receive the blended result
+        var blendedData = videoContext.createImageData(width, height);
+        // blend the 2 images
+        differenceAccuracy(blendedData.data, sourceData.data, lastImageData.data);
+        // draw the result in a canvas
+        blendContext.putImageData(blendedData, 0, 0);
+        // store the current webcam image
+        lastImageData = sourceData;
     }
-    navigator.getUserMedia({video: true}, gotStream, noStream);
-
-function gotStream(stream) 
-{
-    if (window.URL) 
-    {   camvideo.src = window.URL.createObjectURL(stream);   } 
-    else // Opera
-    {   camvideo.src = stream;   }
-
-    camvideo.onerror = function(e) 
-    {   stream.stop();   };
-
-    stream.onended = noStream;
-    //start game
-    if (!DT.gameWasStarted) {
-        DT.startGame();
-        DT.stopSound(2);
-        DT.playSound(0);
-        $(".choose_control").fadeOut(250);
-    }
-}
-
-function noStream(e) 
-{
-    var msg = 'No camera available.';
-    if (e.code == 1) 
-    {   msg = 'User denied access to use camera.';   }
-    console.log(msg);
-}
-
-// assign global variables to HTML elements
-console.log(window.innerHeight, window.innerWidth);
-var video = document.getElementById( 'vid' );
-var videoCanvas = document.getElementById( 'debug' );
-var videoContext = videoCanvas.getContext( '2d' );
-$("#debug").css({
-    "height": window.innerHeight,
-    "width": window.innerWidth,
-    "opacity": 0.2
-});
-
-var blendCanvas  = document.getElementById( "compare" );
-var blendContext = blendCanvas.getContext('2d');
-$("#compare").css({
-    "height": window.innerHeight,
-    "width": window.innerWidth,
-    "opacity": 0.2
-});
-
-$(".cam").css({
-    "background-color": "rgba(255,255,255,0.2)"
-});
-$(".center").css({
-    "background-color": "rgba(0,0,0,0.2)",
-    "width": "33%",
-    "height": "100%",
-    "margin-left": "33%"
-});
-
-// these changes are permanent
-videoContext.translate(320, 0);
-videoContext.scale(-1, 1);
-        
-// background color if no video present
-videoContext.fillStyle = '#005337';
-videoContext.fillRect( 0, 0, videoCanvas.width, videoCanvas.height );
-
-var buttons = [];
-
-var button1 = new Image();
-button1.src ="img/lr.png";
-var buttonData1 = { name:"left", image:button1, x:0, y:0, w:100, h:240, coord: -2.5 };
-buttons.push( buttonData1 );
-
-var button2 = new Image();
-button2.src ="img/lr.png";
-var buttonData2 = { name:"right", image:button2, x:220, y:0, w:100, h:240, coord: 2.5 };
-buttons.push( buttonData2 );
-
-var button3 = new Image();
-button3.src ="img/c.png";
-var buttonData3 = { name:"center", image:button3, x:100, y:0, w:120, h:240, coord: 0 };
-buttons.push( buttonData3 );
-
-// start the loop               
-animate();
-
-function animate() 
-{
-    requestAnimationFrame( animate );
-    
-    render();   
-    blend();    
-    checkAreas();
-}
-
-function render() 
-{   
-    if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
+    function differenceAccuracy(target, data1, data2) 
     {
-        // mirror video
-        videoContext.drawImage( video, 0, 0, videoCanvas.width, videoCanvas.height );
-
-    }
-}
-
-var lastImageData;
-
-function blend() 
-{
-    var width  = videoCanvas.width;
-    var height = videoCanvas.height;
-    // get current webcam image data
-    var sourceData = videoContext.getImageData(0, 0, width, height);
-    // create an image if the previous image doesn�t exist
-    if (!lastImageData) lastImageData = videoContext.getImageData(0, 0, width, height);
-    // create a ImageData instance to receive the blended result
-    var blendedData = videoContext.createImageData(width, height);
-    // blend the 2 images
-    differenceAccuracy(blendedData.data, sourceData.data, lastImageData.data);
-    // draw the result in a canvas
-    blendContext.putImageData(blendedData, 0, 0);
-    // store the current webcam image
-    lastImageData = sourceData;
-}
-function differenceAccuracy(target, data1, data2) 
-{
-    if (data1.length != data2.length) return null;
-    var i = 0;
-    while (i < (data1.length * 0.25)) 
-    {
-        var average1 = (data1[4*i] + data1[4*i+1] + data1[4*i+2]) / 3;
-        var average2 = (data2[4*i] + data2[4*i+1] + data2[4*i+2]) / 3;
-        var diff = threshold(fastAbs(average1 - average2));
-        target[4*i]   = diff;
-        target[4*i+1] = diff;
-        target[4*i+2] = diff;
-        target[4*i+3] = 0xFF;
-        ++i;
-    }
-}
-function fastAbs(value) 
-{
-    return (value ^ (value >> 31)) - (value >> 31);
-}
-function threshold(value)  
-{
-    return (value > 0x15) ? 0xFF : 0;
-}
-
-// check if white region from blend overlaps area of interest (e.g. triggers)
-function checkAreas() 
-{
-    for (var b = 0; b < buttons.length; b++)
-    {
-        // get the pixels in a note area from the blended image
-        var blendedData = blendContext.getImageData( buttons[b].x, buttons[b].y, buttons[b].w, buttons[b].h );
-            
-        // calculate the average lightness of the blended data
+        if (data1.length != data2.length) return null;
         var i = 0;
-        var sum = 0;
-        var countPixels = blendedData.data.length * 0.25;
-        while (i < countPixels) 
+        while (i < (data1.length * 0.25)) 
         {
-            sum += (blendedData.data[i*4] + blendedData.data[i*4+1] + blendedData.data[i*4+2]);
+            var average1 = (data1[4*i] + data1[4*i+1] + data1[4*i+2]) / 3;
+            var average2 = (data2[4*i] + data2[4*i+1] + data2[4*i+2]) / 3;
+            var diff = threshold(fastAbs(average1 - average2));
+            target[4*i]   = diff;
+            target[4*i+1] = diff;
+            target[4*i+2] = diff;
+            target[4*i+3] = 0xFF;
             ++i;
         }
-        // calculate an average between of the color values of the note area [0-255]
-        var average = Math.round(sum / (3 * countPixels));
-        if (average > 30) // more than 20% movement detected
+    }
+    function fastAbs(value) 
+    {
+        return (value ^ (value >> 31)) - (value >> 31);
+    }
+    function threshold(value)  
+    {
+        return (value > 0x15) ? 0xFF : 0;
+    }
+    
+    // check if white region from blend overlaps area of interest (e.g. triggers)
+    function checkAreas() 
+    {
+        for (var b = 0; b < buttons.length; b++)
         {
-            console.log( "Button " + buttons[b].name + " triggered." ); // do stuff
-            // messageArea.innerHTML = "<font size='+4' color=white>"+ buttons[b].name + "</b></font>";
-            DT.player.destPoint.x = buttons[b].coord;
+            // get the pixels in a note area from the blended image
+            var blendedData = blendContext.getImageData( buttons[b].x, buttons[b].y, buttons[b].w, buttons[b].h );
+                
+            // calculate the average lightness of the blended data
+            var i = 0;
+            var sum = 0;
+            var countPixels = blendedData.data.length * 0.25;
+            while (i < countPixels) 
+            {
+                sum += (blendedData.data[i*4] + blendedData.data[i*4+1] + blendedData.data[i*4+2]);
+                ++i;
+            }
+            // calculate an average between of the color values of the note area [0-255]
+            var average = Math.round(sum / (3 * countPixels));
+            if (average > 30) // more than 20% movement detected
+            {
+                console.log( "Button " + buttons[b].name + " triggered." ); // do stuff
+                // messageArea.innerHTML = "<font size='+4' color=white>"+ buttons[b].name + "</b></font>";
+                DT.player.destPoint.x = buttons[b].coord;
+            }
         }
     }
-}
-
-
-};
-DT.initPhoneControl = function() {
-    $(".message").html("Please open <span style=\"color: red\">" + DT.server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
-    $("#socketId").html(DT.inintSocket.socket.gameCode);
-};
-
-DT.inintSocket = function() {
-    // Game config
-    var leftBreakThreshold = -3;
-    var leftTurnThreshold = -20;
-    var rightBreakThreshold = 3;
-    var rightTurnThreshold = 20;
-
-    // If client is browser game
-    DT.inintSocket.socket = io.connect(DT.server);
-    var socket = DT.inintSocket.socket;
-    // When initial welcome message, reply with 'game' device type
-    socket.on('welcome', function(data) {
-        socket.emit("device", {"type":"game"});
-    })
-    // We receive our game code to show the user
-    socket.on("initialize", function(gameCode) {
-        socket.gameCode = gameCode;
-    });
-    // When the user inputs the code into the phone client,
-    //  we become 'connected'.  Start the game.
-    socket.on("connected", function(data) {
-        $("#gameConnect").hide();
-        $("#status").hide();
-        if (!DT.gameWasStarted) {
-            DT.startGame();
-            DT.stopSound(2);
-            DT.playSound(0);
-            $(".choose_control").fadeOut(250);
-            DT.gameWasStarted = true;
-        }
-    });
-
-    // When the phone is turned, turn the vehicle
-    socket.on('turn', function(turn) {
-        if(turn < leftBreakThreshold) {
-            if(turn > leftTurnThreshold) {
-                DT.player.destPoint.x = 0;
+    
+    
+    };
+    DT.initPhoneControl = function() {
+        $(".message").html("Please open <span style=\"color: red\">" + DT.server +"/m</span> with your phone and enter code <span style=\"font-weight:bold; color: red\" id=\"socketId\"></span>");
+        $("#socketId").html(DT.inintSocket.socket.gameCode);
+    };
+    
+    DT.inintSocket = function() {
+        // Game config
+        var leftBreakThreshold = -3;
+        var leftTurnThreshold = -20;
+        var rightBreakThreshold = 3;
+        var rightTurnThreshold = 20;
+    
+        // If client is browser game
+        DT.inintSocket.socket = io.connect(DT.server);
+        var socket = DT.inintSocket.socket;
+        // When initial welcome message, reply with 'game' device type
+        socket.on('welcome', function(data) {
+            socket.emit("device", {"type":"game", "cookieUID": DT.getCookie("UID")});
+        })
+        // We receive our game code to show the user
+        socket.on("initialize", function(gameCode) {
+            socket.gameCode = gameCode;
+        });
+        // When the user inputs the code into the phone client,
+        //  we become 'connected'.  Start the game.
+        socket.on("connected", function(data) {
+            $("#gameConnect").hide();
+            $("#status").hide();
+            DT.startAfterChooseControl();
+        });
+    
+        // When the phone is turned, turn the vehicle
+        socket.on('turn', function(turn) {
+            if(turn < leftBreakThreshold) {
+                if(turn > leftTurnThreshold) {
+                    DT.player.destPoint.x = 0;
+                } else {
+                    DT.player.destPoint.x = -DT.param.spacing;
+                }
+            } else if (turn > rightBreakThreshold) {
+                if(turn < rightTurnThreshold) {
+                    DT.player.destPoint.x = 0;
+                } else {
+                    DT.player.destPoint.x = DT.param.spacing;
+                }
             } else {
-                DT.player.destPoint.x = -DT.param.spacing;
-            }
-        } else if (turn > rightBreakThreshold) {
-            if(turn < rightTurnThreshold) {
                 DT.player.destPoint.x = 0;
-            } else {
-                DT.player.destPoint.x = DT.param.spacing;
             }
-        } else {
-            DT.player.destPoint.x = 0;
-        }
-    });
-    socket.on('click', function(click) {
-        console.log(click);
-        if (click === "left") {
-            DT.changeDestPoint(0, -1, DT.player.destPoint);
-        }
-        if (click === "right") {
-            DT.changeDestPoint(0, 1, DT.player.destPoint);
-        }
-        if (click === "restart") {
-            DT.restart();
-        }
-        if (click === "fullscreen") {
-            DT.triggers.fullscreen();
-        }
-        if (click === "mute") {
-            DT.triggers.mute();
-        }
-        if (click === "pause") {
-            DT.triggers.pause();
-        }
-    });
-};
-
-DT.updateGameTimer = function (timer) {
-    var sec, min;
-    sec = timer / 60;
-    min = Math.floor(sec / 60);
-    sec = sec % 60;
-    sec < 10 ? sec = "0" + sec.toString() : sec;
-    $(".gameTimer").html(min + ":" + sec);
-    $("title").html(min + ":" + sec + " in digital trip");
-}
+        });
+        socket.on('click', function(click) {
+            console.log(click);
+            if (click === "left") {
+                DT.changeDestPoint(0, -1, DT.player.destPoint);
+            }
+            if (click === "right") {
+                DT.changeDestPoint(0, 1, DT.player.destPoint);
+            }
+            if (click === "restart") {
+                DT.restart();
+            }
+            if (click === "fullscreen") {
+                DT.triggers.fullscreen();
+            }
+            if (click === "mute") {
+                DT.triggers.mute();
+            }
+            if (click === "pause") {
+                DT.triggers.pause();
+            }
+        });
+    };
+    
+    DT.updateGameTimer = function (timer) {
+        var sec, min;
+        sec = timer / 60;
+        min = Math.floor(sec / 60);
+        sec = sec % 60;
+        sec < 10 ? sec = "0" + sec.toString() : sec;
+        $(".gameTimer").html(min + ":" + sec);
+        $("title").html(min + ":" + sec + " in digital trip");
+    }
 
 });
 

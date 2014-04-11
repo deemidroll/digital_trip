@@ -217,78 +217,15 @@
     });
     // stones lifecicle, rotation and moving
     DT.onRenderFcts.push(function() {
-        var stones = DT.collections.stones;
-        if (!stones.length) {
-            DT.generateStone(DT.scene, stones, DT.param.spawnCoord);
-        }
-        var el = stones[stones.length -1];
-        if (DT.getDistance(0, 0, DT.param.spawnCoord, el.position.x, el.position.y, el.position.z) > DT.param.stonesCloseness) {
-            DT.generateStone(DT.scene, stones, DT.param.spawnCoord);
-        }
-        stones.forEach(function(el, ind, arr){
-            if (el.position.z > dieCoord) {
-                DT.scene.remove(el);
-                arr.splice(ind, 1);
-            } 
-            if (el.position.z > DT.param.opacityCoord) {
-                el.material.transparent = true;
-                el.material.opacity = 0.5;
-            }
-            var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position),
-                radiusesSum = DT.sphere.geometry.radius + el.geometry.radius;
+        new DT.Stone({
+            spawnCoord: DT.param.spawnCoord,
+            collection: DT.collections.stones
+        });
+        DT.collections.stones.forEach(function (el, ind, arr) {
+            el.update({
+                dieCoord: dieCoord,
                 
-            if (distanceBerweenCenters < radiusesSum) {
-                // DT.soundStoneDestroy.update();
-                DT.soundStoneDestroy.play();
-                if (DT.inintSocket.socket) {
-                    DT.inintSocket.socket.emit("message", {"type": "vibr", "time": 200, "gameCode": DT.inintSocket.socket.gameCode});
-                }
-                // bump(0.2);
-                DT.scene.remove(el);
-                arr.splice(ind, 1);
-                DT.player.currentHelth = DT.changeHelth(DT.player.currentHelth, -19);
-                // вызвать вспышку экрана
-                if (DT.player.isInvulnerability === false) {
-                    DT.hit();
-                }
-                // генерировать осколки
-                // DT.generateFragments(DT.scene, fragments, el.position.x, el.position.y, el.position.z, 2, el.geometry.radius);
-                fragmentsPosition = {x: el.position.x, y: el.position.y, z: el.position.z};
-                ///
-            }
-            if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - DT.sphere.position.z > 1) {
-                // DT.soundStoneMiss.update();
-                DT.soundStoneMiss.play();
-            }
-    
-            if (DT.getDistance(DT.sphere.position.x, DT.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < radiusesSum) {
-                el.material.emissive.r = el.material.color.r * 0.5;
-                el.material.emissive.g = el.material.color.g * 0.5;
-                el.material.emissive.b = el.material.color.b * 0.5;
-            } else {
-                el.material.emissive.r = 0;
-                el.material.emissive.g = 0;
-                el.material.emissive.b = 0;
-            }
-            // if (DT.valueAudio > 30 ) { 
-                // var geometry = new THREE.IcosahedronGeometry(el.geometry.radius, 0),
-                //     material = el.material,
-                //     x = el.position.x,
-                //     y = el.position.y,
-                //     z = el.position.z;
-                // // DT.scene.remove(el);
-                // el = new THREE.Mesh( geometry, material );
-                // el.position.x = x;
-                // el.position.y = y;
-                // el.position.z = z;
-                // // DT.scene.add(el);
-                
-                // el.rotation.y += 0.09;
-                // el.rotation.x += 0.09;
-            // }
-            el.rotation.y += 0.014;
-            el.rotation.x += 0.014;
-            el.position.z += DT.speed.getValue();
+            });
         });
     });
     // // fragments lifecicle

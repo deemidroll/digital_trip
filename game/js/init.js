@@ -191,25 +191,36 @@ window.DT = (function () {
     DT.GameObject.prototype.addToScene = function () {
         this.scene.add(this.tObject);
     };
-    DT.GameObject.prototype.removeFromScene = function () {
+    DT.GameObject.prototype.removeFromScene = function (collection) {
         this.scene.remove(this.tObject);
+        var ind = collection.indexOf(this.tObject);
+        if (ind !== -1) {
+            collection.splice(ind, 1);
+        }
     };
     DT.GameObject.prototype.create = function (collection) {
         collection.push(this);
     };
-    DT.GameObject.prototype.createAndAdd = function (options) {
-        this.create(options);
+    DT.GameObject.prototype.createAndAdd = function (collecion) {
+        this.create(collecion);
         this.addToScene();
     };
     DT.GameObject.prototype.update = function (geometryOpt, materialOpt) {
-        this.updateParam(geometryOpt);
-        this.updateParam(materialOpt);
+        this.updateGeometry(geometryOpt);
+        this.updateMaterial(materialOpt);
     };
     DT.GameObject.prototype.updateParam = function (Opt) {
-        for (prop in materialOpt) if (materialOpt.hasOwnProperty(prop)) {
+        for (var prop in materialOpt) if (materialOpt.hasOwnProperty(prop)) {
                 this.material[prop] = materialOpt[prop];
             }
     };
+    DT.GameObject.prototype.setParam = function (param, a, b, c) {
+            if (a) this.tObject[param].x = a;
+            if (b) this.tObject[param].y = b;
+            if (c) this.tObject[param].z = c;
+    };
+    // GameCollectionObject
+    DT.GameCollectionObject = function () {};
     // Dust Constructor
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
@@ -229,43 +240,53 @@ window.DT = (function () {
         }
         this.tObject.material.visible = false;
     };
-    
-    DT.Dust.prototype.updateParam = function (opt) {
-        if ('isFun' in opt) {
-            if (!this.material.visible) {
-                this.material.visible = true;
-            }
-            this.material.color = opt.isFun ? opt.color : new THREE.Color().setRGB(
-                opt.valueAudio/1/1 || 70/255,
-                opt.valueAudio/255/1 || 68/255,
-                opt.valueAudio/255/1 || 81/255
-            );
-        } else {
-            this.geometry.vertices.forEach(function (el) {
-                el.z += opt.speed;
-                if (el.z > 10) {
-                    el.x = DT.genRandomBetween(-10, 10);
-                    el.y = DT.genRandomBetween(-10, 10);
-                    el.z = -100;
-                }
-            });
-            this.geometry.verticesNeedUpdate = true; 
+
+    DT.Dust.prototype.updateMaterial = function (opt) {
+        if (!this.material.visible) {
+            this.material.visible = true;
         }
+        this.material.color = opt.isFun ? opt.color : new THREE.Color().setRGB(
+            opt.valueAudio/1/1 || 70/255,
+            opt.valueAudio/255/1 || 68/255,
+            opt.valueAudio/255/1 || 81/255
+        );
     };
+    DT.Dust.prototype.updateGeometry = function (opt) {
+        this.geometry.vertices.forEach(function (el) {
+            el.z += opt.speed;
+            if (el.z > 10) {
+                el.x = DT.genRandomBetween(-10, 10);
+                el.y = DT.genRandomBetween(-10, 10);
+                el.z = -100;
+            }
+        });
+        this.geometry.verticesNeedUpdate = true; 
+    };
+
+    // DT.GameObject = function (options) {
+        // this.tObject = new options.THREEConstructor(
+            // options.geometry,
+            // options.material
+        // );
+        // this.geometry = this.tObject.geometry;
+        // this.material = this.tObject.material;
+        // this.scene = options.scene || DT.scene;
+    // };
 
     DT.Stone = function (options) {
-        DT.GameObject.apply(this, arguments);
-    };
+        // console.log(options);
 
-    DT.Stone.prototype = Object.create(DT.GameObject.prototype);
-    DT.Stone.prototype.constructor = DT.Stone;
+        var el = options.collection[options.collection.length -1];
 
-    DT.Stone.prototype.setPosition = function (prop, x, y, z) {
-        this.tObject[prop].set(x, y, z);
-    };
+        if (el) {
+            var dist = DT.getDistance(0, 0, DT.param.spawnCoord,
+                el.tObject.position.x, el.tObject.position.y, el.tObject.position.z);
+            if (dist <= DT.param.stonesCloseness) {
+                return;
+            }
+        }
 
-    DT.generateStone = function (scene, arr, spawnCoord) {
-        var radius, color, x, y, depth, geometry, material, stone,
+        var radius, color, x, y, depth, geometry, material,
             part = Math.random();
         if (part >= 0 && part < 0.16) {
             x = DT.genRandomBetween(-15, -5);
@@ -285,23 +306,65 @@ window.DT = (function () {
             depth = DT.genRandomFloorBetween(80, 100)/255;
             color = new THREE.Color().setRGB(depth, depth, depth);
         }
-        //c
         geometry = new THREE.IcosahedronGeometry(radius, 0);
-        //c
         material = new THREE.MeshPhongMaterial({shading: THREE.FlatShading, color: color, specular: 0x111111, shininess: 100});
-        //c
-        stone = new THREE.Mesh( geometry, material );
-        //set
-        stone.position.x = x;
-        stone.position.y = y;
-        stone.position.z = Math.random() * 4 + spawnCoord;
-        //set
-        stone.rotation.x = Math.random();
-        stone.rotation.y = Math.random();
-        //?
-        arr.push(stone);
-        //add
-        scene.add(stone);
+        DT.GameObject.apply(this, [{
+            geometry: geometry,
+            material: material,
+            THREEConstructor: THREE.Mesh
+        }]);
+        this.setParam('position', x, y, options.spawnCoord);
+        this.setParam('rotation', Math.random(), Math.random());
+        this.createAndAdd(options.collection);
+    };
+
+    DT.Stone.prototype = Object.create(DT.GameObject.prototype);
+    DT.Stone.prototype.constructor = DT.Stone;
+
+    DT.Stone.prototype.update = function (options) {
+
+            el = this.tObject;
+
+            if (el.position.z > options.dieCoord) {
+                this.removeFromScene();
+            } 
+            if (el.position.z > DT.param.opacityCoord) {
+                el.material.transparent = true;
+                el.material.opacity = 0.5;
+            }
+            var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position),
+                radiusesSum = DT.sphere.geometry.radius + el.geometry.radius;
+                
+            if (distanceBerweenCenters < radiusesSum) {
+                DT.soundStoneDestroy.play();
+                if (DT.inintSocket.socket) {
+                    DT.inintSocket.socket.emit("message", {"type": "vibr", "time": 200, "gameCode": DT.inintSocket.socket.gameCode});
+                }
+                DT.scene.remove(el);
+                arr.splice(ind, 1);
+                DT.player.currentHelth = DT.changeHelth(DT.player.currentHelth, -19);
+                // вызвать вспышку экрана
+                if (DT.player.isInvulnerability === false) {
+                    DT.hit();
+                }
+            }
+            if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - DT.sphere.position.z > 1) {
+                DT.soundStoneMiss.play();
+            }
+    
+            if (DT.getDistance(DT.sphere.position.x, DT.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < radiusesSum) {
+                el.material.emissive.r = el.material.color.r * 0.5;
+                el.material.emissive.g = el.material.color.g * 0.5;
+                el.material.emissive.b = el.material.color.b * 0.5;
+            } else {
+                el.material.emissive.r = 0;
+                el.material.emissive.g = 0;
+                el.material.emissive.b = 0;
+            }
+
+            el.rotation.y += 0.014;
+            el.rotation.x += 0.014;
+            el.position.z += DT.speed.getValue();
     };
 
     // Dust object 

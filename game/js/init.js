@@ -13,7 +13,7 @@ var DT = (function () {
             window.mozCancelAnimationFrame ||
             undefined,
         THREEx = window.THREEx || undefined;
-
+    // Player Constructor
     DT.Player = function (options) {
         this.currentHelth = options.currentHelth || 100;
         this.currentScore = options.currentScore || 0;
@@ -87,6 +87,68 @@ var DT = (function () {
         return this;
     };
 
+    DT.Player.prototype.updateInvulnerability = function () {
+        if (this.isInvulnerability) {
+            this.invulnerTimer -= 1;
+            if (this.invulnerTimer <= 0) {
+                this.isInvulnerability = false;
+                // TODO: уменьшить связанность
+                DT.shield.removeFromScene();
+                //
+            } else {
+                return this;
+            }
+        }
+    };
+
+    DT.Player.prototype.updateFun = function () {
+        if (DT.player.isFun) {
+            DT.player.funTimer -= 1;
+            if (DT.player.funTimer <= 0) {
+                DT.player.isFun = false;
+                DT.speed.setChanger(0);
+                DT.stopSound(1);
+                DT.playSound(0);
+                clearInterval(DT.rainbow);
+                DT.blink.doBlink("red", 5);
+            } else {
+                if (DT.player.funTimer % 6 === 0) {
+                    var color;
+                    switch (DT.genRandomFloorBetween(0, 5)) {
+                        case 0:
+                        color = "orange";
+                        break;
+                        case 1:
+                        color = "yellow";
+                        break;
+                        case 2:
+                        color = "green";
+                        break;
+                        case 3:
+                        color = "DeepSkyBlue";
+                        break;
+                        case 4:
+                        color = "blue";
+                        break;
+                        case 5:
+                        color = "DarkSlateBlue";
+                        break;
+                        default:
+                        color = "white";
+                        break;
+                }
+                DT.blink.doBlink(color, 2);
+                }
+            }
+        }
+    };
+
+    DT.Player.prototype.update = function () {
+        this.updateInvulnerability();
+        this.updateFun();
+        return this;
+    };
+
     DT.player = new DT.Player({
         currentHelth: 100,
         currentScore: 0,
@@ -137,6 +199,7 @@ var DT = (function () {
             0: 400,
             1: 100
         },
+        valueAudio: 0,
         webaudio: new WebAudio(),
         sounds: {
             catchCoin: 'sounds/coin.',
@@ -146,12 +209,9 @@ var DT = (function () {
             stoneMiss: 'sounds/stoneMiss.'
         },
         music: {
-            0: 'sounds/theField_overTheIce.ogg',
-            1: 'sounds/heart.ogg',
-            2: 'sounds/space_ambient2.ogg',
-            3: 'sounds/theField_overTheIce.mp3',
-            4: 'sounds/heart.mp3',
-            5: 'sounds/space_ambient2.mp3',
+            0: 'sounds/theField_overTheIce.',
+            1: 'sounds/heart.',
+            2: 'sounds/space_ambient2.',
             started: [],
             startedAt: [],
             pausedAt: [],
@@ -269,20 +329,27 @@ var DT = (function () {
         this.create();
         this.addToScene();
     };
-    DT.GameObject.prototype.update = function (geometryOpt, materialOpt) {
-        this.updateGeometry(geometryOpt);
-        this.updateMaterial(materialOpt);
+    DT.GameObject.prototype.update = function (geometryOptions, materialOptions) {
+        this.updateGeometry(geometryOptions);
+        this.updateMaterial(materialOptions);
     };
-    DT.GameObject.prototype.updateParam = function (Opt) {
-        for (var prop in materialOpt) if (materialOpt.hasOwnProperty(prop)) {
-                this.material[prop] = materialOpt[prop];
-            }
+    DT.GameObject.prototype.updateGeometry = function (options) {
+        // empty method
+    };
+    DT.GameObject.prototype.updateMaterial = function (options) {
+        // empty method
+    };
+    DT.GameObject.prototype.updateParam = function (options) {
+        for (var prop in options) if (options.hasOwnProperty(prop)) {
+            this.material[prop] = options[prop];
+        }
     };
     DT.GameObject.prototype.setParam = function (param, a, b, c) {
-            if (a) this.tObject[param].x = a;
-            if (b) this.tObject[param].y = b;
-            if (c) this.tObject[param].z = c;
+        if (a) this.tObject[param].x = a;
+        if (b) this.tObject[param].y = b;
+        if (c) this.tObject[param].z = c;
     };
+
     // GameCollectionObject Constructor (Stone, Coin, Bonus)
     DT.GameCollectionObject = function (options) {
         DT.GameObject.apply(this, arguments);
@@ -302,9 +369,12 @@ var DT = (function () {
             this.collection.splice(ind, 1);
         }
     };
+
     // Shield Constructor
     DT.Shield = function (options) {
         DT.GameObject.apply(this, arguments);
+        this.material.color = options.sphere.material.color;
+        this.position = options.sphere.position;
     };
     DT.Shield.prototype = Object.create(DT.GameObject.prototype);
     DT.Shield.prototype.constructor = DT.Shield;
@@ -312,12 +382,14 @@ var DT = (function () {
     DT.shield = new DT.Shield({
         THREEConstructor: THREE.Mesh,
         geometry: new THREE.CubeGeometry(1.3, 1.3, 1.3, 2, 2, 2),
-        materisl: new THREE.MeshPhongMaterial({
+        material: new THREE.MeshPhongMaterial({
             color: 0xffffff,
             transparent: true,
             opacity: 0.5
-        })
+        }),
+        sphere: DT.sphere
     });
+
     // Dust Constructor
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
@@ -334,30 +406,30 @@ var DT = (function () {
                 DT.genRandomBetween(-100, 0)
             ));
         }
-        this.tObject.material.visible = false;
+        this.material.visible = false;
     };
 
-    DT.Dust.prototype.updateMaterial = function (opt) {
+    DT.Dust.prototype.updateMaterial = function (options) {
         if (!this.material.visible) {
             this.material.visible = true;
         }
-        this.material.color = opt.isFun ? opt.color : new THREE.Color().setRGB(
-            opt.valueAudio/1/1 || 70/255,
-            opt.valueAudio/255/1 || 68/255,
-            opt.valueAudio/255/1 || 81/255
+        this.material.color = options.isFun ? options.color : new THREE.Color().setRGB(
+            options.valueAudio/1/1 || 70/255,
+            options.valueAudio/255/1 || 68/255,
+            options.valueAudio/255/1 || 81/255
         );
     };
 
-    DT.Dust.prototype.updateGeometry = function (opt) {
+    DT.Dust.prototype.updateGeometry = function (options) {
         this.geometry.vertices.forEach(function (el) {
-            el.z += opt.speed;
+            el.z += options.speed;
             if (el.z > 10) {
                 el.x = DT.genRandomBetween(-10, 10);
                 el.y = DT.genRandomBetween(-10, 10);
                 el.z = -100;
             }
         });
-        this.geometry.verticesNeedUpdate = true; 
+        this.geometry.verticesNeedUpdate = true;
     };
     // Dust object 
     DT.dust = new DT.Dust({
@@ -486,8 +558,6 @@ var DT = (function () {
             rotation: {x: 0, y: 0, z: 0}
         }];
 
-    DT.valueAudio = 0;
-
     DT.blink = {
         color: new THREE.Color(),
         frames: 0,
@@ -503,7 +573,24 @@ var DT = (function () {
             this.dr = (defClr.r - this.color.r)/frames;
             this.dg = (defClr.g - this.color.g)/frames;
             this.db = (defClr.b - this.color.b)/frames;
-        }
+        },
+        update: function () {
+            if (DT.blink.framesLeft === 0) {
+                // DT.sphere.material.color = new THREE.Color("red");
+                return;
+            }
+            if (DT.blink.framesLeft === DT.blink.frames) {
+                DT.lights.sphereLight.color.r = DT.sphere.material.color.r = DT.blink.color.r;
+                DT.lights.sphereLight.color.g = DT.sphere.material.color.g = DT.blink.color.g;
+                DT.lights.sphereLight.color.b = DT.sphere.material.color.b = DT.blink.color.b;
+            }
+            if (DT.blink.framesLeft < DT.blink.frames) {
+                DT.lights.sphereLight.color.r = DT.sphere.material.color.r += DT.blink.dr;
+                DT.lights.sphereLight.color.g = DT.sphere.material.color.g += DT.blink.dg;
+                DT.lights.sphereLight.color.b = DT.sphere.material.color.b += DT.blink.db;
+            }
+        DT.blink.framesLeft -= 1;
+        },
     };
 
     DT.emittFragments = null; // not use
@@ -876,12 +963,12 @@ var DT = (function () {
         var data = {
             'type': options.type,
             'time': options.time,
-            'gameCode': DT.inintSocket.socket.gameCode,
-            'sessionid': DT.inintSocket.socket.socket.sessionid,
+            'gameCode': DT.initSocket.socket.gameCode,
+            'sessionid': DT.initSocket.socket.socket.sessionid,
             'coinsCollect': DT.player.currentScore
         };
-        if (DT.inintSocket.socket) {
-            DT.inintSocket.socket.emit('message', data);
+        if (DT.initSocket.socket) {
+            DT.initSocket.socket.emit('message', data);
         }
     };
 
@@ -898,7 +985,7 @@ var DT = (function () {
     };
 
     DT.runApp = function () {
-        DT.inintSocket();
+        DT.initSocket();
         DT.playSound(2);
         $(function() {
             $('.loader').fadeOut(250);
@@ -1053,13 +1140,22 @@ var DT = (function () {
             });
         };
 
+        // SOUNDS
+        var ext = 'ogg';
+        if (!canPlayOgg) {
+            ext = 'mp3';
+        }
+        for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
+            DT.audio.sounds[prop] = DT.audio.webaudio.createSound().load(DT.audio.sounds[prop] + ext);
+        }
+
         var loadSoundFile = function(urlArr, bufferIndex) {
             var xhr = new XMLHttpRequest();
-            if (canPlayOgg) {
-                xhr.open('GET', urlArr[bufferIndex], true);
-            } else {
-                xhr.open('GET', urlArr[bufferIndex + 3], true);
+            var ext = 'ogg';
+            if (!canPlayOgg) {
+                ext = 'mp3';
             }
+            xhr.open('GET', urlArr[bufferIndex] + ext, true);
             xhr.responseType = 'arraybuffer';
             xhr.onload = function(e) {
                 initSound(this.response, bufferIndex); // this.response is an ArrayBuffer.
@@ -1071,26 +1167,17 @@ var DT = (function () {
         loadSoundFile(DT.audio.music, 1);
         loadSoundFile(DT.audio.music, 2);
         
-            var visualize = function(index) {
+        var visualize = function(index) {
             freqDomain[index] = new Uint8Array(analysers[index].frequencyBinCount);
             analysers[index].getByteFrequencyData(freqDomain[index]);
-            DT.valueAudio = getFrequencyValue(DT.audio.frequency[index], index);
+            DT.audio.valueAudio = getFrequencyValue(DT.audio.frequency[index], index);
         };
         
-            var getFrequencyValue = function(frequency, bufferIndex) {
+        var getFrequencyValue = function(frequency, bufferIndex) {
             var nyquist = context.sampleRate/2,
                 index = Math.round(frequency/nyquist * freqDomain[bufferIndex].length);
             return freqDomain[bufferIndex][index];
         };
-        
-        // SOUNDS
-        var ext = 'ogg';
-        if (!canPlayOgg) {
-            ext = 'mp3';
-        }
-        for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
-            DT.audio.sounds[prop] = DT.audio.webaudio.createSound().load(DT.audio.sounds[prop] + ext);
-        }
 
         // BLUR
         // var renderer = DT.renderer,
@@ -1291,41 +1378,41 @@ var DT = (function () {
             // });
         
             // alt realization
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        navigator.getUserMedia = navigator.getUserMedia ||
+            navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia;
         window.URL = window.URL || window.webkitURL;
         
-            var camvideo = document.getElementById('vid');
+        var camvideo = document.getElementById('vid');
+
+        if (!navigator.getUserMedia) {
+            $('.message').html('Sorry. <code>navigator.getUserMedia()</code> is not available.');
+        }
+        navigator.getUserMedia({video: true}, gotStream, noStream);
         
-                if (!navigator.getUserMedia) 
-            {
-                $('.message').html('Sorry. <code>navigator.getUserMedia()</code> is not available.');
+        function gotStream(stream) {
+            if (window.URL) {
+                camvideo.src = window.URL.createObjectURL(stream);
+            } 
+            else { // Opera
+                camvideo.src = stream;
             }
-            navigator.getUserMedia({video: true}, gotStream, noStream);
-        
-            function gotStream(stream) 
-        {
-            if (window.URL) 
-            {   camvideo.src = window.URL.createObjectURL(stream);   } 
-            else // Opera
-            {   camvideo.src = stream;   }
-        
-                camvideo.onerror = function(e) 
-            {   stream.stop();   };
-        
-                stream.onended = noStream;
+            camvideo.onerror = function(e) {
+                stream.stop();
+            };
+            stream.onended = noStream;
             //start game
             DT.startAfterChooseControl();
         }
         
-            function noStream(e) 
-        {
+        function noStream(e) {
             var msg = 'No camera available.';
             if (e.code == 1) 
             {   msg = 'User denied access to use camera.';   }
             console.log(msg);
         }
         
-            // assign global variables to HTML elements
+        // assign global variables to HTML elements
         console.log(window.innerHeight, window.innerWidth);
         var video = document.getElementById( 'vid' );
         var videoCanvas = document.getElementById( 'debug' );
@@ -1336,7 +1423,7 @@ var DT = (function () {
             'opacity': 0.2
         });
         
-            var blendCanvas  = document.getElementById( 'compare' );
+        var blendCanvas  = document.getElementById( 'compare' );
         var blendContext = blendCanvas.getContext('2d');
         $('#compare').css({
             'height': window.innerHeight,
@@ -1344,7 +1431,7 @@ var DT = (function () {
             'opacity': 0.2
         });
         
-            $('.cam').css({
+        $('.cam').css({
             'background-color': 'rgba(255,255,255,0.2)'
         });
         $('.center').css({
@@ -1354,17 +1441,17 @@ var DT = (function () {
             'margin-left': '33%'
         });
         
-            // these changes are permanent
+        // these changes are permanent
         videoContext.translate(320, 0);
         videoContext.scale(-1, 1);
-                
-                    // background color if no video present
+        
+        // background color if no video present
         videoContext.fillStyle = '#005337';
         videoContext.fillRect( 0, 0, videoCanvas.width, videoCanvas.height );
         
-            var buttons = [];
+        var buttons = [];
         
-            var button1 = new Image();
+        var button1 = new Image();
         button1.src ='img/lr.png';
         var buttonData1 = { name:'left', image:button1, x:0, y:0, w:100, h:240, coord: -DT.param.spacing };
         buttons.push( buttonData1 );
@@ -1374,37 +1461,28 @@ var DT = (function () {
         var buttonData2 = { name:'right', image:button2, x:220, y:0, w:100, h:240, coord: DT.param.spacing };
         buttons.push( buttonData2 );
         
-            var button3 = new Image();
+        var button3 = new Image();
         button3.src ='img/c.png';
         var buttonData3 = { name:'center', image:button3, x:100, y:0, w:120, h:240, coord: 0 };
         buttons.push( buttonData3 );
         
-            // start the loop               
-                    animate();
-        
-            function animate() 
-        {
+        // start the loop
+        animate();
+        function animate() {
             requestAnimationFrame( animate );
-            
-                    render();   
-            blend();    
-                    checkAreas();
+            render();
+            blend();
+            checkAreas();
         }
         
-            function render() 
-        {   
-            if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
-            {
+        function render() { 
+            if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
                 // mirror video
                 videoContext.drawImage( video, 0, 0, videoCanvas.width, videoCanvas.height );
-        
-                }
+            }
         }
-        
-            var lastImageData;
-        
-            function blend() 
-        {
+        var lastImageData;
+        function blend() {
             var width  = videoCanvas.width;
             var height = videoCanvas.height;
             // get current webcam image data
@@ -1420,12 +1498,10 @@ var DT = (function () {
             // store the current webcam image
             lastImageData = sourceData;
         }
-        function differenceAccuracy(target, data1, data2) 
-        {
+        function differenceAccuracy(target, data1, data2) {
             if (data1.length != data2.length) return null;
             var i = 0;
-            while (i < (data1.length * 0.25)) 
-            {
+            while (i < (data1.length * 0.25)) {
                 var average1 = (data1[4*i] + data1[4*i+1] + data1[4*i+2]) / 3;
                 var average2 = (data2[4*i] + data2[4*i+1] + data2[4*i+2]) / 3;
                 var diff = threshold(fastAbs(average1 - average2));
@@ -1468,18 +1544,20 @@ var DT = (function () {
             }
         }
     };
+
     DT.initPhoneControl = function() {
         $('.message').html('Please open <span style=\'color: red\'>' + DT.server +'/m</span> with your phone and enter code <span style=\'font-weight:bold; color: red\' id=\'socketId\'></span>');
-        $('#socketId').html(DT.inintSocket.socket.gameCode);
+        $('#socketId').html(DT.initSocket.socket.gameCode);
     };
-    DT.inintSocket = function() {
+
+    DT.initSocket = function() {
         // Game config
         var leftBreakThreshold = -3,
             leftTurnThreshold = -20,
             rightBreakThreshold = 3,
             rightTurnThreshold = 20,
             // set socket
-            socket = DT.inintSocket.socket = io.connect(DT.server);
+            socket = DT.initSocket.socket = io.connect(DT.server);
         // When initial welcome message, reply with 'game' device type
         socket.on('welcome', function(data) {
             socket.emit('device', {'type':'game', 'cookieUID': DT.getCookie('UID')});

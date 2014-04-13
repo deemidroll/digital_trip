@@ -31,10 +31,6 @@
     DT.lights.directionalLight.position.set(0, 0, 1);
     DT.scene.add(DT.lights.directionalLight);
 
-    // DT.shield
-    DT.shield.material.color = DT.sphere.material.color;
-    DT.shield.position = DT.sphere.position;
-
     // DT.dust
     DT.dust.createAndAdd();
 
@@ -141,7 +137,7 @@
     // EMITTER Particle system - sphere tail
     DT.onRenderFcts.push(function() {
         emitter._particles.forEach(function(el) {
-            el.velocity.vector.z += DT.valueAudio/28;
+            el.velocity.vector.z += DT.audio.valueAudio/28;
         });
     });
     // FRAGMENTS
@@ -271,9 +267,10 @@
                 var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position);
                 if (distanceBerweenCenters < 0.9) {
                     DT.audio.sounds.catchCoin.play();
-                    if (DT.inintSocket.socket) {
-                        DT.inintSocket.socket.emit("message", {"type": "vibr", "time": 10, "gameCode": DT.inintSocket.socket.gameCode});
-                    }
+                    DT.sendSocketMessage({
+                        type: 'vibr',
+                        time: 10
+                    });
                     DT.blink.doBlink(0xcfb53b, 60);
                     DT.bump();
                     DT.scene.remove(el);
@@ -282,12 +279,6 @@
                 }
             });
         }
-    });
-    // sphere moving
-    DT.onRenderFcts.push(function() {
-        DT.moveSphere(DT.sphere, DT.player.destPoint, 3);
-        DT.lights.sphereLight.position.x = DT.sphere.position.x;
-        DT.lights.sphereLight.position.y = DT.sphere.position.y;
     });
     // bonuses lifecicle
     DT.onRenderFcts.push(function() {
@@ -347,90 +338,29 @@
             });
         }
     });
-    // Invulner
-    DT.onRenderFcts.push(function () {
-        if (DT.player.isInvulnerability === true) {
-            DT.invulnerTimer -= 1;
-            if (DT.invulnerTimer <= 0) {
-                DT.player.isInvulnerability = false;
-                DT.scene.remove(DT.shield);
-            } else {
-                return;
-            }
-        } else {
-            return;
-        }
+
+    // sphere moving
+    DT.onRenderFcts.push(function() {
+        DT.moveSphere(DT.sphere, DT.player.destPoint, 3);
+        DT.lights.sphereLight.position.x = DT.sphere.position.x;
+        DT.lights.sphereLight.position.y = DT.sphere.position.y;
     });
-    // FUN
+    // PLAYER
     DT.onRenderFcts.push(function () {
-        if (DT.player.isFun === true) {
-            DT.funTimer -= 1;
-            if (DT.funTimer <= 0) {
-                DT.player.isFun = false;
-                DT.speed.setChanger(0);
-                DT.stopSound(1);
-                DT.playSound(0);
-                clearInterval(DT.rainbow);
-                DT.blink.doBlink("red", 5);
-            } else {
-                if (DT.funTimer % 6 === 0) {
-                    var color;
-                    switch (DT.genRandomFloorBetween(0, 5)) {
-                        case 0:
-                        color = "orange";
-                        break;
-                        case 1:
-                        color = "yellow";
-                        break;
-                        case 2:
-                        color = "green";
-                        break;
-                        case 3:
-                        color = "DeepSkyBlue";
-                        break;
-                        case 4:
-                        color = "blue";
-                        break;
-                        case 5:
-                        color = "DarkSlateBlue";
-                        break;
-                        default:
-                        color = "white";
-                        break;
-                }
-                DT.blink.doBlink(color, 2);
-                }
-                return;
-            }
-        } else {
-            return;
-        }
+        DT.player.update();
     });
     // BLINK
     DT.onRenderFcts.push(function() {
-        if (DT.blink.framesLeft === 0) {
-            // DT.sphere.material.color = new THREE.Color("red");
-            return;
-        }
-        if (DT.blink.framesLeft === DT.blink.frames) {
-            DT.lights.sphereLight.color.r = DT.sphere.material.color.r = DT.blink.color.r;
-            DT.lights.sphereLight.color.g = DT.sphere.material.color.g = DT.blink.color.g;
-            DT.lights.sphereLight.color.b = DT.sphere.material.color.b = DT.blink.color.b;
-        }
-        if (DT.blink.framesLeft < DT.blink.frames) {
-            DT.lights.sphereLight.color.r = DT.sphere.material.color.r += DT.blink.dr;
-            DT.lights.sphereLight.color.g = DT.sphere.material.color.g += DT.blink.dg;
-            DT.lights.sphereLight.color.b = DT.sphere.material.color.b += DT.blink.db;
-        }
-        DT.blink.framesLeft -= 1;
+        DT.blink.update();
     });
     // DUST
     DT.onRenderFcts.push(function () {
-        DT.dust.update({
-            isFun: DT.isFun,
-            valueAudio: DT.valueAudio,
+        DT.dust.updateMaterial({
+            isFun: DT.player.isFun,
+            valueAudio: DT.audio.valueAudio,
             color: DT.sphere.material.color
-        }, {
+        });
+        DT.dust.updateGeometry({
             speed: DT.speed.getValue()
         });
     });

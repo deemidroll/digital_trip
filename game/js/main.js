@@ -127,7 +127,7 @@
         });
         $(window).blur(function() {
             if (DT.gameWasStarted && !DT.gameWasPaused && !DT.gameWasOver) {
-                DT.triggers.pause();
+                DT.handlers.pause();
             }
             DT.setVolume(0);
         });
@@ -224,7 +224,7 @@
         DT.collections.stones.forEach(function (el, ind, arr) {
             el.update({
                 dieCoord: dieCoord,
-                
+                sphere: DT.sphere
             });
         });
     });
@@ -270,8 +270,7 @@
                 }
                 var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position);
                 if (distanceBerweenCenters < 0.9) {
-                    // DT.soundCoin.update();
-                    DT.soundCoin.play();
+                    DT.audio.sounds.catchCoin.play();
                     if (DT.inintSocket.socket) {
                         DT.inintSocket.socket.emit("message", {"type": "vibr", "time": 10, "gameCode": DT.inintSocket.socket.gameCode});
                     }
@@ -279,7 +278,7 @@
                     DT.bump();
                     DT.scene.remove(el);
                     arr.splice(ind, 1);
-                    DT.player.currentScore = DT.changeScore(DT.player.currentScore, 1);
+                    DT.player.changeScore(1);
                 }
             });
         }

@@ -1,4 +1,4 @@
-window.DT = (function () {
+var DT = (function () {
     'use strict';
     var DT = {},
         THREE = window.THREE || undefined,
@@ -14,15 +14,88 @@ window.DT = (function () {
             undefined,
         THREEx = window.THREEx || undefined;
 
-    DT.player = {
+    DT.Player = function (options) {
+        this.currentHelth = options.currentHelth || 100;
+        this.currentScore = options.currentScore || 0;
+        this.destPoint = options.destPoint || {x: 0, y: 0};
+        this.isInvulnerability = options.isInvulnerability || false;
+        this.isFun = options.isFun || false;
+        this.invulnerTimer = null;
+        this.funTimer = null;
+        this.jump = options.jump || false;
+        this.jumpLength = 0; // not use
+        this.jumpOffset = 2.2; // not use
+    };
+
+    DT.Player.prototype.changeHelth = function(delta) {
+        if (delta > 0 || this.isInvulnerability === false) {
+            var helth = this.currentHelth;
+            if (helth > 0) {
+                helth += delta;
+                if (helth < 0) {
+                    helth = 0;
+                    DT.gameOver();
+                }
+                if (helth > 100) {
+                    helth = 100;
+                }
+            }
+            this.currentHelth = helth;
+            $(function(){
+                $('.helth').animate({
+                    width: helth + '%'
+                });
+            });
+        }
+        return this;
+    };
+
+    DT.Player.prototype.makeInvuler = function (time) {
+        this.invulnerTimer = (time || 10000) / 1000 * 60;
+        this.isInvulnerability = true;
+        // TODO: умешьшить связанность
+        DT.shiels.addToScene();
+        return this;
+    };
+
+    DT.Player.prototype.stopInvulner = function () {
+        this.invulnerTimer = 0;
+        return this;
+    };
+
+    DT.Player.prototype.changeScore = function(delta) {
+        this.currentScore += delta;
+        $(function(){
+            $('.current_coins').text(this.currentScore);
+        });
+        return this;
+    };
+
+    DT.Player.prototype.makeFun = function(time) {
+        this.isFun = true;
+        this.funTimer = (time || 10000) / 1000 * 60;
+        // TODO: переделать на метод
+        DT.speed.setChanger(-18);
+        DT.stopSound(0);
+        DT.playSound(1);
+        //
+        return this;
+    };
+
+    DT.Player.prototype.stopFun = function () {
+        this.funTimer = 0;
+        return this;
+    };
+
+    DT.player = new DT.Player({
         currentHelth: 100,
         currentScore: 0,
         destPoint: {x: 0, y: -2.5},
         isInvulnerability: false,
         isFun: false,
         jump: false
-    };
-
+    });
+    // TODO: refactor
     DT.param = {
         spacing: 3,
         spawnCoord: -200,
@@ -60,34 +133,31 @@ window.DT = (function () {
     };
 
     DT.audio = {
-        frequency: {
+        frequency: { // for audio visualization
             0: 400,
             1: 100
+        },
+        webaudio: new WebAudio(),
+        sounds: {
+            catchCoin: 'sounds/coin.',
+            gameover: 'sounds/gameover.',
+            pause: 'sounds/pause.',
+            stoneDestroy: 'sounds/stoneDestroy.',
+            stoneMiss: 'sounds/stoneMiss.'
+        },
+        music: {
+            0: 'sounds/theField_overTheIce.ogg',
+            1: 'sounds/heart.ogg',
+            2: 'sounds/space_ambient2.ogg',
+            3: 'sounds/theField_overTheIce.mp3',
+            4: 'sounds/heart.mp3',
+            5: 'sounds/space_ambient2.mp3',
+            started: [],
+            startedAt: [],
+            pausedAt: [],
+            stopped: [],
+            paused: []
         }
-    };
-
-    DT.webaudio = new WebAudio();
-
-    DT.sounds = {
-        soundCoin: 'sounds/coin.',
-        soundGameover: 'sounds/gameover.',
-        soundPause: 'sounds/pause.',
-        soundStoneDestroy: 'sounds/stoneDestroy.',
-        soundStoneMiss: 'sounds/stoneMiss.'
-    };
-
-    DT.music = {
-        0: 'sounds/theField_overTheIce.ogg',
-        1: 'sounds/heart.ogg',
-        2: 'sounds/space_ambient2.ogg',
-        3: 'sounds/theField_overTheIce.mp3',
-        4: 'sounds/heart.mp3',
-        5: 'sounds/space_ambient2.mp3',
-        started: [],
-        startedAt: [],
-        pausedAt: [],
-        stopped: [],
-        paused: []
     };
 
     DT.renderer = new THREE.WebGLRenderer();
@@ -108,8 +178,6 @@ window.DT = (function () {
         sphereLightning: new THREE.PointLight(0xff0000, 0.75, 7.5),
         directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
     };
-
-    DT.shield = new THREE.Mesh(new THREE.CubeGeometry(1.3, 1.3, 1.3, 2, 2, 2), new THREE.MeshPhongMaterial({color: 0xffffff, transparent: true, opacity: 0.5}));
 
     DT.id = null;
 
@@ -163,7 +231,7 @@ window.DT = (function () {
                     }
                 }
                 if (k === 17) {
-                    DT.makeFun();
+                    DT.player.makeFun();
                 }
             });
             $(document).keyup(function(event) {
@@ -171,14 +239,14 @@ window.DT = (function () {
                 // speedDown
                 if (k === 16) {
                     DT.speed.setChanger(0);
-                    DT.funTimer = 0;
+                    DT.player.stopFun();
                 }
             });
             $(document).keyup(DT.handlers.pauseOnSpace);
             DT.gameWasStarted = true;
         }
     };
-
+    // 
     DT.GameObject = function (options) {
         this.tObject = new options.THREEConstructor(
             options.geometry,
@@ -191,18 +259,14 @@ window.DT = (function () {
     DT.GameObject.prototype.addToScene = function () {
         this.scene.add(this.tObject);
     };
-    DT.GameObject.prototype.removeFromScene = function (collection) {
+    DT.GameObject.prototype.removeFromScene = function () {
         this.scene.remove(this.tObject);
-        var ind = collection.indexOf(this.tObject);
-        if (ind !== -1) {
-            collection.splice(ind, 1);
-        }
     };
-    DT.GameObject.prototype.create = function (collection) {
-        collection.push(this);
+    DT.GameObject.prototype.create = function () {
+        // empty method
     };
-    DT.GameObject.prototype.createAndAdd = function (collecion) {
-        this.create(collecion);
+    DT.GameObject.prototype.createAndAdd = function () {
+        this.create();
         this.addToScene();
     };
     DT.GameObject.prototype.update = function (geometryOpt, materialOpt) {
@@ -219,14 +283,46 @@ window.DT = (function () {
             if (b) this.tObject[param].y = b;
             if (c) this.tObject[param].z = c;
     };
-    // GameCollectionObject
-    DT.GameCollectionObject = function () {};
+    // GameCollectionObject Constructor (Stone, Coin, Bonus)
+    DT.GameCollectionObject = function (options) {
+        DT.GameObject.apply(this, arguments);
+        this.collection = options.collection;
+    };
+    DT.GameCollectionObject.prototype = Object.create(DT.GameObject.prototype);
+    DT.GameCollectionObject.prototype.constructor = DT.GameCollectionObject;
+
+    DT.GameCollectionObject.prototype.create = function () {
+        this.collection.push(this);
+    };
+
+    DT.GameCollectionObject.prototype.removeFromScene = function () {
+        DT.GameObject.prototype.removeFromScene.apply(this);
+        var ind = this.collection.indexOf(this);
+        if (ind !== -1) {
+            this.collection.splice(ind, 1);
+        }
+    };
+    // Shield Constructor
+    DT.Shield = function (options) {
+        DT.GameObject.apply(this, arguments);
+    };
+    DT.Shield.prototype = Object.create(DT.GameObject.prototype);
+    DT.Shield.prototype.constructor = DT.Shield;
+
+    DT.shield = new DT.Shield({
+        THREEConstructor: THREE.Mesh,
+        geometry: new THREE.CubeGeometry(1.3, 1.3, 1.3, 2, 2, 2),
+        materisl: new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.5
+        })
+    });
     // Dust Constructor
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
         this.number = options.number || 100;
     };
-
     DT.Dust.prototype = Object.create(DT.GameObject.prototype);
     DT.Dust.prototype.constructor = DT.Dust;
 
@@ -251,6 +347,7 @@ window.DT = (function () {
             opt.valueAudio/255/1 || 81/255
         );
     };
+
     DT.Dust.prototype.updateGeometry = function (opt) {
         this.geometry.vertices.forEach(function (el) {
             el.z += opt.speed;
@@ -262,21 +359,16 @@ window.DT = (function () {
         });
         this.geometry.verticesNeedUpdate = true; 
     };
-
-    // DT.GameObject = function (options) {
-        // this.tObject = new options.THREEConstructor(
-            // options.geometry,
-            // options.material
-        // );
-        // this.geometry = this.tObject.geometry;
-        // this.material = this.tObject.material;
-        // this.scene = options.scene || DT.scene;
-    // };
+    // Dust object 
+    DT.dust = new DT.Dust({
+        geometry: new THREE.Geometry({}),
+        material: new THREE.ParticleSystemMaterial({size: 0.25}),
+        THREEConstructor: THREE.ParticleSystem
+    });
 
     DT.Stone = function (options) {
-        // console.log(options);
-
-        var el = options.collection[options.collection.length -1];
+        var collection = options.collection,
+            el = collection[collection.length -1];
 
         if (el) {
             var dist = DT.getDistance(0, 0, DT.param.spawnCoord,
@@ -288,6 +380,7 @@ window.DT = (function () {
 
         var radius, color, x, y, depth, geometry, material,
             part = Math.random();
+        // 
         if (part >= 0 && part < 0.16) {
             x = DT.genRandomBetween(-15, -5);
             y = DT.genRandomBetween(-15, -5);
@@ -298,32 +391,39 @@ window.DT = (function () {
             x = DT.genRandomBetween(-5, 5);
             y = DT.genRandomBetween(-5, 5);
         }
+        //
         if (Math.abs(x) > 5 || Math.abs(y) > 5) {
             radius = DT.genRandomBetween(1.5, 3);
             color = new THREE.Color(0x464451);
         } else {
             radius = DT.genRandomBetween(1, 2);
-            depth = DT.genRandomFloorBetween(80, 100)/255;
+            depth = DT.genRandomFloorBetween(80, 100) / 255;
             color = new THREE.Color().setRGB(depth, depth, depth);
         }
         geometry = new THREE.IcosahedronGeometry(radius, 0);
-        material = new THREE.MeshPhongMaterial({shading: THREE.FlatShading, color: color, specular: 0x111111, shininess: 100});
-        DT.GameObject.apply(this, [{
+        material = new THREE.MeshPhongMaterial({
+            shading: THREE.FlatShading,
+            color: color,
+            specular: 0x111111,
+            shininess: 100
+        });
+        DT.GameCollectionObject.apply(this, [{
             geometry: geometry,
             material: material,
-            THREEConstructor: THREE.Mesh
+            THREEConstructor: THREE.Mesh,
+            collection: collection
         }]);
         this.setParam('position', x, y, options.spawnCoord);
         this.setParam('rotation', Math.random(), Math.random());
-        this.createAndAdd(options.collection);
+        this.createAndAdd();
     };
 
-    DT.Stone.prototype = Object.create(DT.GameObject.prototype);
+    DT.Stone.prototype = Object.create(DT.GameCollectionObject.prototype);
     DT.Stone.prototype.constructor = DT.Stone;
 
     DT.Stone.prototype.update = function (options) {
 
-            el = this.tObject;
+            var el = this.tObject;
 
             if (el.position.z > options.dieCoord) {
                 this.removeFromScene();
@@ -332,27 +432,27 @@ window.DT = (function () {
                 el.material.transparent = true;
                 el.material.opacity = 0.5;
             }
-            var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position),
-                radiusesSum = DT.sphere.geometry.radius + el.geometry.radius;
+            var distanceBetweenCenters = el.position.distanceTo(options.sphere.position),
+                radiusesSum = options.sphere.geometry.radius + el.geometry.radius;
                 
-            if (distanceBerweenCenters < radiusesSum) {
-                DT.soundStoneDestroy.play();
-                if (DT.inintSocket.socket) {
-                    DT.inintSocket.socket.emit("message", {"type": "vibr", "time": 200, "gameCode": DT.inintSocket.socket.gameCode});
-                }
-                DT.scene.remove(el);
-                arr.splice(ind, 1);
-                DT.player.currentHelth = DT.changeHelth(DT.player.currentHelth, -19);
+            if (distanceBetweenCenters < radiusesSum) {
+                DT.audio.sounds.stoneDestroy.play();
+                DT.sendSocketMessage({
+                    type: 'vibr',
+                    time: 200
+                });
+                this.removeFromScene();
+
+                DT.player.changeHelth(-19);
                 // вызвать вспышку экрана
                 if (DT.player.isInvulnerability === false) {
                     DT.hit();
                 }
             }
-            if (distanceBerweenCenters > radiusesSum && distanceBerweenCenters < radiusesSum + 1 && el.position.z - DT.sphere.position.z > 1) {
-                DT.soundStoneMiss.play();
+            if (distanceBetweenCenters > radiusesSum && distanceBetweenCenters < radiusesSum + 1 && el.position.z - options.sphere.position.z > 1) {
+                DT.audio.sounds.stoneMiss.play();
             }
-    
-            if (DT.getDistance(DT.sphere.position.x, DT.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < radiusesSum) {
+            if (DT.getDistance(options.sphere.position.x, options.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < radiusesSum) {
                 el.material.emissive.r = el.material.color.r * 0.5;
                 el.material.emissive.g = el.material.color.g * 0.5;
                 el.material.emissive.b = el.material.color.b * 0.5;
@@ -366,32 +466,6 @@ window.DT = (function () {
             el.rotation.x += 0.014;
             el.position.z += DT.speed.getValue();
     };
-
-    // Dust object 
-    DT.dust = new DT.Dust({
-        geometry: new THREE.Geometry({}),
-        material: new THREE.ParticleSystemMaterial({size: 0.25}),
-        THREEConstructor: THREE.ParticleSystem
-    });
-
-    // DT.dust = {
-    //     // partSys: null,
-    //     // material: new THREE.ParticleSystemMaterial({size: 0.25}),
-    //     // geometry: new THREE.Geometry({}),
-    //     // number: 100,
-    //     createDust: function () {
-    //         var i, x, y, z;
-    //         for (i = 0; i < this.number; i++) {
-    //                 x = DT.genRandomBetween(-10, 10);
-    //                 y = DT.genRandomBetween(-10, 10);
-    //                 z = DT.genRandomBetween(-100, 0);
-    //             this.geometry.vertices.push(new THREE.Vector3(x, y, z));
-    //         }
-    //         this.partSys = new THREE.ParticleSystem(this.geometry, this.material);
-    //         this.partSys.material.visible = false;
-    //         DT.scene.add(this.partSys);
-    //     }
-    // };
 
     DT.makeFunTimer = null;
     DT.rainbow = null;
@@ -434,20 +508,34 @@ window.DT = (function () {
 
     DT.emittFragments = null; // not use
     DT.bgTexture = THREE.ImageUtils.loadTexture('img/bg.jpg');
-    DT.invulnerTimer = null;
-    DT.jumpLength = 0; // not use
-    DT.jumpOffset = 2.2; // not use
     DT.gameWasStarted = false;
     DT.gameWasPaused = false;
     DT.gameWasOver = false;
     DT.handlers = {};
-    DT.triggers = {};
-    DT.snapshot = null; // for restar
-    DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://192.168.1.36';
+    DT.snapshot = null; // for restart
+    DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://10.0.1.2';
     DT.wasMuted = false;
 
-    // TRIGGERS
-    DT.triggers.fullscreen = function () {
+    // HANDLERS
+    DT.handlers.startOnSpace = function(event) {
+        var k = event.keyCode;
+        if (k === 32) {
+            DT.startAfterChooseControl();
+        }
+    };
+    DT.handlers.pauseOnSpace = function(event) {
+        var k = event.keyCode;
+        if (k === 32) {
+            DT.handlers.pause();
+        }
+    };
+    DT.handlers.restartOnSpace = function(event) {
+        var k = event.keyCode;
+        if (k === 32) {
+            DT.handlers.restart();
+        }
+    };
+    DT.handlers.fullscreen = function () {
         var isActivated = THREEx.FullScreen.activated();
         if (isActivated) {
             THREEx.FullScreen.cancel();
@@ -455,14 +543,14 @@ window.DT = (function () {
             THREEx.FullScreen.request(document.body);
         }
     };
-    DT.triggers.pause = function () {
+    DT.handlers.pause = function () {
         if (!DT.gameWasPaused) {
             DT.pauseOn();
         } else {
             DT.pauseOff();
         }
     };
-    DT.triggers.mute = function() {
+    DT.handlers.mute = function() {
         if (DT.param.globalVolume === 1) {
             DT.setVolume(0);
             $('.music_button').html('N');
@@ -473,6 +561,43 @@ window.DT = (function () {
             DT.wasMuted = false;
         }
     };
+    DT.handlers.left = function () {
+        DT.changeDestPoint(0, -1, DT.player.destPoint);
+    };
+    DT.handlers.right = function () {
+        DT.changeDestPoint(0, 1, DT.player.destPoint);
+    };
+    DT.handlers.restart = function () {
+        $('.game_over').hide();
+        var iterator = function (el) {
+            DT.scene.remove(el);
+        };
+        for (var collection in DT.collections) {
+            if (DT.collections.hasOwnProperty(collection)) {
+                DT.collections[collection].forEach(iterator);
+            }
+        }
+        DT.player = $.extend(true, {}, DT.snapshot.player);
+        $('.current_coins').html('0');
+        $('.bonus').html('');
+        $('.gameTimer').html('0:00');
+        $('.helth').css({width: '100%'});
+        DT.speed = $.extend(true, {}, DT.snapshot.speed);
+        DT.collections = $.extend(true, {}, DT.snapshot.collections);
+        DT.gameTimer = 0;
+        // DT.gameWasStarted = false;
+        DT.audio.music.startedAt = [];
+        DT.audio.music.pausedAt = [];
+        DT.audio.music.stopped = [];
+        DT.audio.music.paused = [];
+        DT.audio.music.started = [];
+        DT.startGame();
+        DT.playSound(0);
+        $(document).bind('keyup', DT.handlers.pauseOnSpace);
+        $(document).unbind('keyup', DT.handlers.restartOnSpace);
+        $('#one_more_time').unbind('click');
+    };
+    // auxiliary functions
     DT.setVolume = function (volume) {
         DT.param.globalVolume = volume;
         if (DT.param.prevGlobalVolume !== DT.param.globalVolume) {
@@ -484,20 +609,6 @@ window.DT = (function () {
             DT.param.prevGlobalVolume = DT.param.globalVolume;
         }
     };
-    // HANDLERS
-    DT.handlers.pauseOnSpace = function(event) {
-        var k = event.keyCode;
-        if (k === 32) {
-            DT.triggers.pause();
-        }
-    };
-    DT.handlers.restartOnSpace = function(event) {
-        var k = event.keyCode;
-        if (k === 32) {
-            DT.restart();
-        }
-    };
-    // auxiliary functions
     // возвращает cookie с именем name, если есть или undefined
     DT.getCookie = function (name) {
         var matches = document.cookie.match(
@@ -526,50 +637,13 @@ window.DT = (function () {
         }
     };
     
-    DT.changeHelth = function(currHelth, delta) {
-        if (delta > 0 || DT.player.isInvulnerability === false) {
-        var helth = currHelth;
-        if (helth > 0) {
-            helth += delta;
-            if (helth < 0) {
-                helth = 0;
-                DT.gameOver();
-            }
-            if (helth > 100) {
-                helth = 100;
-            }
-        }
-        currHelth = helth;
-        $(function(){
-            $('.helth').animate({
-                width: helth + '%'
-            });
-        });
-        }
-        return currHelth;
-    };
-
-    DT.dontFeelPain = function (time) {
-        DT.invulnerTimer = (time || 10000) / 1000 * 60;
-        DT.player.isInvulnerability = true;
-        DT.scene.add(DT.shield);
-    };
-
-    DT.changeScore = function(currentScore, delta) {
-        currentScore += delta;
-        $(function(){
-            $('.current_coins').text(currentScore);
-        });
-        return currentScore;
-    };
-    
     DT.gameOver = function() {
         DT.gameWasOver = true;
         clearTimeout(DT.player.isFun);
         DT.stopSound(0);
         DT.stopSound(1);
         // DT.soundGameover.update();
-        DT.soundGameover.play();
+        DT.audio.sounds.gameover.play();
         $(function(){
             $('.total_coins').text(DT.player.currentScore);
             $('.game_over').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 1000);
@@ -578,44 +652,13 @@ window.DT = (function () {
         setTimeout(function() {
             cancelAnimationFrame(DT.id);
         }, 300);
-        DT.sendMessageToServer('gameover');
+        DT.sendSocketMessage('gameover');
         DT.prepareToRestart();
-    };
-    
-    DT.restart = function () {
-        $('.game_over').hide();
-        var iterator = function (el) {
-            DT.scene.remove(el);
-        };
-        for (var collection in DT.collections) {
-            if (DT.collections.hasOwnProperty(collection)) {
-                DT.collections[collection].forEach(iterator);
-            }
-        }
-        DT.player = $.extend(true, {}, DT.snapshot.player);
-        $('.current_coins').html('0');
-        $('.bonus').html('');
-        $('.gameTimer').html('0:00');
-        $('.helth').css({width: '100%'});
-        DT.speed = $.extend(true, {}, DT.snapshot.speed);
-        DT.collections = $.extend(true, {}, DT.snapshot.collections);
-        DT.gameTimer = 0;
-        // DT.gameWasStarted = false;
-        DT.music.startedAt = [];
-        DT.music.pausedAt = [];
-        DT.music.stopped = [];
-        DT.music.paused = [];
-        DT.music.started = [];
-        DT.startGame();
-        DT.playSound(0);
-        $(document).bind('keyup', DT.handlers.pauseOnSpace);
-        $(document).unbind('keyup', DT.handlers.restartOnSpace);
-        $('#one_more_time').unbind('click');
     };
 
     DT.prepareToRestart = function() {
         $('#one_more_time').click(function () {
-            DT.restart();
+            DT.handlers.restart();
         });
         $(document).unbind('keyup', DT.handlers.pauseOnSpace);
         $(document).bind('keyup', DT.handlers.restartOnSpace);
@@ -731,11 +774,11 @@ window.DT = (function () {
 
     DT.useBonuses = function (type) {
         // helth
-        if (type === 0) DT.player.currentHelth = DT.changeHelth(DT.player.currentHelth, 100 - DT.player.currentHelth);
+        if (type === 0) DT.player.changeHelth(100);
         // invulnerability
-        if (type === 1) DT.dontFeelPain(10000);
+        if (type === 1) DT.player.makeInvuler();
         // entertainment
-        if (type === 2) DT.makeFun();
+        if (type === 2) DT.player.makeFun();
     };
 
     DT.catchBonus = function (type) {
@@ -777,7 +820,7 @@ window.DT = (function () {
             destPoint.x += dx * DT.param.spacing;
         }
         // if (DT.sphere.position.y < -2 && dy > 0) {
-        //     DT.jumpLength = 0;
+        //     DT.player.jumpLength = 0;
         //     DT.player.jump = true;
         // }
         // if (dy < 0) {
@@ -802,14 +845,6 @@ window.DT = (function () {
                     sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
                 }
             });
-    };
-
-    DT.makeFun = function(time) {
-        DT.player.isFun = true;
-        DT.funTimer = (time || 10000) / 1000 * 60;
-        DT.speed.setChanger(-18);
-        DT.stopSound(0);
-        DT.playSound(1);
     };
 
     DT.genRandomFloorBetween = function (min, max) {
@@ -837,9 +872,16 @@ window.DT = (function () {
         }
      };
 
-    DT.sendMessageToServer = function (message) {
+    DT.sendSocketMessage = function (options) {
+        var data = {
+            'type': options.type,
+            'time': options.time,
+            'gameCode': DT.inintSocket.socket.gameCode,
+            'sessionid': DT.inintSocket.socket.socket.sessionid,
+            'coinsCollect': DT.player.currentScore
+        };
         if (DT.inintSocket.socket) {
-            DT.inintSocket.socket.emit('message', {'type': message, 'gameCode': DT.inintSocket.socket.gameCode, 'sessionid': DT.inintSocket.socket.socket.sessionid, 'coinsCollect': DT.player.currentScore});
+            DT.inintSocket.socket.emit('message', data);
         }
     };
 
@@ -850,8 +892,9 @@ window.DT = (function () {
             DT.playSound(0);
             $('.choose_control').fadeOut(250);
             DT.gameWasStarted = true;
-            DT.sendMessageToServer('gamestarted');
+            DT.sendSocketMessage('gamestarted');
         }
+        $(document).unbind('keyup',DT.handlers.startOnSpace);
     };
 
     DT.runApp = function () {
@@ -860,6 +903,7 @@ window.DT = (function () {
         $(function() {
             $('.loader').fadeOut(250);
             $('.choose_control').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+            $(document).keyup(DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
                 DT.startAfterChooseControl();
             });
@@ -876,7 +920,7 @@ window.DT = (function () {
         if (!DT.gameWasPaused) {
             $('.menu_page').css({'display': 'table'});
             DT.stopSoundBeforPause();
-            DT.soundPause.play();
+            DT.audio.sounds.pause.play();
             cancelAnimationFrame(DT.id);
             DT.gameWasPaused = !DT.gameWasPaused;
         }
@@ -886,7 +930,7 @@ window.DT = (function () {
         if (DT.gameWasPaused) {
             $('.menu_page').css({'display': 'none'});
             DT.playSoundAfterPause();
-            DT.soundPause.play();
+            DT.audio.sounds.pause.play();
             DT.startGame();
             DT.gameWasPaused = !DT.gameWasPaused;
         }
@@ -899,18 +943,18 @@ window.DT = (function () {
         $('.resume').click(function() {
             DT.pauseOff();
         });
-        $('.music_button').click(DT.triggers.mute);
-        $('.fs_button').click(DT.triggers.fullscreen);
+        $('.music_button').click(DT.handlers.mute);
+        $('.fs_button').click(DT.handlers.fullscreen);
         $(document).keyup(function(event) {
             var k = event.keyCode;
             if (k === 77) {
-                DT.triggers.mute();
+                DT.handlers.mute();
             }
         });
         $(document).keyup(function(event) {
             var k = event.keyCode;
             if (k === 70) {
-                DT.triggers.fullscreen();
+                DT.handlers.fullscreen();
             }
         });
         // BACKGROUND
@@ -940,21 +984,21 @@ window.DT = (function () {
             alert('Opps.. Your browser do not support audio API');
         }
         DT.stopSound = function(index){
-            if (DT.music.stopped[index] === false) {
-                if (index === 0 || DT.music.paused[index] === false) {
-                    DT.music.pausedAt[index] = Date.now() - DT.music.startedAt[index];
+            if (DT.audio.music.stopped[index] === false) {
+                if (index === 0 || DT.audio.music.paused[index] === false) {
+                    DT.audio.music.pausedAt[index] = Date.now() - DT.audio.music.startedAt[index];
                 } 
                 sources[index].stop(index);
-                DT.music.stopped[index] = true;
-                DT.music.started[index] = false;
+                DT.audio.music.stopped[index] = true;
+                DT.audio.music.started[index] = false;
             }
         };
 
         DT.gainNodes = [];
         DT.playSound = function(index){
             var gainNodes = DT.gainNodes;
-            if (!DT.music.started[index]) {
-                DT.music.started[index] = true;
+            if (!DT.audio.music.started[index]) {
+                DT.audio.music.started[index] = true;
                 sources[index] = context.createBufferSource();
                 sources[index].loop = true;
                 sources[index].buffer = buffers[index];
@@ -971,26 +1015,26 @@ window.DT = (function () {
                 onRenderFcts.push(function() {
                     visualize(index);
                 });
-                DT.music.stopped[index] = false;
-                if (DT.music.pausedAt[index]) {
-                    DT.music.startedAt[index] = Date.now() - DT.music.pausedAt[index];
-                    sources[index].start(index, DT.music.pausedAt[index] / 1000);
+                DT.audio.music.stopped[index] = false;
+                if (DT.audio.music.pausedAt[index]) {
+                    DT.audio.music.startedAt[index] = Date.now() - DT.audio.music.pausedAt[index];
+                    sources[index].start(index, DT.audio.music.pausedAt[index] / 1000);
                 } else {
-                    DT.music.startedAt[index] = Date.now();
+                    DT.audio.music.startedAt[index] = Date.now();
                     sources[index].start(index);
                 }
             }
         };
 
         DT.stopSoundBeforPause = function() {
-            DT.music.stopped.forEach(function(el, i) {
-                DT.music.paused[i] = el;
+            DT.audio.music.stopped.forEach(function(el, i) {
+                DT.audio.music.paused[i] = el;
                 DT.stopSound(i);
             });
         };
 
         DT.playSoundAfterPause = function() {
-            DT.music.paused.forEach(function(el, i) {
+            DT.audio.music.paused.forEach(function(el, i) {
                 if (!el) {
                     DT.playSound(i);
                 }
@@ -1023,9 +1067,9 @@ window.DT = (function () {
             xhr.send();
         };
 
-        loadSoundFile(DT.music, 0);
-        loadSoundFile(DT.music, 1);
-        loadSoundFile(DT.music, 2);
+        loadSoundFile(DT.audio.music, 0);
+        loadSoundFile(DT.audio.music, 1);
+        loadSoundFile(DT.audio.music, 2);
         
             var visualize = function(index) {
             freqDomain[index] = new Uint8Array(analysers[index].frequencyBinCount);
@@ -1039,19 +1083,16 @@ window.DT = (function () {
             return freqDomain[bufferIndex][index];
         };
         
-            // SOUNDS
+        // SOUNDS
         var ext = 'ogg';
         if (!canPlayOgg) {
             ext = 'mp3';
         }
-        DT.soundCoin = DT.webaudio.createSound().load(DT.sounds.soundCoin + ext);
-        DT.soundGameover = DT.webaudio.createSound().load(DT.sounds.soundGameover + ext);
-        DT.soundPause = DT.webaudio.createSound().load(DT.sounds.soundPause + ext);
-        DT.soundStoneDestroy = DT.webaudio.createSound().load(DT.sounds.soundStoneDestroy + ext);
-        DT.soundStoneMiss = DT.webaudio.createSound().load(DT.sounds.soundStoneMiss + ext);
-        
+        for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
+            DT.audio.sounds[prop] = DT.audio.webaudio.createSound().load(DT.audio.sounds[prop] + ext);
+        }
 
-                    // BLUR
+        // BLUR
         // var renderer = DT.renderer,
         //     scene = DT.scene,
         //     camera = DT.camera,
@@ -1078,7 +1119,7 @@ window.DT = (function () {
         WebAudio.Sound.prototype.update = function() {
             this.volume(DT.param.globalVolume);
         };
-        WebAudio.Sound.prototype.play       = function(time){
+        WebAudio.Sound.prototype.play = function(time){
             this.volume(DT.param.globalVolume);
             // handle parameter polymorphism
             if( time ===  undefined )   time    = 0;
@@ -1325,12 +1366,12 @@ window.DT = (function () {
         
             var button1 = new Image();
         button1.src ='img/lr.png';
-        var buttonData1 = { name:'left', image:button1, x:0, y:0, w:100, h:240, coord: -2.5 };
+        var buttonData1 = { name:'left', image:button1, x:0, y:0, w:100, h:240, coord: -DT.param.spacing };
         buttons.push( buttonData1 );
         
             var button2 = new Image();
         button2.src ='img/lr.png';
-        var buttonData2 = { name:'right', image:button2, x:220, y:0, w:100, h:240, coord: 2.5 };
+        var buttonData2 = { name:'right', image:button2, x:220, y:0, w:100, h:240, coord: DT.param.spacing };
         buttons.push( buttonData2 );
         
             var button3 = new Image();
@@ -1402,7 +1443,7 @@ window.DT = (function () {
             return (value > 0x15) ? 0xFF : 0;
         }
         
-            // check if white region from blend overlaps area of interest (e.g. triggers)
+            // check if white region from blend overlaps area of interest (e.g. handlers)
         function checkAreas() {
             var b, l = buttons.length;
             for (b = 0; b < l; b++) {
@@ -1473,25 +1514,7 @@ window.DT = (function () {
             }
         });
         socket.on('click', function(click) {
-            console.log(click);
-            if (click === 'left') {
-                DT.changeDestPoint(0, -1, DT.player.destPoint);
-            }
-            if (click === 'right') {
-                DT.changeDestPoint(0, 1, DT.player.destPoint);
-            }
-            if (click === 'restart') {
-                DT.restart();
-            }
-            if (click === 'fullscreen') {
-                DT.triggers.fullscreen();
-            }
-            if (click === 'mute') {
-                DT.triggers.mute();
-            }
-            if (click === 'pause') {
-                DT.triggers.pause();
-            }
+            DT.handlers[click]();
         });
     };
     DT.updateGameTimer = function (timer) {

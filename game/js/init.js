@@ -339,15 +339,15 @@ var DT = (function () {
     DT.GameObject.prototype.updateMaterial = function (options) {
         // empty method
     };
-    DT.GameObject.prototype.updateParam = function (options) {
+    DT.GameObject.prototype.updateParam = function (param, options) {
         for (var prop in options) if (options.hasOwnProperty(prop)) {
-            this.material[prop] = options[prop];
+            this.tObject[param][prop] += options[prop];
         }
     };
-    DT.GameObject.prototype.setParam = function (param, a, b, c) {
-        if (a) this.tObject[param].x = a;
-        if (b) this.tObject[param].y = b;
-        if (c) this.tObject[param].z = c;
+    DT.GameObject.prototype.setParam = function (param, options) {
+        for (var prop in options) if (options.hasOwnProperty(prop)) {
+            this.tObject[param][prop] = options[prop];
+        }
     };
 
     // GameCollectionObject Constructor (Stone, Coin, Bonus)
@@ -485,8 +485,15 @@ var DT = (function () {
             THREEConstructor: THREE.Mesh,
             collection: collection
         }]);
-        this.setParam('position', x, y, options.spawnCoord);
-        this.setParam('rotation', Math.random(), Math.random());
+        this.setParam('position', {
+            x: x,
+            y: y,
+            z: options.spawnCoord
+        });
+        this.setParam('rotation', {
+            x: Math.random(),
+            y: Math.random()
+        });
         this.createAndAdd();
     };
 
@@ -525,18 +532,15 @@ var DT = (function () {
                 DT.audio.sounds.stoneMiss.play();
             }
             if (DT.getDistance(options.sphere.position.x, options.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < radiusesSum) {
-                el.material.emissive.r = el.material.color.r * 0.5;
-                el.material.emissive.g = el.material.color.g * 0.5;
-                el.material.emissive.b = el.material.color.b * 0.5;
+                el.material.emissive = new THREE.Color().setRGB(
+                    el.material.color.r * 0.5,
+                    el.material.color.g * 0.5,
+                    el.material.color.b * 0.5);
             } else {
-                el.material.emissive.r = 0;
-                el.material.emissive.g = 0;
-                el.material.emissive.b = 0;
+                el.material.emissive = new THREE.Color().setRGB(0,0,0);
             }
-
-            el.rotation.y += 0.014;
-            el.rotation.x += 0.014;
-            el.position.z += DT.speed.getValue();
+            this.updateParam('rotation', {x: 0.014, y: 0.014});
+            this.updateParam('position', {z: DT.speed.getValue()});
     };
 
     DT.makeFunTimer = null;

@@ -355,13 +355,15 @@
     });
     // DUST
     DT.onRenderFcts.push(function () {
-        DT.dust.updateMaterial({
-            isFun: DT.player.isFun,
-            valueAudio: DT.audio.valueAudio,
-            color: DT.sphere.material.color
-        });
-        DT.dust.updateGeometry({
-            speed: DT.speed.getValue()
+        DT.dust.update({
+            material: {
+                isFun: DT.player.isFun,
+                valueAudio: DT.audio.valueAudio,
+                color: DT.sphere.material.color
+            }, 
+            geometry: {
+                speed: DT.speed.getValue()
+            }
         });
     });
     

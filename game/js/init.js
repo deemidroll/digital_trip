@@ -13,8 +13,13 @@ var DT = (function () {
             window.mozCancelAnimationFrame ||
             undefined,
         THREEx = window.THREEx || undefined;
-    // Player Constructor
+    // Player Singleton Constructor
     DT.Player = function (options) {
+        if (!DT.Player.__instance) {
+            DT.Player.__instance = this;
+        } else {
+            return DT.Player.__instance;
+        }
         this.currentHelth = options.currentHelth || 100;
         this.currentScore = options.currentScore || 0;
         this.destPoint = options.destPoint || {x: 0, y: 0};
@@ -329,9 +334,9 @@ var DT = (function () {
         this.create();
         this.addToScene();
     };
-    DT.GameObject.prototype.update = function (geometryOptions, materialOptions) {
-        this.updateGeometry(geometryOptions);
-        this.updateMaterial(materialOptions);
+    DT.GameObject.prototype.update = function (options) {
+        this.updateGeometry(options.geometry);
+        this.updateMaterial(options.material);
     };
     DT.GameObject.prototype.updateGeometry = function (options) {
         // empty method
@@ -370,8 +375,13 @@ var DT = (function () {
         }
     };
 
-    // Shield Constructor
+    // Shield Singleton Constructor
     DT.Shield = function (options) {
+        if (!DT.Shield.__instance) {
+            DT.Shield.__instance = this;
+        } else {
+            return DT.Shield.__instance;
+        }
         DT.GameObject.apply(this, arguments);
         this.material.color = options.sphere.material.color;
         this.position = options.sphere.position;

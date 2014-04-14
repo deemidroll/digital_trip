@@ -162,6 +162,7 @@ var DT = (function () {
         isFun: false,
         jump: false
     });
+
     // TODO: refactor
     DT.param = {
         spacing: 3,
@@ -1165,10 +1166,6 @@ var DT = (function () {
 
         var loadSoundFile = function(urlArr, bufferIndex) {
             var xhr = new XMLHttpRequest();
-            var ext = 'ogg';
-            if (!canPlayOgg) {
-                ext = 'mp3';
-            }
             xhr.open('GET', urlArr[bufferIndex] + ext, true);
             xhr.responseType = 'arraybuffer';
             xhr.onload = function(e) {

@@ -76,45 +76,6 @@
                 }
             }).back()
         .start();
-    // DT.emittFragments = Fireworks.createEmitter({nParticles : 1000})
-    //     .effectsStackBuilder()
-    //         .spawnerSteadyRate(10000)
-    //         .position(Fireworks.createShapeSphere(10, 0, 0, 3.0))
-    //         .velocity(Fireworks.createShapePoint(0, 0, 10))
-    //         .lifeTime(0.3, 0.5)
-    //         .randomVelocityDrift(Fireworks.createVector(10, 10, 10))
-    //         .renderToThreejsParticleSystem({
-    //             particleSystem  : function(emitt){
-    //                 var geometry    = new THREE.Geometry(),
-    //                     texture = Fireworks.ProceduralTextures.buildTexture(),
-    //                     material    = new THREE.ParticleBasicMaterial({
-    //                         color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
-    //                         size        : 4,
-    //                         sizeAttenuation : false,
-    //                         vertexColors    : true,
-    //                         map     : texture,
-    //                         blending    : THREE.AdditiveBlending,
-    //                         depthWrite  : false,
-    //                         transparent : true
-    //                     }),
-    //                     particleSystem = new THREE.ParticleSystem(geometry, material);
-    //                     particleSystem.dynamic  = true;
-    //                     particleSystem.sortParticles = true;
-    //                 // init vertices
-    //                 for( var i = 0; i < emitt.nParticles(); i++ ){
-    //                     geometry.vertices.push( new THREE.Vector3() );
-    //                 }
-    //                 // init colors
-    //                 geometry.colors = new Array(emitt.nParticles())
-    //                 for( var i = 0; i < emitt.nParticles(); i++ ){
-    //                     geometry.colors[i]  = new THREE.Color("green");
-    //                 }
-    //                 DT.scene.add(particleSystem);
-    //                 particleSystem.position = {x:0, y:0, z:0};
-    //                 return particleSystem;
-    //             }
-    //         }).back()
-    //     .start();
     $(function() {
         $(window).focus(function() {
             if (!DT.wasMuted) {
@@ -140,22 +101,7 @@
             el.velocity.vector.z += DT.audio.valueAudio/28;
         });
     });
-    // FRAGMENTS
-    // DT.onRenderFcts.push(function() {
-    //     if (fragmentsPosition.x !== -1000) {
-    //         fragmentsCounter += 1; 
-    //         if (fragmentsCounter > 20) {
-    //             fragmentsPosition = {x: -1000, y: 0, z: 0};
-    //             fragmentsCounter = 0;
-    //         }
-    //     }
-    //     DT.emittFragments._effects.forEach(function (el) {
-    //         if (el.name === "position") {
-    //             el.opts.shape.position = fragmentsPosition;
-    //             el.opts.shape.radius = 0.15 * fragmentsCounter;
-    //         }
-    //     });
-    // });
+
     var prevTime = Date.now();
     // render the scene
     DT.onRenderFcts.push(function(delta, now) {
@@ -235,134 +181,18 @@
                 opacityCoord: DT.param.opacityCoord,
                 sphere: DT.sphere
             });
-        // add new Coin
-        // new DT.Coin({
-        //     spawnCoord: DT.param.spawnCoord,
-        //     collection: DT.collections.coins
-        // });
-        // update coins
-        // DT.collections.coins.forEach(function (el, ind, arr) {
-        //     el.update({
-        //         dieCoord: dieCoord,
-        //         sphere: DT.sphere
-        //     });
-        // });
-    });
-    // // fragments lifecicle
-    // DT.onRenderFcts.push(function() {
-        // fragments = DT.collections.fragments;
-    //     if (fragments.length) {
-    //         fragments.forEach(function(el, ind, arr) {
-    //             el.frames += 1;
-    //             el.position.x *= 1.2;
-    //             el.position.y *= 1.2;
-    //             el.position.z += 0;
-    //             if (el.frames > el.TTL) {
-    //                 DT.scene.remove(el);
-    //                 arr.splice(ind, 1);
-    //             }
-    //         });
-    //     }
-    // });
-    // coins lifecicle
-    DT.onRenderFcts.push(function() {
-        // var coins = DT.collections.coins;
-        // if (!coins.length) {
-        //     var x = DT.genCoord(),
-        //         y = -2.5;
-        //     for (var i = 0; i < 10; i++) {
-        //         DT.genCoins(DT.scene, coins, DT.param.spawnCoord - i * 10, x, y, i * 0.25);
-        //     }
-        // }
-        // if (coins.length) {
-        //     coins.forEach(function(el, ind, arr) {
-        //         el.rotation.z += 0.05;
-        //         el.position.z += DT.speed.getValue();
-        //         if (el.position.z > dieCoord) {
-        //             DT.scene.remove(el);
-        //             arr.splice(ind, 1);
-        //         }
-        //         if (el.position.z > DT.param.opacityCoord) {
-        //             el.children.forEach(function(el) {
-        //                 el.material.transparent = true;
-        //                 el.material.opacity = 0.5;
-        //             });
-        //         }
-        //         var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position);
-        //         if (distanceBerweenCenters < 0.9) {
-        //             DT.audio.sounds.catchCoin.play();
-        //             DT.sendSocketMessage({
-        //                 type: 'vibr',
-        //                 time: 10
-        //             });
-        //             DT.blink.doBlink(0xcfb53b, 60);
-        //             DT.bump();
-        //             DT.scene.remove(el);
-        //             arr.splice(ind, 1);
-        //             DT.player.changeScore(1);
-        //         }
-        //     });
-        // }
-    });
-    // bonuses lifecicle
-    DT.onRenderFcts.push(function() {
-        var bonuses = DT.collections.bonuses;
-        if (!bonuses.length) {
-            var x = DT.genCoord(),
-                y = -2.5;
-            DT.genBonus(DT.scene, bonuses, DT.param.spawnCoord, x, y, DT.listOfModels);
-        }
-        if (bonuses.length) {
-            bonuses.forEach(function(el, ind, arr) {
-    
-                if (el.type === 0) {
-                    el.rotation.z += 0.05;
-                }
-                if (el.type === 1) {
-                    el.rotation.z += 0.05;
-                }
-                if (el.type === 2) {
-                    // el.rotation.y += 0.05;
-                }
-                el.position.z += DT.speed.getValue();
-                if (el.position.z > dieCoord) {
-                    DT.scene.remove(el);
-                    arr.splice(ind, 1);
-                }
-                if (el.position.z > DT.param.opacityCoord) {
-                    el.material = new THREE.MeshLambertMaterial({shading: THREE.FlatShading, transparent: true, opacity: 0.5});
-                }
-                if (DT.getDistance(
-                    el.position.x, el.position.y, el.position.z,
-                    DT.sphere.position.x, DT.sphere.position.y, DT.sphere.position.z) < 1.0) {
-                    
-                    if (el.type === 0) {
-                        el.rotation.x += 0.2;
-                    }
-                    if (el.type === 1) {
-                        el.rotation.y += 0.2;
-                    }
-                    if (el.type === 2) {
-                        // el.rotation.z += 0.2;
-                    }
-    
-                    el.scale.x *= 0.9;
-                    el.scale.y *= 0.9;
-                    el.scale.z *= 0.9;
-    
-                    if (DT.getDistance(
-                        el.position.x, el.position.y, el.position.z,
-                        DT.sphere.position.x, DT.sphere.position.y, DT.sphere.position.z) < 0.9) {
-                        
-                        DT.scene.remove(el);
-                        arr.splice(ind, 1);
-                        DT.catchBonus(el.type);
-                    }
-                }
+        new DT.Bonuses()
+            .createObjects({
+                x: DT.genCoord(),
+                y: -2.5,
+                spawnCoord: DT.param.spawnCoord,
+            })
+            .update({
+                dieCoord: DT.param.dieCoord,
+                opacityCoord: DT.param.opacityCoord,
+                sphere: DT.sphere
             });
-        }
     });
-
     // sphere moving
     DT.onRenderFcts.push(function() {
         DT.moveSphere(DT.sphere, DT.player.destPoint, 3);
@@ -390,21 +220,5 @@
             }
         });
     });
-    
-    // JUMP
-    // DT.onRenderFcts.push(function () {
-    //     if (DT.jumpLength !== 0 || DT.player.jump) {
-    //         if (DT.jumpLength < 2 * DT.jumpOffset && !DT.player.jump) {
-    //             DT.jumpLength = 2 * 2 * DT.jumpOffset - DT.jumpLength;
-    //         }
-    //         DT.jumpLength += (DT.speed.getValue() / 6);
-    //         DT.sphere.position.y = -(0.5 * DT.jumpLength-DT.jumpOffset)*(0.5 * DT.jumpLength-DT.jumpOffset) + 2.5;
-    //         if (DT.sphere.position.y < -2.5) {
-    //             DT.player.jump = false;
-    //             DT.jumpLength = 0;
-    //         }
-    //     }
-    // });
-    
-    }());
     DT.snapshot = $.extend(true, {}, DT);
+}());

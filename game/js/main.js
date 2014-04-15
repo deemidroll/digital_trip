@@ -213,16 +213,40 @@
     });
     // stones lifecicle, rotation and moving
     DT.onRenderFcts.push(function() {
-        new DT.Stone({
-            spawnCoord: DT.param.spawnCoord,
-            collection: DT.collections.stones
-        });
-        DT.collections.stones.forEach(function (el, ind, arr) {
-            el.update({
-                dieCoord: dieCoord,
+        // create and update collections
+        new DT.Stones()
+            .createObjects({
+                spawnCoord: DT.param.spawnCoord,
+            })
+            .update({
+                dieCoord: DT.param.dieCoord,
                 sphere: DT.sphere
             });
-        });
+        new DT.Coins()
+            .createObjects({
+                x: DT.genCoord(),
+                y: -2.5,
+                spawnCoord: DT.param.spawnCoord,
+                zAngle: 0,
+                number: 10
+            })
+            .update({
+                dieCoord: DT.param.dieCoord,
+                opacityCoord: DT.param.opacityCoord,
+                sphere: DT.sphere
+            });
+        // add new Coin
+        // new DT.Coin({
+        //     spawnCoord: DT.param.spawnCoord,
+        //     collection: DT.collections.coins
+        // });
+        // update coins
+        // DT.collections.coins.forEach(function (el, ind, arr) {
+        //     el.update({
+        //         dieCoord: dieCoord,
+        //         sphere: DT.sphere
+        //     });
+        // });
     });
     // // fragments lifecicle
     // DT.onRenderFcts.push(function() {
@@ -242,43 +266,43 @@
     // });
     // coins lifecicle
     DT.onRenderFcts.push(function() {
-        var coins = DT.collections.coins;
-        if (!coins.length) {
-            var x = DT.genCoord(),
-                y = -2.5;
-            for (var i = 0; i < 10; i++) {
-                DT.genCoins(DT.scene, coins, DT.param.spawnCoord - i * 10, x, y, i * 0.25);
-            }
-        }
-        if (coins.length) {
-            coins.forEach(function(el, ind, arr) {
-                el.rotation.z += 0.05;
-                el.position.z += DT.speed.getValue();
-                if (el.position.z > dieCoord) {
-                    DT.scene.remove(el);
-                    arr.splice(ind, 1);
-                }
-                if (el.position.z > DT.param.opacityCoord) {
-                    el.children.forEach(function(el) {
-                        el.material.transparent = true;
-                        el.material.opacity = 0.5;
-                    });
-                }
-                var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position);
-                if (distanceBerweenCenters < 0.9) {
-                    DT.audio.sounds.catchCoin.play();
-                    DT.sendSocketMessage({
-                        type: 'vibr',
-                        time: 10
-                    });
-                    DT.blink.doBlink(0xcfb53b, 60);
-                    DT.bump();
-                    DT.scene.remove(el);
-                    arr.splice(ind, 1);
-                    DT.player.changeScore(1);
-                }
-            });
-        }
+        // var coins = DT.collections.coins;
+        // if (!coins.length) {
+        //     var x = DT.genCoord(),
+        //         y = -2.5;
+        //     for (var i = 0; i < 10; i++) {
+        //         DT.genCoins(DT.scene, coins, DT.param.spawnCoord - i * 10, x, y, i * 0.25);
+        //     }
+        // }
+        // if (coins.length) {
+        //     coins.forEach(function(el, ind, arr) {
+        //         el.rotation.z += 0.05;
+        //         el.position.z += DT.speed.getValue();
+        //         if (el.position.z > dieCoord) {
+        //             DT.scene.remove(el);
+        //             arr.splice(ind, 1);
+        //         }
+        //         if (el.position.z > DT.param.opacityCoord) {
+        //             el.children.forEach(function(el) {
+        //                 el.material.transparent = true;
+        //                 el.material.opacity = 0.5;
+        //             });
+        //         }
+        //         var distanceBerweenCenters = el.position.distanceTo(DT.sphere.position);
+        //         if (distanceBerweenCenters < 0.9) {
+        //             DT.audio.sounds.catchCoin.play();
+        //             DT.sendSocketMessage({
+        //                 type: 'vibr',
+        //                 time: 10
+        //             });
+        //             DT.blink.doBlink(0xcfb53b, 60);
+        //             DT.bump();
+        //             DT.scene.remove(el);
+        //             arr.splice(ind, 1);
+        //             DT.player.changeScore(1);
+        //         }
+        //     });
+        // }
     });
     // bonuses lifecicle
     DT.onRenderFcts.push(function() {

@@ -49,8 +49,6 @@ var DT = (function () {
         this.jumpOffset = 2.2; // not use
     };
 
-
-
     DT.Player.prototype.changeHelth = function(delta) {
         if (delta > 0 || this.isInvulnerability === false) {
             var helth = this.currentHelth;

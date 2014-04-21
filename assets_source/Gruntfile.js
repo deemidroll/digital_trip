@@ -21,8 +21,11 @@ module.exports = function(grunt) {
                 tasks: ['newer:sass'],
             },
             js: {
-                files: 'js/*.js',
+                files: ['js/*.js', 'js/vendor/*.js'],
                 tasks: ['process'],
+            },
+            gruntfile: {
+                files: ['Gruntfile.js'],
             },
             html: {
                 files: '../game/*.html',
@@ -36,9 +39,9 @@ module.exports = function(grunt) {
                     'js/vendor/threex.windowresize.js',
                     'js/vendor/Stats.js',
                     'js/vendor/webaudio.js',
-                    'js/vendor/headtrackr.js',
+                    // 'js/vendor/headtrackr.js',
                     'js/vendor/THREEx.FullScreen.js',
-                    'js/vendor/ParallaxBarrierEffect.js',
+                    // 'js/vendor/ParallaxBarrierEffect.js',
                     'js/vendor/AnaglyphEffect.js',
                     'js/init.js',
                     'js/main.js',

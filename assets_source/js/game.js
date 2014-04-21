@@ -2591,14 +2591,13 @@ var DT = (function () {
         WebAudio = window.WebAudio || undefined,
         $ = window.$ || undefined,
         THREEx = window.THREEx || undefined,
-        
         requestAnimFrame = function(){
             return (
-                window.requestAnimationFrame       || 
-                window.webkitRequestAnimationFrame || 
-                window.mozRequestAnimationFrame    || 
-                window.oRequestAnimationFrame      || 
-                window.msRequestAnimationFrame     || 
+                window.requestAnimationFrame       ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame    ||
+                window.oRequestAnimationFrame      ||
+                window.msRequestAnimationFrame     ||
                 function(/* function */ callback){
                     window.setTimeout(callback, 1000 / 60);
                 }
@@ -2606,11 +2605,11 @@ var DT = (function () {
         }(),
         cancelAnimFrame = function(){
             return (
-                window.cancelAnimationFrame       || 
-                window.webkitCancelAnimationFrame || 
-                window.mozCancelAnimationFrame    || 
-                window.oCancelAnimationFrame      || 
-                window.msCancelAnimationFrame     || 
+                window.cancelAnimationFrame       ||
+                window.webkitCancelAnimationFrame ||
+                window.mozCancelAnimationFrame    ||
+                window.oCancelAnimationFrame      ||
+                window.msCancelAnimationFrame     ||
                 function(id){
                     window.clearTimeout(id);
                 }
@@ -2663,7 +2662,7 @@ var DT = (function () {
         this.invulnerTimer = (time || 10000) / 1000 * 60;
         this.isInvulnerability = true;
         // TODO: умешьшить связанность
-        DT.shiels.addToScene();
+        DT.shield.addToScene();
         return this;
     };
 
@@ -2761,6 +2760,98 @@ var DT = (function () {
         jump: false
     });
 
+    DT.Game = function () {
+        this.id = null;
+        this.param = {
+            spacing: 3,
+            spawnCoord: -200,
+            opacityCoord: 2,
+            dieCoord: 30,
+            stonesCloseness: 18,
+            globalVolume: 1,
+            prevGlobalVolume: 1
+        };
+        this.speed = {
+            value: 36,
+            changer: 0,
+            step: 0.6,
+            increase: function () {
+                this.value += (this.step / 60);
+            },
+            setChanger: function (changer) {
+                this.changer = changer;
+            },
+            getChanger: function() {
+                return this.changer;
+            },
+            getValue: function () {
+                return (this.value + this.changer) / 60;
+            }
+        };
+        this.startGame = function() {
+            // for stats
+            setStats();
+            // for timer
+            $('.gameTimer').css({'display': 'block'});
+            requestAnimationFrame(function animate(nowMsec) {
+                var deltaMsec = Math.min(200, nowMsec - DT.lastTimeMsec);
+                // keep looping
+                DT.id = requestAnimationFrame(animate);
+                // measure time
+                DT.lastTimeMsec = DT.lastTimeMsec || nowMsec - 1000 / 60;
+                DT.lastTimeMsec = nowMsec;
+                // call each update function
+                DT.onRenderFcts.forEach(function(onRenderFct) {
+                    onRenderFct(deltaMsec / 1000, nowMsec / 1000);
+                });
+            });
+            if (!DT.gameWasStarted) {
+                // control
+                $(document).keydown(function(event) {
+                    var destPoint = DT.player.destPoint,
+                        changeDestPoint = DT.changeDestPoint,
+                        k = event.keyCode;
+                    // arrows control
+                    if (k === 38) {
+                        changeDestPoint(1, 0, destPoint);
+                    }
+                    if (k === 40) {
+                        changeDestPoint(-1, 0, destPoint);
+                    }
+                    if (k === 37) {
+                        changeDestPoint(0, -1, destPoint);
+                    }
+                    if (k === 39) {
+                        changeDestPoint(0, 1, destPoint);
+                    }
+                    // speedUp
+                    if (k === 16) {
+                        DT.speed.setChanger(36);
+                        if (DT.player.isFun) {
+                            DT.stopSound(1);
+                            DT.playSound(0);
+                            clearInterval(DT.rainbow);
+                            DT.player.isFun = false;
+                            DT.blink.doBlink('red', 2);
+                        }
+                    }
+                    if (k === 17) {
+                        DT.player.makeFun();
+                    }
+                });
+                $(document).keyup(function(event) {
+                    var k = event.keyCode;
+                    // speedDown
+                    if (k === 16) {
+                        DT.speed.setChanger(0);
+                        DT.player.stopFun();
+                    }
+                });
+                $(document).keyup(DT.handlers.pauseOnSpace);
+                DT.gameWasStarted = true;
+            }
+        };
+    };
     // TODO: refactor
     DT.param = {
         spacing: 3,
@@ -2771,7 +2862,7 @@ var DT = (function () {
         globalVolume: 1,
         prevGlobalVolume: 1
     };
-
+    //
     DT.speed = {
         value: 36,
         changer: 0,
@@ -2842,11 +2933,11 @@ var DT = (function () {
         sphereLightning: new THREE.PointLight(0xff0000, 0.75, 7.5),
         directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
     };
-
+    //
     DT.id = null;
 
     DT.lastTimeMsec = null;
-
+    //
     DT.startGame = function() {
         // for stats
         setStats();
@@ -2974,6 +3065,27 @@ var DT = (function () {
 
     DT.GameCollectionObject.prototype.create = function () {
         this.collection.push(this);
+        return this;
+    };
+
+    DT.GameCollectionObject.prototype.update = function (options) {
+        if (this.tObject.position.z > options.dieCoord) {
+            this.removeFromScene();
+        } 
+        if (this.tObject.position.z > options.opacityCoord) {
+            if (this.tObject.children.length > 0) {
+                this.tObject.children.forEach(function (el) {
+                    el.material.transparent = true;
+                    el.material.opacity = 0.5; 
+                });
+            } else {
+                this.tObject.material = new THREE.MeshLambertMaterial({
+                     shading: THREE.FlatShading,
+                     transparent: true,
+                     opacity: 0.5
+                 });
+            }
+        }
         return this;
     };
 
@@ -3109,24 +3221,18 @@ var DT = (function () {
             y: Math.random()
         })
         .createAndAdd();
+        this.distanceToSphere = null;
     };
     DT.Stone.prototype = Object.create(DT.GameCollectionObject.prototype);
     DT.Stone.prototype.constructor = DT.Stone;
 
     DT.Stone.prototype.update = function (options) {
+        DT.GameCollectionObject.prototype.update.apply(this, arguments);
         var el = this.tObject;
-
-        if (el.position.z > options.dieCoord) {
-            this.removeFromScene();
-        } 
-        if (el.position.z > DT.param.opacityCoord) {
-            el.material.transparent = true;
-            el.material.opacity = 0.5;
-        }
-        var distanceBetweenCenters = el.position.distanceTo(options.sphere.position),
-            radiusesSum = options.sphere.geometry.radius + el.geometry.radius;
+        this.distanceToSphere = el.position.distanceTo(options.sphere.position);
+        this.minDistance = options.sphere.geometry.radius + el.geometry.radius;
             
-        if (distanceBetweenCenters < radiusesSum) {
+        if (this.distanceToSphere < this.minDistance) {
             DT.audio.sounds.stoneDestroy.play();
             DT.sendSocketMessage({
                 type: 'vibr',
@@ -3140,10 +3246,10 @@ var DT = (function () {
                 DT.hit();
             }
         }
-        if (distanceBetweenCenters > radiusesSum && distanceBetweenCenters < radiusesSum + 1 && el.position.z - options.sphere.position.z > 1) {
+        if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance + 1 && el.position.z - options.sphere.position.z > 1) {
             DT.audio.sounds.stoneMiss.play();
         }
-        if (DT.getDistance(options.sphere.position.x, options.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < radiusesSum) {
+        if (DT.getDistance(options.sphere.position.x, options.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < this.minDistance) {
             el.material.emissive = new THREE.Color().setRGB(
                 el.material.color.r * 0.5,
                 el.material.color.g * 0.5,
@@ -3218,18 +3324,10 @@ var DT = (function () {
     DT.Coin.prototype.constructor = DT.Coin;
 
     DT.Coin.prototype.update = function (options) {
+        DT.GameCollectionObject.prototype.update.apply(this, arguments);
         this.updateParam('rotation', {z: 0.05})
             .updateParam('position', {z: DT.speed.getValue()});
         var positon = this.tObject.position;
-        if (positon.z > options.dieCoord) {
-            this.removeFromScene();
-        }
-        if (positon.z > options.opacityCoord) {
-            this.tObject.children.forEach(function(el) {
-                el.material.transparent = true;
-                el.material.opacity = 0.5;
-            });
-        }
         var distanceBerweenCenters = positon.distanceTo(options.sphere.position);
         if (distanceBerweenCenters < 0.9) {
             this.removeFromScene();
@@ -3291,17 +3389,7 @@ var DT = (function () {
         }
         
         this.updateParam('position', {z: DT.speed.getValue()});
-
-        if (this.tObject.position.z > options.dieCoord) {
-            this.removeFromScene();
-        }
-        if (this.tObject.position.z > options.opacityCoord) {
-            this.tObject.material = new THREE.MeshLambertMaterial({
-                shading: THREE.FlatShading,
-                transparent: true,
-                opacity: 0.5
-            });
-        }
+        DT.GameCollectionObject.prototype.update.apply(this, arguments);
         if (DT.getDistance(this.tObject.position.x, this.tObject.position.y, this.tObject.position.z,
                 options.sphere.position.x, options.sphere.position.y, options.sphere.position.z) < 1.0) {
             
@@ -3326,38 +3414,6 @@ var DT = (function () {
             }
         }
     };
-
-    DT.genBonus = function (scene, arr, spawnCoord, x, y, listOfModels) {
-        var type, geometry, material, bonus;
-        type = DT.genRandomFloorBetween(0, 2);
-        // type = 1;
-        geometry = listOfModels[type].geometry;
-        material = listOfModels[type].material;
-        bonus = new THREE.Mesh( geometry, material );
-        
-        bonus.position.x = x;
-        bonus.position.y = y;
-        bonus.position.z = spawnCoord * 2;
-        
-        bonus.scale.x = listOfModels[type].scale.x || 1;
-        bonus.scale.y = listOfModels[type].scale.y || 1;
-        bonus.scale.z = listOfModels[type].scale.z || 1;
-        
-        bonus.rotation.x = listOfModels[type].rotation.x || 0;
-        bonus.rotation.y = listOfModels[type].rotation.y || 0;
-        bonus.rotation.z = listOfModels[type].rotation.z || 0;
-        
-        bonus.type = type;
-        
-        arr.push(bonus);
-        scene.add(bonus);
-        
-        if (type === 2) {
-            DT.animation = new THREE.MorphAnimation(bonus);
-            DT.animation.play();
-        }
-    };
-
 
     DT.Collection = function (options) {
         this.collection = [];
@@ -3689,7 +3745,7 @@ var DT = (function () {
             return 0;
         }
     };
-    
+    // game
     DT.gameOver = function() {
         DT.gameWasOver = true;
         clearTimeout(DT.player.isFun);
@@ -3708,7 +3764,7 @@ var DT = (function () {
         DT.sendSocketMessage('gameover');
         DT.prepareToRestart();
     };
-
+    // game
     DT.prepareToRestart = function() {
         $('#one_more_time').click(function () {
             DT.handlers.restart();
@@ -3716,14 +3772,14 @@ var DT = (function () {
         $(document).unbind('keyup', DT.handlers.pauseOnSpace);
         $(document).bind('keyup', DT.handlers.restartOnSpace);
     };
-
+    // interface
     DT.hit = function() {
         $(function(){
             $('.error').html('ERROR ' + DT.genRandomFloorBetween(500, 511));
             $('.hit').css({'display': 'table'}).fadeOut(250);
         });
     };
-
+    // player
     DT.changeDestPoint = function(dy, dx, destPoint) {
         if ((destPoint.x < DT.param.spacing && dx > 0) || (destPoint.x > -DT.param.spacing && dx < 0)) {
             destPoint.x += dx * DT.param.spacing;
@@ -3736,7 +3792,7 @@ var DT = (function () {
         //     DT.player.jump = false;
         // }
     };
-
+    // player
     DT.moveSphere = function(sphere, destPoint, n) {
         var i,
             iterator = function(aix) {
@@ -3770,7 +3826,7 @@ var DT = (function () {
         var signVal = Math.random() - 0.5;
         return Math.abs(signVal)/signVal;
     };
-
+    // player
     DT.bump = function (amp) {
         if (DT.player.isInvulnerability) return;
         var i;
@@ -3793,7 +3849,7 @@ var DT = (function () {
             DT.initSocket.socket.emit('message', data);
         }
     };
-
+    // game
     DT.startAfterChooseControl = function () {
         if (!DT.gameWasStarted) {
             DT.startGame();
@@ -4519,6 +4575,7 @@ var DT = (function () {
                 }
             }).back()
         .start();
+    // focus and blur events
     $(function() {
         $(window).focus(function() {
             if (!DT.wasMuted) {
@@ -4532,9 +4589,11 @@ var DT = (function () {
             DT.setVolume(0);
         });
     });
-    // EFFECT PARALLAX
+
+    // EFFECT
     // var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
     var effect = new THREE.AnaglyphEffect( DT.renderer );
+
     //////////////////////////////////////////////
     // ON RENDER 
     //////////////////////////////////////////////
@@ -4553,9 +4612,10 @@ var DT = (function () {
             effect.render(DT.scene, DT.camera);
             effect.setSize( window.innerWidth, window.innerHeight );
         }
-        DT.backgroundMesh.visible = true; // 1 раз
+        if (!DT.backgroundMesh.visible) {
+            DT.backgroundMesh.visible = true;
+        }
         emitter.update(delta).render();
-        // DT.emittFragments.update(delta).render();
         DT.stats.update();
         DT.stats2.update();
         DT.speed.increase();
@@ -4609,6 +4669,7 @@ var DT = (function () {
             })
             .update({
                 dieCoord: DT.param.dieCoord,
+                opacityCoord: DT.param.opacityCoord,
                 sphere: DT.sphere
             });
         new DT.Coins()

@@ -76,6 +76,7 @@
                 }
             }).back()
         .start();
+    // focus and blur events
     $(function() {
         $(window).focus(function() {
             if (!DT.wasMuted) {
@@ -89,9 +90,11 @@
             DT.setVolume(0);
         });
     });
-    // EFFECT PARALLAX
+
+    // EFFECT
     // var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
     var effect = new THREE.AnaglyphEffect( DT.renderer );
+
     //////////////////////////////////////////////
     // ON RENDER 
     //////////////////////////////////////////////
@@ -110,9 +113,10 @@
             effect.render(DT.scene, DT.camera);
             effect.setSize( window.innerWidth, window.innerHeight );
         }
-        DT.backgroundMesh.visible = true; // 1 раз
+        if (!DT.backgroundMesh.visible) {
+            DT.backgroundMesh.visible = true;
+        }
         emitter.update(delta).render();
-        // DT.emittFragments.update(delta).render();
         DT.stats.update();
         DT.stats2.update();
         DT.speed.increase();
@@ -166,6 +170,7 @@
             })
             .update({
                 dieCoord: DT.param.dieCoord,
+                opacityCoord: DT.param.opacityCoord,
                 sphere: DT.sphere
             });
         new DT.Coins()

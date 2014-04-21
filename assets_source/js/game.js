@@ -2591,6 +2591,7 @@ var DT = (function () {
         WebAudio = window.WebAudio || undefined,
         $ = window.$ || undefined,
         THREEx = window.THREEx || undefined,
+        
         requestAnimFrame = function(){
             return (
                 window.requestAnimationFrame       || 

@@ -4,15 +4,32 @@ var DT = (function () {
         THREE = window.THREE || undefined,
         WebAudio = window.WebAudio || undefined,
         $ = window.$ || undefined,
-        requestAnimationFrame = window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            undefined,
-        cancelAnimationFrame = window.cancelAnimationFrame ||
-            window.webkitCancelAnimationFrame ||
-            window.mozCancelAnimationFrame ||
-            undefined,
-        THREEx = window.THREEx || undefined;
+        THREEx = window.THREEx || undefined,
+        requestAnimFrame = function(){
+            return (
+                window.requestAnimationFrame       || 
+                window.webkitRequestAnimationFrame || 
+                window.mozRequestAnimationFrame    || 
+                window.oRequestAnimationFrame      || 
+                window.msRequestAnimationFrame     || 
+                function(/* function */ callback){
+                    window.setTimeout(callback, 1000 / 60);
+                }
+            );
+        }(),
+        cancelAnimFrame = function(){
+            return (
+                window.cancelAnimationFrame       || 
+                window.webkitCancelAnimationFrame || 
+                window.mozCancelAnimationFrame    || 
+                window.oCancelAnimationFrame      || 
+                window.msCancelAnimationFrame     || 
+                function(id){
+                    window.clearTimeout(id);
+                }
+            );
+        }();
+
     // Player Singleton Constructor
     DT.Player = function (options) {
         if (!DT.Player.__instance) {
@@ -31,6 +48,8 @@ var DT = (function () {
         this.jumpLength = 0; // not use
         this.jumpOffset = 2.2; // not use
     };
+
+
 
     DT.Player.prototype.changeHelth = function(delta) {
         if (delta > 0 || this.isInvulnerability === false) {
@@ -119,7 +138,7 @@ var DT = (function () {
                 DT.playSound(0);
                 //
                 clearInterval(DT.rainbow);
-                DT.blink.doBlink("red", 5);
+                DT.blink.doBlink('red', 5);
             } else if (this.funTimer % 6 === 0) {
                 var color = new THREE.Color().setRGB(
                     DT.genRandomFloorBetween(0, 3),
@@ -939,7 +958,7 @@ var DT = (function () {
         },
         update: function () {
             if (DT.blink.framesLeft === 0) {
-                // DT.sphere.material.color = new THREE.Color("red");
+                // DT.sphere.material.color = new THREE.Color('red');
                 return;
             }
             if (DT.blink.framesLeft === DT.blink.frames) {

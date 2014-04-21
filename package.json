@@ -1,17 +1,28 @@
 {
-  "name": "game",
-  "version": "0.0.1",
-  "private": true,
-  "scripts": {
-    "start": "grunt build && grunt watch"
+  "name": "DT",
+  "version": "0.0.0",
+  "description": "A WebGL game using Web Audio API",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^3.4.8",
+    "hookshot": "^0.0.2",
+    "mongodb": "^1.4.0",
+    "socket.io": "^0.9.16",
+    "mongo": "^0.1.0"
   },
-  "devDependencies": {
-    "bower": "latest",
-    "coffee-script": "latest",
-    "grunt": "^0.4.4",
-    "grunt-contrib-concat": "^0.4.0",
-    "grunt-contrib-sass": "^0.7.3",
-    "grunt-contrib-uglify": "^0.4.0",
-    "grunt-contrib-watch": "^0.6.1"
-  }
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deemidroll/digital_trip.git"
+  },
+  "author": "deemidroll",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deemidroll/digital_trip/issues"
+  },
+  "homepage": "https://github.com/deemidroll/digital_trip"
 }

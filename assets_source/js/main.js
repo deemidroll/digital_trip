@@ -2,7 +2,7 @@
     'use strict';
     // when resize
     var winResize = new THREEx.WindowResize(DT.renderer, DT.camera),
-        dieCoord = DT.param.dieCoord,
+        dieCoord = DT.game.param.dieCoord,
         lens,
         emitter,
         fragmentsPosition = {x: -1000, y: 0, z: 0},
@@ -76,20 +76,6 @@
                 }
             }).back()
         .start();
-    // focus and blur events
-    $(function() {
-        $(window).focus(function() {
-            if (!DT.wasMuted) {
-                DT.setVolume(1);
-            }
-        });
-        $(window).blur(function() {
-            if (DT.gameWasStarted && !DT.gameWasPaused && !DT.gameWasOver) {
-                DT.handlers.pause();
-            }
-            DT.setVolume(0);
-        });
-    });
 
     // EFFECT
     // var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
@@ -119,7 +105,7 @@
         emitter.update(delta).render();
         DT.stats.update();
         DT.stats2.update();
-        DT.speed.increase();
+        DT.game.speed.increase();
         if ( DT.animation ) {
             var time = Date.now();
             DT.animation.update( time - prevTime );
@@ -139,11 +125,11 @@
         var camOffset = 6, camDelta = 0.1,
             lensOffset = 18, lensDelta = 0.3;
         // var composer = DT.composer;
-        if (DT.speed.getChanger() > 0) {
+        if (DT.game.speed.getChanger() > 0) {
             DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
             lens = Math.max(lens -= lensDelta, DT.camera.lens - lensOffset);
             // composer.render();
-        } else if (DT.speed.getChanger() < 0) {
+        } else if (DT.game.speed.getChanger() < 0) {
             DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
             lens = Math.min(lens += lensDelta, DT.camera.lens + lensOffset);
             // composer.render();
@@ -166,35 +152,35 @@
         // create and update collections
         new DT.Stones()
             .createObjects({
-                spawnCoord: DT.param.spawnCoord,
+                spawnCoord: DT.game.param.spawnCoord,
             })
             .update({
-                dieCoord: DT.param.dieCoord,
-                opacityCoord: DT.param.opacityCoord,
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
                 sphere: DT.sphere
             });
         new DT.Coins()
             .createObjects({
                 x: DT.genCoord(),
                 y: -2.5,
-                spawnCoord: DT.param.spawnCoord,
+                spawnCoord: DT.game.param.spawnCoord,
                 zAngle: 0,
                 number: 10
             })
             .update({
-                dieCoord: DT.param.dieCoord,
-                opacityCoord: DT.param.opacityCoord,
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
                 sphere: DT.sphere
             });
         new DT.Bonuses()
             .createObjects({
                 x: DT.genCoord(),
                 y: -2.5,
-                spawnCoord: DT.param.spawnCoord,
+                spawnCoord: DT.game.param.spawnCoord,
             })
             .update({
-                dieCoord: DT.param.dieCoord,
-                opacityCoord: DT.param.opacityCoord,
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
                 sphere: DT.sphere
             });
     });
@@ -221,7 +207,7 @@
                 color: DT.sphere.material.color
             }, 
             geometry: {
-                speed: DT.speed.getValue()
+                speed: DT.game.speed.getValue()
             }
         });
     });

@@ -2584,6 +2584,13 @@ THREE.AnaglyphEffect = function ( renderer, width, height ) {
 
 };
 
+// ██████╗ ██╗ ██████╗ ██╗████████╗ █████╗ ██╗         ████████╗██████╗ ██╗██████╗ 
+// ██╔══██╗██║██╔════╝ ██║╚══██╔══╝██╔══██╗██║         ╚══██╔══╝██╔══██╗██║██╔══██╗
+// ██║  ██║██║██║  ███╗██║   ██║   ███████║██║            ██║   ██████╔╝██║██████╔╝
+// ██║  ██║██║██║   ██║██║   ██║   ██╔══██║██║            ██║   ██╔══██╗██║██╔═══╝ 
+// ██████╔╝██║╚██████╔╝██║   ██║   ██║  ██║███████╗       ██║   ██║  ██║██║██║     
+// ╚═════╝ ╚═╝ ╚═════╝ ╚═╝   ╚═╝   ╚═╝  ╚═╝╚══════╝       ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝     
+                                                                                
 var DT = (function () {
     'use strict';
     var DT = {},
@@ -2616,7 +2623,112 @@ var DT = (function () {
             );
         }();
 
-    // Player Singleton Constructor
+ // ██████╗  █████╗ ███╗   ███╗███████╗
+// ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
+// ██║  ███╗███████║██╔████╔██║█████╗  
+// ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  
+// ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗
+ // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
+                                    
+    DT.Game = function () {
+        this.param = {
+            spacing: 3,
+            spawnCoord: -200,
+            opacityCoord: 2,
+            dieCoord: 30,
+            stonesCloseness: 18,
+            globalVolume: 1,
+            prevGlobalVolume: 1
+        };
+        this.speed = {
+            value: 36,
+            changer: 0,
+            step: 0.6,
+            increase: function () {
+                this.value += (this.step / 60);
+            },
+            setChanger: function (changer) {
+                this.changer = changer;
+            },
+            getChanger: function() {
+                return this.changer;
+            },
+            getValue: function () {
+                return (this.value + this.changer) / 60;
+            }
+        };
+        this.gameWasStarted = false;
+        this.gameWasPaused = false;
+        this.gameWasOver = false;
+        this.wasMuted = false;
+        this.id = null;
+        this.lastTimeMsec = null;
+    };
+    DT.Game.prototype.startGame = function() {
+        var self = this;
+        requestAnimFrame(function animate(nowMsec) {
+            var deltaMsec = Math.min(200, nowMsec - DT.game.lastTimeMsec);
+            // keep looping
+            self.id = requestAnimFrame(animate);
+            // measure time
+            self.lastTimeMsec = self.lastTimeMsec || nowMsec - 1000 / 60;
+            self.lastTimeMsec = nowMsec;
+            // call each update function
+            DT.onRenderFcts.forEach(function(onRenderFct) {
+                onRenderFct(deltaMsec / 1000, nowMsec / 1000);
+            });
+        });
+        if (!this.gameWasStarted) {
+            $(document).trigger('startGame', {});
+            DT.initKeyboardControl();
+        }
+    };
+    DT.Game.prototype.update = function() {
+        $(document).trigger('update', {});
+    };
+    DT.pauseOn = function () {
+        if (!DT.game.gameWasPaused) {
+            $('.menu_page').css({'display': 'table'});
+            DT.stopSoundBeforPause();
+            DT.audio.sounds.pause.play();
+            cancelAnimFrame(DT.game.id);
+            DT.game.gameWasPaused = true;
+        }
+    };
+
+    DT.pauseOff = function () {
+        if (DT.game.gameWasPaused) {
+            $('.menu_page').css({'display': 'none'});
+            DT.playSoundAfterPause();
+            DT.audio.sounds.pause.play();
+            DT.game.startGame();
+            DT.game.gameWasPaused = false;
+        }
+    };
+    DT.game = new DT.Game();
+
+    // focus and blur events
+    $(function() {
+        $(window).focus(function() {
+            if (!DT.game.wasMuted) {
+                DT.setVolume(1);
+            }
+        });
+        $(window).blur(function() {
+            if (DT.game.gameWasStarted && !DT.game.gameWasPaused && !DT.game.gameWasOver) {
+                DT.handlers.pause();
+            }
+            DT.setVolume(0);
+        });
+    });
+
+// ██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗ 
+// ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔════╝██╔══██╗
+// ██████╔╝██║     ███████║ ╚████╔╝ █████╗  ██████╔╝
+// ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██╔══╝  ██╔══██╗
+// ██║     ███████╗██║  ██║   ██║   ███████╗██║  ██║
+// ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
+                                                 
     DT.Player = function (options) {
         if (!DT.Player.__instance) {
             DT.Player.__instance = this;
@@ -2630,9 +2742,6 @@ var DT = (function () {
         this.isFun = options.isFun || false;
         this.invulnerTimer = null;
         this.funTimer = null;
-        this.jump = options.jump || false;
-        this.jumpLength = 0; // not used
-        this.jumpOffset = 2.2; // not used
     };
 
     DT.Player.prototype.changeHelth = function(delta) {
@@ -2642,18 +2751,14 @@ var DT = (function () {
                 helth += delta;
                 if (helth < 0) {
                     helth = 0;
-                    DT.gameOver();
+                    $(document).trigger('gameOver', {});
                 }
                 if (helth > 100) {
                     helth = 100;
                 }
             }
             this.currentHelth = helth;
-            $(function(){
-                $('.helth').animate({
-                    width: helth + '%'
-                });
-            });
+            $(document).trigger('changeHelth', {helth: this.currentHelth});
         }
         return this;
     };
@@ -2661,7 +2766,6 @@ var DT = (function () {
     DT.Player.prototype.makeInvuler = function (time) {
         this.invulnerTimer = (time || 10000) / 1000 * 60;
         this.isInvulnerability = true;
-        // trirrer 'invulner' event
         $(document).trigger('invulner', {invulner: true});
         return this;
     };
@@ -2672,22 +2776,15 @@ var DT = (function () {
     };
 
     DT.Player.prototype.changeScore = function(delta) {
-        var score = this.currentScore += delta;
-        // TODO: отделить логику от интерфейса
-        $(function(){
-            $('.current_coins').text(score);
-        });
+        this.currentScore += delta;
+        $(document).trigger('changeScore', {score: this.currentScore});
         return this;
     };
 
     DT.Player.prototype.makeFun = function(time) {
         this.isFun = true;
         this.funTimer = (time || 10000) / 1000 * 60;
-        // TODO: переделать на метод
-        DT.speed.setChanger(-18);
-        DT.stopSound(0);
-        DT.playSound(1);
-        //
+        $(document).trigger('fun', {isFun: true});
         return this;
     };
 
@@ -2714,11 +2811,7 @@ var DT = (function () {
             this.funTimer -= 1;
             if (this.funTimer <= 0) {
                 this.isFun = false;
-                // TODO: переделать на метод
-                DT.speed.setChanger(0);
-                DT.stopSound(1);
-                DT.playSound(0);
-                //
+                $(document).trigger('fun', {isFun: false});
                 clearInterval(DT.rainbow);
                 DT.blink.doBlink('red', 5);
             } else if (this.funTimer % 6 === 0) {
@@ -2727,7 +2820,7 @@ var DT = (function () {
                     DT.genRandomFloorBetween(0, 3),
                     DT.genRandomFloorBetween(0, 3)
                 );
-                DT.blink.doBlink(color, 2);
+                DT.blink.doBlink(color, 10);
             }
         }
         return this;
@@ -2757,129 +2850,9 @@ var DT = (function () {
         isFun: false,
         jump: false
     });
-    // TODO: сделать объект игры
-    DT.Game = function () {
-        this.id = null;
-        this.param = {
-            spacing: 3,
-            spawnCoord: -200,
-            opacityCoord: 2,
-            dieCoord: 30,
-            stonesCloseness: 18,
-            globalVolume: 1,
-            prevGlobalVolume: 1
-        };
-        this.speed = {
-            value: 36,
-            changer: 0,
-            step: 0.6,
-            increase: function () {
-                this.value += (this.step / 60);
-            },
-            setChanger: function (changer) {
-                this.changer = changer;
-            },
-            getChanger: function() {
-                return this.changer;
-            },
-            getValue: function () {
-                return (this.value + this.changer) / 60;
-            }
-        };
-        this.startGame = function() {
-            // for stats
-            setStats();
-            // for timer
-            $('.gameTimer').css({'display': 'block'});
-            requestAnimationFrame(function animate(nowMsec) {
-                var deltaMsec = Math.min(200, nowMsec - DT.lastTimeMsec);
-                // keep looping
-                DT.id = requestAnimationFrame(animate);
-                // measure time
-                DT.lastTimeMsec = DT.lastTimeMsec || nowMsec - 1000 / 60;
-                DT.lastTimeMsec = nowMsec;
-                // call each update function
-                DT.onRenderFcts.forEach(function(onRenderFct) {
-                    onRenderFct(deltaMsec / 1000, nowMsec / 1000);
-                });
-            });
-            if (!DT.gameWasStarted) {
-                // control
-                $(document).keydown(function(event) {
-                    var destPoint = DT.player.destPoint,
-                        changeDestPoint = DT.changeDestPoint,
-                        k = event.keyCode;
-                    // arrows control
-                    if (k === 38) {
-                        changeDestPoint(1, 0, destPoint);
-                    }
-                    if (k === 40) {
-                        changeDestPoint(-1, 0, destPoint);
-                    }
-                    if (k === 37) {
-                        changeDestPoint(0, -1, destPoint);
-                    }
-                    if (k === 39) {
-                        changeDestPoint(0, 1, destPoint);
-                    }
-                    // speedUp
-                    if (k === 16) {
-                        DT.speed.setChanger(36);
-                        if (DT.player.isFun) {
-                            DT.stopSound(1);
-                            DT.playSound(0);
-                            clearInterval(DT.rainbow);
-                            DT.player.isFun = false;
-                            DT.blink.doBlink('red', 2);
-                        }
-                    }
-                    if (k === 17) {
-                        DT.player.makeFun();
-                    }
-                });
-                $(document).keyup(function(event) {
-                    var k = event.keyCode;
-                    // speedDown
-                    if (k === 16) {
-                        DT.speed.setChanger(0);
-                        DT.player.stopFun();
-                    }
-                });
-                $(document).keyup(DT.handlers.pauseOnSpace);
-                DT.gameWasStarted = true;
-            }
-        };
-    };
-    // TODO: refactor
-    DT.param = {
-        spacing: 3,
-        spawnCoord: -200,
-        opacityCoord: 2,
-        dieCoord: 30,
-        stonesCloseness: 18,
-        globalVolume: 1,
-        prevGlobalVolume: 1
-    };
-    //
 
-    DT.speed = {
-        value: 36,
-        changer: 0,
-        step: 0.6,
-        increase: function () {
-            this.value += (this.step / 60);
-        },
-        setChanger: function (changer) {
-            this.changer = changer;
-        },
-        getChanger: function() {
-            return this.changer;
-        },
-        getValue: function () {
-            return (this.value + this.changer) / 60;
-        }
-    };
-    // TODO: переледать коллекции
+
+    // TODO: передедать коллекции
     DT.collections = {
         caughtBonuses: []
     };
@@ -2928,75 +2901,14 @@ var DT = (function () {
         sphereLightning: new THREE.PointLight(0xff0000, 0.75, 7.5),
         directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
     };
-    //
-    DT.id = null;
 
-    DT.lastTimeMsec = null;
-    //
-    DT.startGame = function() {
-        // for stats
-        setStats();
-        // for timer
-        $('.gameTimer').css({'display': 'block'});
-        requestAnimationFrame(function animate(nowMsec) {
-            var deltaMsec = Math.min(200, nowMsec - DT.lastTimeMsec);
-            // keep looping
-            DT.id = requestAnimationFrame(animate);
-            // measure time
-            DT.lastTimeMsec = DT.lastTimeMsec || nowMsec - 1000 / 60;
-            DT.lastTimeMsec = nowMsec;
-            // call each update function
-            DT.onRenderFcts.forEach(function(onRenderFct) {
-                onRenderFct(deltaMsec / 1000, nowMsec / 1000);
-            });
-        });
-        if (!DT.gameWasStarted) {
-            // control
-            $(document).keydown(function(event) {
-                var destPoint = DT.player.destPoint,
-                    changeDestPoint = DT.changeDestPoint,
-                    k = event.keyCode;
-                // arrows control
-                if (k === 38) {
-                    changeDestPoint(1, 0, destPoint);
-                }
-                if (k === 40) {
-                    changeDestPoint(-1, 0, destPoint);
-                }
-                if (k === 37) {
-                    changeDestPoint(0, -1, destPoint);
-                }
-                if (k === 39) {
-                    changeDestPoint(0, 1, destPoint);
-                }
-                // speedUp
-                if (k === 16) {
-                    DT.speed.setChanger(36);
-                    if (DT.player.isFun) {
-                        DT.stopSound(1);
-                        DT.playSound(0);
-                        clearInterval(DT.rainbow);
-                        DT.player.isFun = false;
-                        DT.blink.doBlink('red', 2);
-                    }
-                }
-                if (k === 17) {
-                    DT.player.makeFun();
-                }
-            });
-            $(document).keyup(function(event) {
-                var k = event.keyCode;
-                // speedDown
-                if (k === 16) {
-                    DT.speed.setChanger(0);
-                    DT.player.stopFun();
-                }
-            });
-            $(document).keyup(DT.handlers.pauseOnSpace);
-            DT.gameWasStarted = true;
-        }
-    };
-    // 
+ // ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██████╗      ██╗███████╗ ██████╗████████╗
+// ██╔════╝ ██╔══██╗████╗ ████║██╔════╝    ██╔═══██╗██╔══██╗     ██║██╔════╝██╔════╝╚══██╔══╝
+// ██║  ███╗███████║██╔████╔██║█████╗      ██║   ██║██████╔╝     ██║█████╗  ██║        ██║   
+// ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      ██║   ██║██╔══██╗██   ██║██╔══╝  ██║        ██║   
+// ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    ╚██████╔╝██████╔╝╚█████╔╝███████╗╚██████╗   ██║   
+ // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝ ╚═════╝  ╚════╝ ╚══════╝ ╚═════╝   ╚═╝   
+                                                                                          
     DT.GameObject = function (options) {
         this.tObject = new options.THREEConstructor(
             options.geometry,
@@ -3050,7 +2962,13 @@ var DT = (function () {
         return this;
     };
 
-    // GameCollectionObject Constructor (Stone, Coin, Bonus)
+ // ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██████╗ ██╗     ██╗          ██████╗ ██████╗      ██╗
+// ██╔════╝ ██╔══██╗████╗ ████║██╔════╝    ██╔════╝██╔═══██╗██║     ██║         ██╔═══██╗██╔══██╗     ██║
+// ██║  ███╗███████║██╔████╔██║█████╗      ██║     ██║   ██║██║     ██║         ██║   ██║██████╔╝     ██║
+// ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      ██║     ██║   ██║██║     ██║         ██║   ██║██╔══██╗██   ██║
+// ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    ╚██████╗╚██████╔╝███████╗███████╗    ╚██████╔╝██████╔╝╚█████╔╝
+ // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚══════╝╚══════╝     ╚═════╝ ╚═════╝  ╚════╝ 
+                                                                                                      
     DT.GameCollectionObject = function (options) {
         DT.GameObject.apply(this, arguments);
         this.collection = options.collection;
@@ -3093,7 +3011,13 @@ var DT = (function () {
         return this;
     };
 
-    // Shield Singleton Constructor
+// ███████╗██╗  ██╗██╗███████╗██╗     ██████╗ 
+// ██╔════╝██║  ██║██║██╔════╝██║     ██╔══██╗
+// ███████╗███████║██║█████╗  ██║     ██║  ██║
+// ╚════██║██╔══██║██║██╔══╝  ██║     ██║  ██║
+// ███████║██║  ██║██║███████╗███████╗██████╔╝
+// ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═════╝ 
+                                           
     DT.Shield = function (options) {
         if (!DT.Shield.__instance) {
             DT.Shield.__instance = this;
@@ -3126,7 +3050,13 @@ var DT = (function () {
         }
     });
 
-    // Dust Constructor
+// ██████╗ ██╗   ██╗███████╗████████╗
+// ██╔══██╗██║   ██║██╔════╝╚══██╔══╝
+// ██║  ██║██║   ██║███████╗   ██║   
+// ██║  ██║██║   ██║╚════██║   ██║   
+// ██████╔╝╚██████╔╝███████║   ██║   
+// ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   
+                                  
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
         this.number = options.number || 100;
@@ -3177,7 +3107,13 @@ var DT = (function () {
         THREEConstructor: THREE.ParticleSystem
     });
 
-    // Stone Constuctor
+// ███████╗████████╗ ██████╗ ███╗   ██╗███████╗
+// ██╔════╝╚══██╔══╝██╔═══██╗████╗  ██║██╔════╝
+// ███████╗   ██║   ██║   ██║██╔██╗ ██║█████╗  
+// ╚════██║   ██║   ██║   ██║██║╚██╗██║██╔══╝  
+// ███████║   ██║   ╚██████╔╝██║ ╚████║███████╗
+// ╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚══════╝
+                                            
     DT.Stone = function (options) {
         var radius, color, x, y, depth, geometry, material,
             part = Math.random();
@@ -3261,10 +3197,17 @@ var DT = (function () {
             el.material.emissive = new THREE.Color().setRGB(0,0,0);
         }
         this.updateParam('rotation', {x: 0.014, y: 0.014})
-            .updateParam('position', {z: DT.speed.getValue()});
+            .updateParam('position', {z: DT.game.speed.getValue()});
         return this;
     };
-    // Coin Constuctor 
+
+ // ██████╗ ██████╗ ██╗███╗   ██╗
+// ██╔════╝██╔═══██╗██║████╗  ██║
+// ██║     ██║   ██║██║██╔██╗ ██║
+// ██║     ██║   ██║██║██║╚██╗██║
+// ╚██████╗╚██████╔╝██║██║ ╚████║
+ // ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝
+                              
     DT.Coin = function (options) {
         var r = 0.5, i,
             coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.05, 32, 1, true ),
@@ -3329,7 +3272,7 @@ var DT = (function () {
     DT.Coin.prototype.update = function (options) {
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
         this.updateParam('rotation', {z: 0.05})
-            .updateParam('position', {z: DT.speed.getValue()});
+            .updateParam('position', {z: DT.game.speed.getValue()});
         var positon = this.tObject.position;
         var distanceBerweenCenters = positon.distanceTo(options.sphere.position);
         if (distanceBerweenCenters < 0.9) {
@@ -3346,7 +3289,13 @@ var DT = (function () {
         return this;
     };
 
-    // Bonus Constuctor 
+// ██████╗  ██████╗ ███╗   ██╗██╗   ██╗███████╗
+// ██╔══██╗██╔═══██╗████╗  ██║██║   ██║██╔════╝
+// ██████╔╝██║   ██║██╔██╗ ██║██║   ██║███████╗
+// ██╔══██╗██║   ██║██║╚██╗██║██║   ██║╚════██║
+// ██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝███████║
+// ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝
+                                            
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
         DT.GameCollectionObject.apply(this, [{
@@ -3391,7 +3340,7 @@ var DT = (function () {
             // this.updateParam('rotation', {z: 0.05});
         }
         
-        this.updateParam('position', {z: DT.speed.getValue()});
+        this.updateParam('position', {z: DT.game.speed.getValue()});
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
         if (DT.getDistance(this.tObject.position.x, this.tObject.position.y, this.tObject.position.z,
                 options.sphere.position.x, options.sphere.position.y, options.sphere.position.z) < 1.0) {
@@ -3418,6 +3367,13 @@ var DT = (function () {
         }
     };
 
+ // ██████╗ ██████╗ ██╗     ██╗     ███████╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
+// ██╔════╝██╔═══██╗██║     ██║     ██╔════╝██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
+// ██║     ██║   ██║██║     ██║     █████╗  ██║        ██║   ██║██║   ██║██╔██╗ ██║
+// ██║     ██║   ██║██║     ██║     ██╔══╝  ██║        ██║   ██║██║   ██║██║╚██╗██║
+// ╚██████╗╚██████╔╝███████╗███████╗███████╗╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
+ // ╚═════╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+                                                                                
     DT.Collection = function (options) {
         this.collection = [];
         this.constructor = options.constructor;
@@ -3443,7 +3399,6 @@ var DT = (function () {
         return this;
     };
 
-
     DT.Stones = function () {
         if (!DT.Stones.__instance) {
             DT.Stones.__instance = this;
@@ -3462,9 +3417,9 @@ var DT = (function () {
         var el = this.collection[this.collection.length -1];
 
         if (el) {
-            var dist = DT.getDistance(0, 0, DT.param.spawnCoord,
+            var dist = DT.getDistance(0, 0, DT.game.param.spawnCoord,
                 el.tObject.position.x, el.tObject.position.y, el.tObject.position.z);
-            if (dist <= DT.param.stonesCloseness) {
+            if (dist <= DT.game.param.stonesCloseness) {
                 return this;
             }
         }
@@ -3620,15 +3575,58 @@ var DT = (function () {
     };
 
     DT.bgTexture = THREE.ImageUtils.loadTexture('img/bg.jpg');
-    DT.gameWasStarted = false;
-    DT.gameWasPaused = false;
-    DT.gameWasOver = false;
     DT.handlers = {};
     DT.snapshot = null; // for restart
     DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://192.168.1.36';
-    DT.wasMuted = false;
 
-    // HANDLERS
+// ████████╗██████╗ ██╗ ██████╗  ██████╗ ███████╗██████╗ ███████╗
+// ╚══██╔══╝██╔══██╗██║██╔════╝ ██╔════╝ ██╔════╝██╔══██╗██╔════╝
+   // ██║   ██████╔╝██║██║  ███╗██║  ███╗█████╗  ██████╔╝███████╗
+   // ██║   ██╔══██╗██║██║   ██║██║   ██║██╔══╝  ██╔══██╗╚════██║
+   // ██║   ██║  ██║██║╚██████╔╝╚██████╔╝███████╗██║  ██║███████║
+   // ╚═╝   ╚═╝  ╚═╝╚═╝ ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝
+                                                              
+    $(document).on('changeScore', function (e, data) {
+        $('.current_coins').text(data.score);
+    });
+    $(document).on('changeHelth', function (e, data) {
+        $('.helth').animate({width: data.helth + '%'});
+    });
+    $(document).on('gameOver', function (e, data) {
+        DT.gameOver();
+    });
+    $(document).on('fun', function (e, data) {
+        if (data.isFun) {
+            DT.game.speed.setChanger(-18);
+            DT.stopSound(0);
+            DT.playSound(1);
+        } else {
+            DT.game.speed.setChanger(0);
+            DT.stopSound(1);
+            DT.playSound(0);
+        }
+    });
+    $(document).on('resetGame', function (e, data) {
+        DT.game.reset();
+        DT.player.reset();
+    });
+    $(document).on('startGame', function (e, data) {
+        // for stats
+        setStats();
+        // for timer
+        $('.gameTimer').css({'display': 'block'});
+    });
+    $(document).on('update', function (e, data) {
+        // update
+    });
+
+// ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
+// ██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝
+// ███████║███████║██╔██╗ ██║██║  ██║██║     █████╗  ██████╔╝███████╗
+// ██╔══██║██╔══██║██║╚██╗██║██║  ██║██║     ██╔══╝  ██╔══██╗╚════██║
+// ██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
+// ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
+                                                                  
     DT.handlers.startOnSpace = function(event) {
         var k = event.keyCode;
         if (k === 32) {
@@ -3656,21 +3654,21 @@ var DT = (function () {
         }
     };
     DT.handlers.pause = function () {
-        if (!DT.gameWasPaused) {
-            DT.pauseOn();
-        } else {
+        if (DT.game.gameWasPaused) {
             DT.pauseOff();
+        } else {
+            DT.pauseOn();
         }
     };
     DT.handlers.mute = function() {
-        if (DT.param.globalVolume === 1) {
+        if (DT.game.param.globalVolume === 1) {
             DT.setVolume(0);
             $('.music_button').html('N');
-            DT.wasMuted = true;
+            DT.game.wasMuted = true;
         } else {
             DT.setVolume(1);
             $('.music_button').html('M');
-            DT.wasMuted = false;
+            DT.game.wasMuted = false;
         }
     };
     DT.handlers.left = function () {
@@ -3694,31 +3692,38 @@ var DT = (function () {
         $('.bonus').html('');
         $('.gameTimer').html('0:00');
         $('.helth').css({width: '100%'});
-        DT.speed = $.extend(true, {}, DT.snapshot.speed);
+        DT.game.speed = $.extend(true, {}, DT.snapshot.speed);
         DT.collections = $.extend(true, {}, DT.snapshot.collections);
         DT.gameTimer = 0;
-        // DT.gameWasStarted = false;
+        // DT.game.gameWasStarted = false;
         DT.audio.music.startedAt = [];
         DT.audio.music.pausedAt = [];
         DT.audio.music.stopped = [];
         DT.audio.music.paused = [];
         DT.audio.music.started = [];
-        DT.startGame();
+        DT.game.startGame();
         DT.playSound(0);
         $(document).bind('keyup', DT.handlers.pauseOnSpace);
         $(document).unbind('keyup', DT.handlers.restartOnSpace);
         $('#one_more_time').unbind('click');
     };
-    // auxiliary functions
+
+// ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗    ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
+// ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝    ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
+// ███████╗█████╗  ██████╔╝██║   ██║██║██║     █████╗      █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║
+// ╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██║██║     ██╔══╝      ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║
+// ███████║███████╗██║  ██║ ╚████╔╝ ██║╚██████╗███████╗    ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
+// ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚═╝ ╚═════╝╚══════╝    ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+                                                                                                                          
     DT.setVolume = function (volume) {
-        DT.param.globalVolume = volume;
-        if (DT.param.prevGlobalVolume !== DT.param.globalVolume) {
+        DT.game.param.globalVolume = volume;
+        if (DT.game.param.prevGlobalVolume !== DT.game.param.globalVolume) {
             DT.gainNodes.forEach(function(el) {
                 if (el) {
-                    el.gain.value = DT.param.globalVolume;
+                    el.gain.value = DT.game.param.globalVolume;
                 }
             });
-            DT.param.prevGlobalVolume = DT.param.globalVolume;
+            DT.game.param.prevGlobalVolume = DT.game.param.globalVolume;
         }
     };
     // возвращает cookie с именем name, если есть или undefined
@@ -3734,7 +3739,7 @@ var DT = (function () {
     };
     
     DT.genCoord = function(delta) {
-        var offset = delta || DT.param.spacing,
+        var offset = delta || DT.game.param.spacing,
         x = Math.random() * offset * 2 - offset,
         absX = Math.abs(x);
         if (absX <= offset && absX >= offset * 0.33 ) {
@@ -3750,7 +3755,7 @@ var DT = (function () {
     };
     // game
     DT.gameOver = function() {
-        DT.gameWasOver = true;
+        DT.game.gameWasOver = true;
         clearTimeout(DT.player.isFun);
         DT.stopSound(0);
         DT.stopSound(1);
@@ -3762,7 +3767,7 @@ var DT = (function () {
             // $(document).unbind('keydown').unbind('keyup');
         });
         setTimeout(function() {
-            cancelAnimationFrame(DT.id);
+            cancelAnimFrame(DT.game.id);
         }, 300);
         DT.sendSocketMessage('gameover');
         DT.prepareToRestart();
@@ -3784,8 +3789,8 @@ var DT = (function () {
     };
     // player
     DT.changeDestPoint = function(dy, dx, destPoint) {
-        if ((destPoint.x < DT.param.spacing && dx > 0) || (destPoint.x > -DT.param.spacing && dx < 0)) {
-            destPoint.x += dx * DT.param.spacing;
+        if ((destPoint.x < DT.game.param.spacing && dx > 0) || (destPoint.x > -DT.game.param.spacing && dx < 0)) {
+            destPoint.x += dx * DT.game.param.spacing;
         }
         // if (DT.sphere.position.y < -2 && dy > 0) {
         //     DT.player.jumpLength = 0;
@@ -3854,12 +3859,12 @@ var DT = (function () {
     };
     // game
     DT.startAfterChooseControl = function () {
-        if (!DT.gameWasStarted) {
-            DT.startGame();
+        if (!DT.game.gameWasStarted) {
+            DT.game.startGame();
             DT.stopSound(2);
             DT.playSound(0);
             $('.choose_control').fadeOut(250);
-            DT.gameWasStarted = true;
+            DT.game.gameWasStarted = true;
             DT.sendSocketMessage('gamestarted');
         }
         $(document).unbind('keyup',DT.handlers.startOnSpace);
@@ -3882,26 +3887,6 @@ var DT = (function () {
                 DT.enableWebcam();
             });
         });
-    };
-
-    DT.pauseOn = function () {
-        if (!DT.gameWasPaused) {
-            $('.menu_page').css({'display': 'table'});
-            DT.stopSoundBeforPause();
-            DT.audio.sounds.pause.play();
-            cancelAnimationFrame(DT.id);
-            DT.gameWasPaused = !DT.gameWasPaused;
-        }
-    };
-
-    DT.pauseOff = function () {
-        if (DT.gameWasPaused) {
-            $('.menu_page').css({'display': 'none'});
-            DT.playSoundAfterPause();
-            DT.audio.sounds.pause.play();
-            DT.startGame();
-            DT.gameWasPaused = !DT.gameWasPaused;
-        }
     };
 
     $(function(){
@@ -3972,7 +3957,7 @@ var DT = (function () {
                 sources[index].buffer = buffers[index];
                 destination = context.destination;
                 gainNodes[index] = context.createGain();
-                gainNodes[index].gain.value = DT.param.globalVolume;
+                gainNodes[index].gain.value = DT.game.param.globalVolume;
                 analysers[index] = context.createAnalyser();
                 analysers[index].fftSize = 2048;
                 analysers[index].minDecibels = -50;
@@ -4055,36 +4040,13 @@ var DT = (function () {
                 index = Math.round(frequency/nyquist * freqDomain[bufferIndex].length);
             return freqDomain[bufferIndex][index];
         };
-
-        // BLUR
-        // var renderer = DT.renderer,
-        //     scene = DT.scene,
-        //     camera = DT.camera,
-        //     composer,
-        //     hblur, vblur,
-        //     bluriness = 0,
-        //     winResizeBlur;
         
-            // composer = new THREE.EffectComposer( renderer );
-        // composer.addPass( new THREE.RenderPass( scene, camera ) );
-        
-            // hblur = new THREE.ShaderPass( THREE.HorizontalBlurShader );
-        // hblur.uniforms[ 'h' ].value *= bluriness;
-        // composer.addPass( hblur );
-        
-            // vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
-        // vblur.uniforms[ 'v' ].value *= bluriness;
-        // vblur.renderToScreen = true;
-        // composer.addPass( vblur );
-        // DT.composer = composer;
-        // winResizeBlur   = new THREEx.WindowResize(composer, camera);
-        
-            // add update function to webaudio prototype
+        // add update function to webaudio prototype
         WebAudio.Sound.prototype.update = function() {
-            this.volume(DT.param.globalVolume);
+            this.volume(DT.game.param.globalVolume);
         };
         WebAudio.Sound.prototype.play = function(time){
-            this.volume(DT.param.globalVolume);
+            this.volume(DT.game.param.globalVolume);
             // handle parameter polymorphism
             if( time ===  undefined )   time    = 0;
             // if not yet playable, ignore
@@ -4172,6 +4134,50 @@ var DT = (function () {
             loadModel(el);
         });
         
+        DT.initKeyboardControl = function () {
+            $(document).keydown(function(event) {
+                var destPoint = DT.player.destPoint,
+                    changeDestPoint = DT.changeDestPoint,
+                    k = event.keyCode;
+                // arrows control
+                if (k === 38) {
+                    changeDestPoint(1, 0, destPoint);
+                }
+                if (k === 40) {
+                    changeDestPoint(-1, 0, destPoint);
+                }
+                if (k === 37) {
+                    changeDestPoint(0, -1, destPoint);
+                }
+                if (k === 39) {
+                    changeDestPoint(0, 1, destPoint);
+                }
+                // speedUp
+                if (k === 16) {
+                    DT.game.speed.setChanger(36);
+                    if (DT.player.isFun) {
+                        DT.stopSound(1);
+                        DT.playSound(0);
+                        clearInterval(DT.rainbow);
+                        DT.player.isFun = false;
+                        DT.blink.doBlink('red', 2);
+                    }
+                }
+                if (k === 17) {
+                    DT.player.makeFun();
+                }
+            });
+            $(document).keyup(function(event) {
+                var k = event.keyCode;
+                // speedDown
+                if (k === 16) {
+                    DT.game.speed.setChanger(0);
+                    DT.player.stopFun();
+                }
+            });
+            $(document).keyup(DT.handlers.pauseOnSpace);
+            DT.game.gameWasStarted = true;
+        };
             // WEBCAM CONTROL
         DT.enableWebcam = function () {
             // // Game config
@@ -4218,7 +4224,7 @@ var DT = (function () {
             //         console.log(statusMessages[event.status]);
             //         $('.message').html(statusMessages[event.status])
             //     }
-            //     if (event.status === 'found' && !DT.gameWasStarted) {
+            //     if (event.status === 'found' && !DT.game.gameWasStarted) {
                     // DT.startAfterChooseControl();
             //     }
             // }, true);
@@ -4240,13 +4246,13 @@ var DT = (function () {
             //             if(angle > leftTurnThreshold) {
             //                 DT.player.destPoint.x = 0;
             //             } else {
-            //                 DT.player.destPoint.x = -DT.param.spacing;
+            //                 DT.player.destPoint.x = -DT.game.param.spacing;
             //             }
             //         } else if (angle > rightBreakThreshold) {
             //             if(angle < rightTurnThreshold) {
             //                 DT.player.destPoint.x = 0;
             //             } else {
-            //                 DT.player.destPoint.x = DT.param.spacing;
+            //                 DT.player.destPoint.x = DT.game.param.spacing;
             //             }
             //         } else {
             //             DT.player.destPoint.x = 0;
@@ -4330,12 +4336,12 @@ var DT = (function () {
         
         var button1 = new Image();
         button1.src ='img/lr.png';
-        var buttonData1 = { name:'left', image:button1, x:0, y:0, w:100, h:240, coord: -DT.param.spacing };
+        var buttonData1 = { name:'left', image:button1, x:0, y:0, w:100, h:240, coord: -DT.game.param.spacing };
         buttons.push( buttonData1 );
         
             var button2 = new Image();
         button2.src ='img/lr.png';
-        var buttonData2 = { name:'right', image:button2, x:220, y:0, w:100, h:240, coord: DT.param.spacing };
+        var buttonData2 = { name:'right', image:button2, x:220, y:0, w:100, h:240, coord: DT.game.param.spacing };
         buttons.push( buttonData2 );
         
         var button3 = new Image();
@@ -4344,13 +4350,11 @@ var DT = (function () {
         buttons.push( buttonData3 );
         
         // start the loop
-        animate();
-        function animate() {
-            requestAnimationFrame( animate );
+        DT.onRenderFcts.push(function () {
             render();
             blend();
             checkAreas();
-        }
+        });
         
         function render() { 
             if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
@@ -4456,13 +4460,13 @@ var DT = (function () {
                 if(turn > leftTurnThreshold) {
                     DT.player.destPoint.x = 0;
                 } else {
-                    DT.player.destPoint.x = -DT.param.spacing;
+                    DT.player.destPoint.x = -DT.game.param.spacing;
                 }
             } else if (turn > rightBreakThreshold) {
                 if(turn < rightTurnThreshold) {
                     DT.player.destPoint.x = 0;
                 } else {
-                    DT.player.destPoint.x = DT.param.spacing;
+                    DT.player.destPoint.x = DT.game.param.spacing;
                 }
             } else {
                 DT.player.destPoint.x = 0;
@@ -4504,7 +4508,7 @@ var DT = (function () {
     'use strict';
     // when resize
     var winResize = new THREEx.WindowResize(DT.renderer, DT.camera),
-        dieCoord = DT.param.dieCoord,
+        dieCoord = DT.game.param.dieCoord,
         lens,
         emitter,
         fragmentsPosition = {x: -1000, y: 0, z: 0},
@@ -4578,20 +4582,6 @@ var DT = (function () {
                 }
             }).back()
         .start();
-    // focus and blur events
-    $(function() {
-        $(window).focus(function() {
-            if (!DT.wasMuted) {
-                DT.setVolume(1);
-            }
-        });
-        $(window).blur(function() {
-            if (DT.gameWasStarted && !DT.gameWasPaused && !DT.gameWasOver) {
-                DT.handlers.pause();
-            }
-            DT.setVolume(0);
-        });
-    });
 
     // EFFECT
     // var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
@@ -4621,7 +4611,7 @@ var DT = (function () {
         emitter.update(delta).render();
         DT.stats.update();
         DT.stats2.update();
-        DT.speed.increase();
+        DT.game.speed.increase();
         if ( DT.animation ) {
             var time = Date.now();
             DT.animation.update( time - prevTime );
@@ -4641,11 +4631,11 @@ var DT = (function () {
         var camOffset = 6, camDelta = 0.1,
             lensOffset = 18, lensDelta = 0.3;
         // var composer = DT.composer;
-        if (DT.speed.getChanger() > 0) {
+        if (DT.game.speed.getChanger() > 0) {
             DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
             lens = Math.max(lens -= lensDelta, DT.camera.lens - lensOffset);
             // composer.render();
-        } else if (DT.speed.getChanger() < 0) {
+        } else if (DT.game.speed.getChanger() < 0) {
             DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
             lens = Math.min(lens += lensDelta, DT.camera.lens + lensOffset);
             // composer.render();
@@ -4668,35 +4658,35 @@ var DT = (function () {
         // create and update collections
         new DT.Stones()
             .createObjects({
-                spawnCoord: DT.param.spawnCoord,
+                spawnCoord: DT.game.param.spawnCoord,
             })
             .update({
-                dieCoord: DT.param.dieCoord,
-                opacityCoord: DT.param.opacityCoord,
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
                 sphere: DT.sphere
             });
         new DT.Coins()
             .createObjects({
                 x: DT.genCoord(),
                 y: -2.5,
-                spawnCoord: DT.param.spawnCoord,
+                spawnCoord: DT.game.param.spawnCoord,
                 zAngle: 0,
                 number: 10
             })
             .update({
-                dieCoord: DT.param.dieCoord,
-                opacityCoord: DT.param.opacityCoord,
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
                 sphere: DT.sphere
             });
         new DT.Bonuses()
             .createObjects({
                 x: DT.genCoord(),
                 y: -2.5,
-                spawnCoord: DT.param.spawnCoord,
+                spawnCoord: DT.game.param.spawnCoord,
             })
             .update({
-                dieCoord: DT.param.dieCoord,
-                opacityCoord: DT.param.opacityCoord,
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
                 sphere: DT.sphere
             });
     });
@@ -4723,7 +4713,7 @@ var DT = (function () {
                 color: DT.sphere.material.color
             }, 
             geometry: {
-                speed: DT.speed.getValue()
+                speed: DT.game.speed.getValue()
             }
         });
     });

@@ -1,3 +1,10 @@
+
+// ███████╗███████╗██████╗ ██╗   ██╗███████╗██████╗         ██╗███████╗
+// ██╔════╝██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗        ██║██╔════╝
+// ███████╗█████╗  ██████╔╝██║   ██║█████╗  ██████╔╝        ██║███████╗
+// ╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██╔══╝  ██╔══██╗   ██   ██║╚════██║
+// ███████║███████╗██║  ██║ ╚████╔╝ ███████╗██║  ██║██╗╚█████╔╝███████║
+// ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚═╝ ╚════╝ ╚══════╝
 // Dependencies
 var express = require('express'),
     http = require('http'),
@@ -22,7 +29,6 @@ var genRandomFloorBetween = function (min, max) {
     rand = Math.round(rand);
     return rand;
 };
-
 var genGameCode = function () {
     var code = genRandomFloorBetween(0, 999999).toString();
     while (code.length < 6) {
@@ -44,7 +50,6 @@ var useDB = function (method, args) {
         collection[method].apply(collection, args);
     });
 };
-
 var insertDB = function (criteria, set, callback) {
     useDB("insert",
         [set, 
@@ -53,7 +58,6 @@ var insertDB = function (criteria, set, callback) {
         }]
     );
 };
-
 var updateDB = function (criteria, set, callback) {
     useDB("update",
         [criteria,
@@ -63,7 +67,6 @@ var updateDB = function (criteria, set, callback) {
             callback && callback(criteria, doc);
         }]);
 };
-
 var getOneFromDB = function (criteria, set, callback) {
     useDB("findOne",
         [criteria,
@@ -78,8 +81,7 @@ var getFromDB = function (criteria, set, callback) {
             callback && callback(criteria, docs);
         }]);
 };
-
-//
+// TODO: rework check function
 var checkClient = function (criteria, doc, timeEnd, coinsCollect) {
     // fail
     // if there is not record in DB
@@ -95,7 +97,7 @@ var checkClient = function (criteria, doc, timeEnd, coinsCollect) {
         maxCoins;
     // if game time more than 10 min
     if (time > 600) return false;
-
+    // calc path
     path = (speedStart * time) + (acceleration * time * time / 2);
     maxCoins = path/(spawnCoord + (numberOfCoins - 1) * coinsOffset + dieCoord) * numberOfCoins;
     console.log(time, path, maxCoins);
@@ -194,7 +196,6 @@ io.sockets.on('connection', function(socket) {
             //  and show the game code to the user
             socket.emit("initialize", gameCode);
             // insert data into MongoDB
-            console.log(socket.handshake.headers);
             insertDB(null, {
                 "cookieUID": data.cookieUID,
                 "clientId": socket.id,
@@ -224,7 +225,6 @@ io.sockets.on('connection', function(socket) {
             }
         }
     });
-    
     // send accelerate command to game client
     socket.on("accelerate", function(data) {
         var bAccelerate = data.accelerate;
@@ -232,7 +232,6 @@ io.sockets.on('connection', function(socket) {
             socketCodes[socket.gameCode].emit("accelerate", bAccelerate);
         }
     });
-    
     // send turn command to game client
     socket.on("turn", function(data) {
         if(socket.gameCode && socket.gameCode in socketCodes) {
@@ -246,7 +245,6 @@ io.sockets.on('connection', function(socket) {
         }
     });
 });
-
 // When a client disconnects...
 io.sockets.on('disconnect', function(socket) {
     // remove game code -> socket association on disconnect

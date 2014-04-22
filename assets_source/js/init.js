@@ -45,8 +45,8 @@ var DT = (function () {
         this.invulnerTimer = null;
         this.funTimer = null;
         this.jump = options.jump || false;
-        this.jumpLength = 0; // not use
-        this.jumpOffset = 2.2; // not use
+        this.jumpLength = 0; // not used
+        this.jumpOffset = 2.2; // not used
     };
 
     DT.Player.prototype.changeHelth = function(delta) {
@@ -75,8 +75,8 @@ var DT = (function () {
     DT.Player.prototype.makeInvuler = function (time) {
         this.invulnerTimer = (time || 10000) / 1000 * 60;
         this.isInvulnerability = true;
-        // TODO: умешьшить связанность
-        DT.shield.addToScene();
+        // trirrer 'invulner' event
+        $(document).trigger('invulner', {invulner: true});
         return this;
     };
 
@@ -115,9 +115,7 @@ var DT = (function () {
             this.invulnerTimer -= 1;
             if (this.invulnerTimer <= 0) {
                 this.isInvulnerability = false;
-                // TODO: уменьшить связанность
-                DT.shield.removeFromScene();
-                //
+                $(document).trigger('invulner', {invulner: false});
             } else {
                 return this;
             }
@@ -173,7 +171,7 @@ var DT = (function () {
         isFun: false,
         jump: false
     });
-
+    // TODO: сделать объект игры
     DT.Game = function () {
         this.id = null;
         this.param = {
@@ -277,6 +275,7 @@ var DT = (function () {
         prevGlobalVolume: 1
     };
     //
+
     DT.speed = {
         value: 36,
         changer: 0,
@@ -294,15 +293,11 @@ var DT = (function () {
             return (this.value + this.changer) / 60;
         }
     };
-
+    // TODO: переледать коллекции
     DT.collections = {
-        stones: [],
-        fragments: [],
-        coins: [],
-        bonuses: [],
         caughtBonuses: []
     };
-
+    // TODO: рефакторинг
     DT.audio = {
         frequency: { // for audio visualization
             0: 400,
@@ -336,11 +331,11 @@ var DT = (function () {
     DT.scene = new THREE.Scene();
 
     DT.composer = null; // not use
-
+    // TODO: сделать обну функцию для обновления состояния
     DT.onRenderFcts = [];
-
+    // TODO: объединить с объектом player
     DT.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
-
+    
     DT.lights = {
         light: new THREE.PointLight(0xffffff, 0.75, 100),
         sphereLight: new THREE.PointLight(0xff0000, 1.75, 15),
@@ -521,7 +516,7 @@ var DT = (function () {
         }
         DT.GameObject.apply(this, arguments);
         this.material.color = options.sphere.material.color;
-        this.position = options.sphere.position;
+        this.tObject.position = options.sphere.position;
     };
     DT.Shield.prototype = Object.create(DT.GameObject.prototype);
     DT.Shield.prototype.constructor = DT.Shield;
@@ -535,6 +530,14 @@ var DT = (function () {
             opacity: 0.5
         }),
         sphere: DT.sphere
+    });
+    $(document).on('invulner', function (e, data) {
+        console.log('invulner');
+        if (data.invulner) {
+            DT.shield.addToScene();
+        } else {
+            DT.shield.removeFromScene();
+        }
     });
 
     // Dust Constructor

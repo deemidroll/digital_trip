@@ -12,7 +12,7 @@ var DT = (function () {
         WebAudio = window.WebAudio || undefined,
         $ = window.$ || undefined,
         THREEx = window.THREEx || undefined,
-        requestAnimFrame = function(){
+        requestAnimFrame = function () {
             return (
                 window.requestAnimationFrame       ||
                 window.webkitRequestAnimationFrame ||
@@ -24,7 +24,7 @@ var DT = (function () {
                 }
             );
         }(),
-        cancelAnimFrame = function(){
+        cancelAnimFrame = function () {
             return (
                 window.cancelAnimationFrame       ||
                 window.webkitCancelAnimationFrame ||
@@ -37,6 +37,20 @@ var DT = (function () {
             );
         }();
 
+    DT.animate = function (nowMsec) {
+        nowMsec = nowMsec || Date.now();
+        DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
+        var deltaMsec = Math.min(200, nowMsec - DT.animate.lastTimeMsec);
+        // keep looping
+        DT.animate.id = requestAnimFrame(DT.animate);
+        // change last time
+        DT.animate.lastTimeMsec = nowMsec;
+        // call each update function
+        $(document).trigger('update', {
+            delta: deltaMsec / 1000,
+            now: nowMsec / 1000
+        });
+    };
  // ██████╗  █████╗ ███╗   ███╗███████╗
 // ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
 // ██║  ███╗███████║██╔████╔██║█████╗  
@@ -71,52 +85,56 @@ var DT = (function () {
                 return (this.value + this.changer) / 60;
             }
         };
-        this.gameWasStarted = false;
-        this.gameWasPaused = false;
-        this.gameWasOver = false;
+        this.wasStarted = false;
+        this.wasPaused = false;
+        this.wasOver = false;
         this.wasMuted = false;
-        this.id = null;
-        this.lastTimeMsec = null;
+        this.timer = 0;
     };
     DT.Game.prototype.startGame = function() {
-        var self = this;
-        requestAnimFrame(function animate(nowMsec) {
-            var deltaMsec = Math.min(200, nowMsec - DT.game.lastTimeMsec);
-            // keep looping
-            self.id = requestAnimFrame(animate);
-            // measure time
-            self.lastTimeMsec = self.lastTimeMsec || nowMsec - 1000 / 60;
-            self.lastTimeMsec = nowMsec;
-            // call each update function
-            DT.onRenderFcts.forEach(function(onRenderFct) {
-                onRenderFct(deltaMsec / 1000, nowMsec / 1000);
-            });
-        });
-        if (!this.gameWasStarted) {
+        requestAnimFrame(DT.animate);
+        if (!this.wasStarted) {
             $(document).trigger('startGame', {});
             DT.initKeyboardControl();
         }
     };
+
+    DT.Game.prototype.updateTimer = function () {
+        this.timer += 1;
+        if (this.timer % 60 === 0) {
+            var sec, min;
+            sec = this.timer / 60;
+            min = Math.floor(sec / 60);
+            sec = sec % 60;
+            sec = sec < 10 ? '0' + sec.toString() : sec;
+            $('.gameTimer').html(min + ':' + sec);
+            $('title').html(min + ':' + sec + ' in digital trip');
+        }
+    };
     DT.Game.prototype.update = function() {
-        $(document).trigger('update', {});
+        this.updateTimer();
+    };
+    DT.Game.prototype.reset = function() {
+        $(document).trigger('resetGame', {});
+        this.timer = 0;
     };
     DT.pauseOn = function () {
-        if (!DT.game.gameWasPaused) {
+        if (!DT.game.wasPaused) {
             $('.menu_page').css({'display': 'table'});
             DT.stopSoundBeforPause();
             DT.audio.sounds.pause.play();
-            cancelAnimFrame(DT.game.id);
-            DT.game.gameWasPaused = true;
+            cancelAnimFrame(DT.animate.id);
+            DT.game.wasPaused = true;
         }
     };
 
     DT.pauseOff = function () {
-        if (DT.game.gameWasPaused) {
+        if (DT.game.wasPaused) {
             $('.menu_page').css({'display': 'none'});
             DT.playSoundAfterPause();
             DT.audio.sounds.pause.play();
             DT.game.startGame();
-            DT.game.gameWasPaused = false;
+            DT.game.wasPaused = false;
         }
     };
     DT.game = new DT.Game();
@@ -129,7 +147,7 @@ var DT = (function () {
             }
         });
         $(window).blur(function() {
-            if (DT.game.gameWasStarted && !DT.game.gameWasPaused && !DT.game.gameWasOver) {
+            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
                 DT.handlers.pause();
             }
             DT.setVolume(0);
@@ -252,7 +270,6 @@ var DT = (function () {
         this.destPoint = {x: 0, y: -2.5};
         this.isInvulnerability = false;
         this.isFun = false;
-        this.jump = false;
         return this;
     };
 
@@ -261,10 +278,11 @@ var DT = (function () {
         currentScore: 0,
         destPoint: {x: 0, y: -2.5},
         isInvulnerability: false,
-        isFun: false,
-        jump: false
+        isFun: false
     });
-
+    $(document).on('update', function (e, data) {
+        DT.player.update();
+    });
 
     // TODO: передедать коллекции
     DT.collections = {
@@ -296,6 +314,13 @@ var DT = (function () {
             paused: []
         }
     };
+    DT.audio.reset = function () {
+        DT.audio.music.startedAt = [];
+        DT.audio.music.pausedAt = [];
+        DT.audio.music.stopped = [];
+        DT.audio.music.paused = [];
+        DT.audio.music.started = [];
+    };
 
     DT.renderer = new THREE.WebGLRenderer();
 
@@ -304,8 +329,6 @@ var DT = (function () {
     DT.scene = new THREE.Scene();
 
     DT.composer = null; // not use
-    // TODO: сделать обну функцию для обновления состояния
-    DT.onRenderFcts = [];
     // TODO: объединить с объектом player
     DT.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
     
@@ -315,6 +338,11 @@ var DT = (function () {
         sphereLightning: new THREE.PointLight(0xff0000, 0.75, 7.5),
         directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
     };
+    $(document).on('update', function (e, data) {
+        DT.moveSphere(DT.sphere, DT.player.destPoint, 3);
+        DT.lights.sphereLight.position.x = DT.sphere.position.x;
+        DT.lights.sphereLight.position.y = DT.sphere.position.y;
+    });
 
  // ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██████╗      ██╗███████╗ ██████╗████████╗
 // ██╔════╝ ██╔══██╗████╗ ████║██╔════╝    ██╔═══██╗██╔══██╗     ██║██╔════╝██╔════╝╚══██╔══╝
@@ -519,6 +547,18 @@ var DT = (function () {
         geometry: new THREE.Geometry({}),
         material: new THREE.ParticleSystemMaterial({size: 0.25}),
         THREEConstructor: THREE.ParticleSystem
+    });
+    $(document).on('update', function (e, data) {
+        DT.dust.update({
+            material: {
+                isFun: DT.player.isFun,
+                valueAudio: DT.audio.valueAudio,
+                color: DT.sphere.material.color
+            }, 
+            geometry: {
+                speed: DT.game.speed.getValue()
+            }
+        });
     });
 
 // ███████╗████████╗ ██████╗ ███╗   ██╗███████╗
@@ -842,6 +882,17 @@ var DT = (function () {
         }
         return this;
     };
+    $(document).on('update', function (e, data) {
+        new DT.Stones()
+            .createObjects({
+                spawnCoord: DT.game.param.spawnCoord,
+            })
+            .update({
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
+                sphere: DT.sphere
+            });
+    });
 
     DT.Coins = function () {
         if (!DT.Coins.__instance) {
@@ -867,6 +918,21 @@ var DT = (function () {
         }
         return this;
     };
+    $(document).on('update', function (e, data) {
+        new DT.Coins()
+            .createObjects({
+                x: DT.genCoord(),
+                y: -2.5,
+                spawnCoord: DT.game.param.spawnCoord,
+                zAngle: 0,
+                number: 10
+            })
+            .update({
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
+                sphere: DT.sphere
+            });
+    });
 
     DT.Bonuses = function (options) {
         if (!DT.Bonuses.__instance) {
@@ -890,6 +956,19 @@ var DT = (function () {
         }
         return this;
     };
+    $(document).on('update', function (e, data) {
+        new DT.Bonuses()
+            .createObjects({
+                x: DT.genCoord(),
+                y: -2.5,
+                spawnCoord: DT.game.param.spawnCoord,
+            })
+            .update({
+                dieCoord: DT.game.param.dieCoord,
+                opacityCoord: DT.game.param.opacityCoord,
+                sphere: DT.sphere
+            });
+    });
 
     DT.useBonuses = function (type) {
         // helth
@@ -987,19 +1066,22 @@ var DT = (function () {
         DT.blink.framesLeft -= 1;
         },
     };
+    $(document).on('update', function (e, data) {
+        DT.blink.update();
+    });
 
     DT.bgTexture = THREE.ImageUtils.loadTexture('img/bg.jpg');
     DT.handlers = {};
-    DT.snapshot = null; // for restart
+    // DT.snapshot = null; // for restart
     DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://192.168.1.36';
 
-// ████████╗██████╗ ██╗ ██████╗  ██████╗ ███████╗██████╗ ███████╗
-// ╚══██╔══╝██╔══██╗██║██╔════╝ ██╔════╝ ██╔════╝██╔══██╗██╔════╝
-   // ██║   ██████╔╝██║██║  ███╗██║  ███╗█████╗  ██████╔╝███████╗
-   // ██║   ██╔══██╗██║██║   ██║██║   ██║██╔══╝  ██╔══██╗╚════██║
-   // ██║   ██║  ██║██║╚██████╔╝╚██████╔╝███████╗██║  ██║███████║
-   // ╚═╝   ╚═╝  ╚═╝╚═╝ ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝
-                                                              
+// ██╗     ██╗███████╗████████╗███████╗███╗   ██╗███████╗██████╗ ███████╗
+// ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝
+// ██║     ██║███████╗   ██║   █████╗  ██╔██╗ ██║█████╗  ██████╔╝███████╗
+// ██║     ██║╚════██║   ██║   ██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗╚════██║
+// ███████╗██║███████║   ██║   ███████╗██║ ╚████║███████╗██║  ██║███████║
+// ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚══════╝
+                                                                      
     $(document).on('changeScore', function (e, data) {
         $('.current_coins').text(data.score);
     });
@@ -1021,17 +1103,14 @@ var DT = (function () {
         }
     });
     $(document).on('resetGame', function (e, data) {
-        DT.game.reset();
-        DT.player.reset();
+
     });
     $(document).on('startGame', function (e, data) {
-        // for stats
-        setStats();
-        // for timer
+        DT.setStats();
         $('.gameTimer').css({'display': 'block'});
     });
     $(document).on('update', function (e, data) {
-        // update
+        DT.game.update();
     });
 
 // ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
@@ -1068,7 +1147,7 @@ var DT = (function () {
         }
     };
     DT.handlers.pause = function () {
-        if (DT.game.gameWasPaused) {
+        if (DT.game.wasPaused) {
             DT.pauseOff();
         } else {
             DT.pauseOn();
@@ -1092,34 +1171,22 @@ var DT = (function () {
         DT.changeDestPoint(0, 1, DT.player.destPoint);
     };
     DT.handlers.restart = function () {
-        $('.game_over').hide();
-        var iterator = function (el) {
-            DT.scene.remove(el);
-        };
-        for (var collection in DT.collections) {
-            if (DT.collections.hasOwnProperty(collection)) {
-                DT.collections[collection].forEach(iterator);
-            }
-        }
+        DT.game.reset();
         DT.player.reset();
         $('.current_coins').html('0');
         $('.bonus').html('');
         $('.gameTimer').html('0:00');
         $('.helth').css({width: '100%'});
-        DT.game.speed = $.extend(true, {}, DT.snapshot.speed);
-        DT.collections = $.extend(true, {}, DT.snapshot.collections);
-        DT.gameTimer = 0;
-        // DT.game.gameWasStarted = false;
-        DT.audio.music.startedAt = [];
-        DT.audio.music.pausedAt = [];
-        DT.audio.music.stopped = [];
-        DT.audio.music.paused = [];
-        DT.audio.music.started = [];
-        DT.game.startGame();
-        DT.playSound(0);
+        $('.game_over').hide();
         $(document).bind('keyup', DT.handlers.pauseOnSpace);
         $(document).unbind('keyup', DT.handlers.restartOnSpace);
         $('#one_more_time').unbind('click');
+        DT.collections = {
+            caughtBonuses: []
+        };
+        DT.audio.reset();
+        DT.game.startGame();
+        DT.playSound(0);
     };
 
 // ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗    ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
@@ -1169,7 +1236,7 @@ var DT = (function () {
     };
     // game
     DT.gameOver = function() {
-        DT.game.gameWasOver = true;
+        DT.game.wasOver = true;
         clearTimeout(DT.player.isFun);
         DT.stopSound(0);
         DT.stopSound(1);
@@ -1181,7 +1248,7 @@ var DT = (function () {
             // $(document).unbind('keydown').unbind('keyup');
         });
         setTimeout(function() {
-            cancelAnimFrame(DT.game.id);
+            cancelAnimFrame(DT.animate.id);
         }, 300);
         DT.sendSocketMessage('gameover');
         DT.prepareToRestart();
@@ -1273,12 +1340,12 @@ var DT = (function () {
     };
     // game
     DT.startAfterChooseControl = function () {
-        if (!DT.game.gameWasStarted) {
+        if (!DT.game.wasStarted) {
             DT.game.startGame();
             DT.stopSound(2);
             DT.playSound(0);
             $('.choose_control').fadeOut(250);
-            DT.game.gameWasStarted = true;
+            DT.game.wasStarted = true;
             DT.sendSocketMessage('gamestarted');
         }
         $(document).unbind('keyup',DT.handlers.startOnSpace);
@@ -1338,8 +1405,7 @@ var DT = (function () {
         var context,
             counter = 0,
             buffers = [], sources=[], destination, analysers = [],
-            freqDomain = [],
-            onRenderFcts = DT.onRenderFcts;
+            freqDomain = [];
         var audio = new Audio();
         var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs=\'vorbis\'') !== '';
         console.log('canPlayOgg', canPlayOgg);
@@ -1379,7 +1445,7 @@ var DT = (function () {
                 sources[index].connect(gainNodes[index]);
                 gainNodes[index].connect(analysers[index]);
                 analysers[index].connect(destination);
-                onRenderFcts.push(function() {
+                $(document).on('update', function (e, data) {
                     visualize(index);
                 });
                 DT.audio.music.stopped[index] = false;
@@ -1590,7 +1656,7 @@ var DT = (function () {
                 }
             });
             $(document).keyup(DT.handlers.pauseOnSpace);
-            DT.game.gameWasStarted = true;
+            DT.game.wasStarted = true;
         };
             // WEBCAM CONTROL
         DT.enableWebcam = function () {
@@ -1638,7 +1704,7 @@ var DT = (function () {
             //         console.log(statusMessages[event.status]);
             //         $('.message').html(statusMessages[event.status])
             //     }
-            //     if (event.status === 'found' && !DT.game.gameWasStarted) {
+            //     if (event.status === 'found' && !DT.game.wasStarted) {
                     // DT.startAfterChooseControl();
             //     }
             // }, true);
@@ -1764,7 +1830,7 @@ var DT = (function () {
         buttons.push( buttonData3 );
         
         // start the loop
-        DT.onRenderFcts.push(function () {
+        $(document).on('update', function (e, data) {
             render();
             blend();
             checkAreas();
@@ -1890,18 +1956,9 @@ var DT = (function () {
             DT.handlers[click]();
         });
     };
-    DT.updateGameTimer = function (timer) {
-            var sec, min;
-            sec = timer / 60;
-            min = Math.floor(sec / 60);
-            sec = sec % 60;
-            sec = sec < 10 ? '0' + sec.toString() : sec;
-            $('.gameTimer').html(min + ':' + sec);
-            $('title').html(min + ':' + sec + ' in digital trip');
-        };
     });
     // STATS
-    var setStats = function () {
+    DT.setStats = function () {
         var body = document.getElementsByTagName('body')[0];
         DT.stats = DT.stats|| new Stats();
         DT.stats.domElement.style.position = 'absolute';
@@ -1916,5 +1973,137 @@ var DT = (function () {
         DT.stats2.domElement.style.zIndex = 100;
         body.appendChild( DT.stats2.domElement );
     };
+    // when resize
+    var winResize = new THREEx.WindowResize(DT.renderer, DT.camera),
+        dieCoord = DT.game.param.dieCoord,
+        lens,
+        emitter,
+        fragmentsPosition = {x: -1000, y: 0, z: 0},
+        fragmentsCounter = 0;
+
+    // DT.renderer
+    DT.renderer.setSize(window.innerWidth, window.innerHeight);
+    DT.renderer.physicallyBasedShading = true;
+    document.body.appendChild(DT.renderer.domElement);
+
+    // DT.camera
+    DT.camera.position.set(0, 0.5, 15);
+    DT.camera.position.z = DT.camera.z = 15;
+    lens = DT.camera.lens = 35;
+
+    // DT.sphere
+    DT.sphere.position.set(0, -2.5, 0);
+
+    // DT.lights
+    DT.lights.light.position.set(0, 0, -1);
+    DT.scene.add(DT.lights.light);
+
+    DT.lights.sphereLight.position.set(0, 0, 0);
+    DT.scene.add(DT.lights.sphereLight);
+
+    DT.lights.directionalLight.position.set(0, 0, 1);
+    DT.scene.add(DT.lights.directionalLight);
+
+    // DT.dust
+    DT.dust.createAndAdd();
+
+    // create the emitter for sphere tail
+    emitter = Fireworks.createEmitter({nParticles : 100})
+        .effectsStackBuilder()
+            .spawnerSteadyRate(25)
+            .position(Fireworks.createShapePoint(0, 0, 0))
+            .velocity(Fireworks.createShapePoint(0, 0, 2))
+            .lifeTime(0.7, 0.7)
+            .randomVelocityDrift(Fireworks.createVector(0, 0, 0))
+            .renderToThreejsParticleSystem({
+                particleSystem  : function(emitter){
+                    var i,
+                        geometry    = new THREE.Geometry(),
+                        texture = Fireworks.ProceduralTextures.buildTexture(),
+                        material    = new THREE.ParticleBasicMaterial({
+                            color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
+                            size        : 100,
+                            sizeAttenuation : false,
+                            vertexColors    : true,
+                            map     : texture,
+                            blending    : THREE.AdditiveBlending,
+                            depthWrite  : false,
+                            transparent : true
+                        }),
+                        particleSystem = new THREE.ParticleSystem(geometry, material);
+                        particleSystem.dynamic  = true;
+                        particleSystem.sortParticles = true;
+                    // init vertices
+                    for(i = 0; i < emitter.nParticles(); i++){
+                        geometry.vertices.push( new THREE.Vector3() );
+                    }
+                    // init colors
+                    geometry.colors = new Array(emitter.nParticles());
+                    for(i = 0; i < emitter.nParticles(); i++){
+                        geometry.colors[i]  = DT.sphere.material.color;
+                    }
+                    
+                    DT.scene.add(particleSystem);
+                    particleSystem.position = DT.sphere.position;
+                    return particleSystem;
+                }
+            }).back()
+        .start();
+
+    // EFFECT
+    // var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
+    var effect = new THREE.AnaglyphEffect( DT.renderer );
+
+    // EMITTER Particle system - sphere tail
+    $(document).on('update', function (e, data) {
+        emitter._particles.forEach(function(el) {
+            el.velocity.vector.z += DT.audio.valueAudio/28;
+        });
+    });
+    // render the scene
+    $(document).on('update', function (e, data) {
+        DT.renderer.render(DT.scene, DT.camera);
+        if (DT.player.isFun) {
+            effect.render(DT.scene, DT.camera);
+            effect.setSize( window.innerWidth, window.innerHeight );
+        }
+        if (!DT.backgroundMesh.visible) {
+            DT.backgroundMesh.visible = true;
+        }
+        emitter.update(data.delta).render();
+        DT.stats.update();
+        DT.stats2.update();
+        DT.game.speed.increase();
+        if ( DT.animation ) {
+            DT.animation.update( data.delta*1000 );
+        }
+    });
+    // LENS
+    $(document).on('update', function (e, data) {
+        var camOffset = 6, camDelta = 0.1,
+            lensOffset = 18, lensDelta = 0.3;
+        // var composer = DT.composer;
+        if (DT.game.speed.getChanger() > 0) {
+            DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
+            lens = Math.max(lens -= lensDelta, DT.camera.lens - lensOffset);
+            // composer.render();
+        } else if (DT.game.speed.getChanger() < 0) {
+            DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
+            lens = Math.min(lens += lensDelta, DT.camera.lens + lensOffset);
+            // composer.render();
+        } else {
+            var delta = DT.camera.lens - lens;
+            if (delta < 0) {
+                
+                DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
+                lens = Math.max(lens -= lensDelta, DT.camera.lens);
+            } else {
+                
+                DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
+                lens = Math.min(lens += lensDelta, DT.camera.lens);
+            }
+        }
+        DT.camera.setLens(lens);
+    });
     return DT;
 } ());

@@ -1879,7 +1879,6 @@ var DT = (function () {
         function threshold(value) {
             return (value > 0x15) ? 0xFF : 0;
         }
-        
             // check if white region from blend overlaps area of interest (e.g. handlers)
         function checkAreas() {
             var b, l = buttons.length;
@@ -1905,7 +1904,6 @@ var DT = (function () {
             }
         }
     };
-
     DT.initPhoneControl = function() {
         $('.message').html('Please open <span style=\'color: red\'>' + DT.server +'/m</span> with your phone and enter code <span style=\'font-weight:bold; color: red\' id=\'socketId\'></span>');
         $('#socketId').html(DT.initSocket.socket.gameCode);

@@ -76,7 +76,7 @@ var DT = (function () {
     DT.genRandomBetween = function (min, max) {
         return Math.random() * (max - min) + min;
     };
-    DT.getSign = function () {
+    DT.genRandomSign = function () {
         var signVal = Math.random() - 0.5;
         return Math.abs(signVal)/signVal;
     };
@@ -121,6 +121,7 @@ var DT = (function () {
     };
     DT.lights.light.position.set(0, 0, -1);
     DT.scene.add(DT.lights.light);
+
     DT.lights.directionalLight.position.set(0, 0, 1);
     DT.scene.add(DT.lights.directionalLight);
 
@@ -161,23 +162,18 @@ var DT = (function () {
     $(document).on('update', function (e, data) {
         var camOffset = 6, camDelta = 0.1,
             lensOffset = 18, lensDelta = 0.3;
-        // var composer = DT.composer;
         if (DT.game.speed.getChanger() > 0) {
             DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
             lens = Math.max(lens -= lensDelta, DT.camera.lens - lensOffset);
-            // composer.render();
         } else if (DT.game.speed.getChanger() < 0) {
             DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
             lens = Math.min(lens += lensDelta, DT.camera.lens + lensOffset);
-            // composer.render();
         } else {
             var delta = DT.camera.lens - lens;
             if (delta < 0) {
-                
                 DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
                 lens = Math.max(lens -= lensDelta, DT.camera.lens);
             } else {
-                
                 DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
                 lens = Math.min(lens += lensDelta, DT.camera.lens);
             }
@@ -194,30 +190,27 @@ var DT = (function () {
             [  0, -1,  t ], [  0, 1, t ], [  0, -1, -t ], [  0,  1, -t ],
             [  t,  0, -1 ], [  t, 0, 1 ], [ -t,  0, -1 ], [ -t,  0,  1 ]
         ];
-    
-            vertices = vertices.map(function(el) {
+        vertices = vertices.map(function(el) {
             return el.map(function(el) {
                 return el * Math.random();
             });
         });
-    
-            var faces = [
+        var faces = [
             [ 0, 11,  5 ], [ 0,  5,  1 ], [  0,  1,  7 ], [  0,  7, 10 ], [  0, 10, 11 ],
             [ 1,  5,  9 ], [ 5, 11,  4 ], [ 11, 10,  2 ], [ 10,  7,  6 ], [  7,  1,  8 ],
             [ 3,  9,  4 ], [ 3,  4,  2 ], [  3,  2,  6 ], [  3,  6,  8 ], [  3,  8,  9 ],
             [ 4,  9,  5 ], [ 2,  4, 11 ], [  6,  2, 10 ], [  8,  6,  7 ], [  9,  8,  1 ]
         ];
         THREE.PolyhedronGeometry.call( this, vertices, faces, radius, detail );
-    
-        };
-    THREE.IcosahedronGeometry.prototype = Object.create( THREE.Geometry.prototype );
+    };
+    THREE.IcosahedronGeometry.prototype = Object.create(THREE.Geometry.prototype);
 
-// ██████╗ ██████╗     ███╗   ███╗ ██████╗ ██████╗ ███████╗██╗     
-// ╚════██╗██╔══██╗    ████╗ ████║██╔═══██╗██╔══██╗██╔════╝██║     
- // █████╔╝██║  ██║    ██╔████╔██║██║   ██║██║  ██║█████╗  ██║     
- // ╚═══██╗██║  ██║    ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ██║     
-// ██████╔╝██████╔╝    ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗███████╗
-// ╚═════╝ ╚═════╝     ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝
+// ███████╗██╗  ██╗████████╗███████╗██████╗ ███╗   ██╗ █████╗ ██╗         ███╗   ███╗ ██████╗ ██████╗ ███████╗██╗     ███████╗
+// ██╔════╝╚██╗██╔╝╚══██╔══╝██╔════╝██╔══██╗████╗  ██║██╔══██╗██║         ████╗ ████║██╔═══██╗██╔══██╗██╔════╝██║     ██╔════╝
+// █████╗   ╚███╔╝    ██║   █████╗  ██████╔╝██╔██╗ ██║███████║██║         ██╔████╔██║██║   ██║██║  ██║█████╗  ██║     ███████╗
+// ██╔══╝   ██╔██╗    ██║   ██╔══╝  ██╔══██╗██║╚██╗██║██╔══██║██║         ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ██║     ╚════██║
+// ███████╗██╔╝ ██╗   ██║   ███████╗██║  ██║██║ ╚████║██║  ██║███████╗    ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗███████╗███████║
+// ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
     DT.listOfModels = [
         {
@@ -238,36 +231,31 @@ var DT = (function () {
     ];
     // LOADER
     var loader = new THREE.JSONLoader(true), // init the loader util
-        loadModel,
-        listOfModels = DT.listOfModels;
+        loadModel;
     
         // init loading
     loadModel = function(modelObj) {
         loader.load('js/models/' + modelObj.name + '.js', function (geometry, materials) {
-        // create a new material
-        if (modelObj.name === 'bonusE') {
-            modelObj.material = new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } );
-            modelObj.material.emissive.r = modelObj.material.color.r * 0.5;
-            modelObj.material.emissive.g = modelObj.material.color.g * 0.5;
-            modelObj.material.emissive.b = modelObj.material.color.b * 0.5;
-        } else {
-            modelObj.material = new THREE.MeshFaceMaterial( materials );
-            // shining of bonuses
-            modelObj.material.materials.forEach(function (el) {
-                el.emissive.r = el.color.r * 0.5;
-                el.emissive.g = el.color.g * 0.5;
-                el.emissive.b = el.color.b * 0.5;
-            });
-        }
-    
+            // create a new material
+            if (modelObj.name === 'bonusE') {
+                modelObj.material = new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } );
+                modelObj.material.emissive.r = modelObj.material.color.r * 0.5;
+                modelObj.material.emissive.g = modelObj.material.color.g * 0.5;
+                modelObj.material.emissive.b = modelObj.material.color.b * 0.5;
+            } else {
+                modelObj.material = new THREE.MeshFaceMaterial( materials );
+                // shining of bonuses
+                modelObj.material.materials.forEach(function (el) {
+                    el.emissive.r = el.color.r * 0.5;
+                    el.emissive.g = el.color.g * 0.5;
+                    el.emissive.b = el.color.b * 0.5;
+                });
+            }
             modelObj.geometry = geometry;
-    
-            });
+        });
         return modelObj;
     };
-    listOfModels.map(function(el) {
-        loadModel(el);
-    });
+    DT.listOfModels.map(loadModel);
 
 // ███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗
 // ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
@@ -639,8 +627,8 @@ var DT = (function () {
         if (this.isInvulnerability) return;
         for (var i = 0; i < 2; i++) {
             amp = amp || 0.15;
-            this.sphere.position.x += DT.getSign() * amp;
-            this.sphere.position.y += DT.getSign() * amp;
+            this.sphere.position.x += DT.genRandomSign() * amp;
+            this.sphere.position.y += DT.genRandomSign() * amp;
         }
         return this;
      };

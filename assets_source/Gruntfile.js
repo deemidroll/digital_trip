@@ -28,15 +28,16 @@ module.exports = function(grunt) {
                 tasks: ['newer:sass'],
             },
             js: {
-                files: ['js/*.js', 'js/vendor/*.js'],
+                files: ['js/*.js', 'js/*/*.js'],
                 tasks: ['process'],
-            },
-            gruntfile: {
-                files: ['Gruntfile.js'],
             },
             html: {
                 files: '../game/*.html',
-            }
+            },
+            // config: {
+            //     files: ['package.json', 'Gruntfile.js'],
+            //     tasks: ['exit']
+            // },
         },
         concat_sourcemap: {
             options: {
@@ -52,7 +53,6 @@ module.exports = function(grunt) {
                         'js/vendor/webaudio.js',
                         // 'js/vendor/headtrackr.js',
                         'js/vendor/THREEx.FullScreen.js',
-                        // 'js/vendor/ParallaxBarrierEffect.js',
                         'js/vendor/AnaglyphEffect.js',
                         'js/init.js',
                         'js/main.js',
@@ -65,7 +65,7 @@ module.exports = function(grunt) {
                 options: {
                     sourceMap: true,
                     sourceMapIncludeSources: true,
-                    sourceMapIn: '../assets/js/game.js.map',
+                    sourceMapIn: '../assets_source/js/game.js.map',
                     banner: '/* Created by deemidroll | deemidroll@gmail.com | 2014 */',
                 },
                 files: {

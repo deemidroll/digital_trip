@@ -2623,6 +2623,50 @@ var DT = (function () {
             );
         }();
 
+// ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗    ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
+// ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝    ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
+// ███████╗█████╗  ██████╔╝██║   ██║██║██║     █████╗      █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║
+// ╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██║██║     ██╔══╝      ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║
+// ███████║███████╗██║  ██║ ╚████╔╝ ██║╚██████╗███████╗    ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
+// ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚═╝ ╚═════╝╚══════╝    ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+                                                                                                                          
+    DT.getCookie = function (name) {
+        var matches = document.cookie.match(
+            new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)')
+        );
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+    };
+    DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
+        return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
+    };
+    DT.genCoord = function (delta) {
+        var offset = delta || DT.game.param.spacing,
+        x = Math.random() * offset * 2 - offset,
+        absX = Math.abs(x);
+        if (absX <= offset && absX >= offset * 0.33 ) {
+            if (x > 0) {
+                return offset;
+            }
+            if (x < 0) {
+                return offset * -1;
+            }
+        } else {
+            return 0;
+        }
+    };
+    DT.genRandomFloorBetween = function (min, max) {
+        var rand = min - 0.5 + Math.random()*(max-min+1);
+        rand = Math.round(rand);
+        return rand;
+    };
+    DT.genRandomBetween = function (min, max) {
+        return Math.random() * (max - min) + min;
+    };
+    DT.getSign = function () {
+        var signVal = Math.random() - 0.5;
+        return Math.abs(signVal)/signVal;
+    };
+
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
         DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
@@ -2637,6 +2681,119 @@ var DT = (function () {
             now: nowMsec / 1000
         });
     };
+
+// ████████╗██╗  ██╗██████╗ ███████╗███████╗    ██╗    ██╗ ██████╗ ██████╗ ██╗     ██████╗ 
+// ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔════╝    ██║    ██║██╔═══██╗██╔══██╗██║     ██╔══██╗
+   // ██║   ███████║██████╔╝█████╗  █████╗      ██║ █╗ ██║██║   ██║██████╔╝██║     ██║  ██║
+   // ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══╝      ██║███╗██║██║   ██║██╔══██╗██║     ██║  ██║
+   // ██║   ██║  ██║██║  ██║███████╗███████╗    ╚███╔███╔╝╚██████╔╝██║  ██║███████╗██████╔╝
+   // ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝ 
+                                                                                        
+    DT.renderer = new THREE.WebGLRenderer();
+    DT.renderer.setSize(window.innerWidth, window.innerHeight);
+    DT.renderer.physicallyBasedShading = true;
+    document.body.appendChild(DT.renderer.domElement);
+
+    DT.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300);
+    DT.camera.position.set(0, 0.5, 15);
+    DT.camera.position.z = DT.camera.z = 15;
+    var lens = DT.camera.lens = 35;
+
+    DT.scene = new THREE.Scene();
+    
+    DT.lights = {
+        light: new THREE.PointLight(0xffffff, 0.75, 100),
+        directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
+    };
+    DT.lights.light.position.set(0, 0, -1);
+    DT.scene.add(DT.lights.light);
+    DT.lights.directionalLight.position.set(0, 0, 1);
+    DT.scene.add(DT.lights.directionalLight);
+
+   // when resize
+    var winResize = new THREEx.WindowResize(DT.renderer, DT.camera);
+
+    // EFFECT
+    DT.effect = new THREE.AnaglyphEffect(DT.renderer);
+
+    // TODO: refactor
+    // render the scene
+    $(document).on('update', function (e, data) {
+        DT.renderer.render(DT.scene, DT.camera);
+        if (DT.player.isFun) {
+            DT.effect.render(DT.scene, DT.camera);
+            DT.effect.setSize( window.innerWidth, window.innerHeight );
+        }
+        if (!DT.backgroundMesh.visible) {
+            DT.backgroundMesh.visible = true;
+        }
+        if ( DT.animation ) {
+            DT.animation.update( data.delta*1000 );
+        }
+    });
+    // LENS
+    $(document).on('update', function (e, data) {
+        var camOffset = 6, camDelta = 0.1,
+            lensOffset = 18, lensDelta = 0.3;
+        // var composer = DT.composer;
+        if (DT.game.speed.getChanger() > 0) {
+            DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
+            lens = Math.max(lens -= lensDelta, DT.camera.lens - lensOffset);
+            // composer.render();
+        } else if (DT.game.speed.getChanger() < 0) {
+            DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
+            lens = Math.min(lens += lensDelta, DT.camera.lens + lensOffset);
+            // composer.render();
+        } else {
+            var delta = DT.camera.lens - lens;
+            if (delta < 0) {
+                
+                DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
+                lens = Math.max(lens -= lensDelta, DT.camera.lens);
+            } else {
+                
+                DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
+                lens = Math.min(lens += lensDelta, DT.camera.lens);
+            }
+        }
+        DT.camera.setLens(lens);
+    });
+
+// ███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗
+// ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
+// █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ███████╗
+// ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ╚════██║
+// ███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ███████║
+// ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
+                                                    
+    DT.events = {
+        'startGame'     : 'custom',
+        'pauseGame'     : 'custom',
+        'resumeGame'    : 'custom',
+        'resetGame'     : 'custom',
+        'update'        : 'custom',
+        'changeSpeed'   : 'custom',
+        'makeFun'       : 'custom',
+        'stopFun'       : 'custom',
+        'changeHelth'   : 'custom',
+        'showHelth'     : 'custom',
+        'changeScore'   : 'custom',
+        'showScore'     : 'custom',
+        'blink'         : 'custom',
+        'focus'         : 'native',
+        'blur'          : 'native',
+    };
+
+    $(document).on('startGame', function (e, data) {
+        DT.animate.id = requestAnimFrame(DT.animate);
+    });
+    $(document).on('pauseGame', function () {
+        cancelAnimFrame(DT.animate.id);
+    });
+    $(document).on('resumeGame', function (e, data) {
+        DT.animate.id = requestAnimFrame(DT.animate);
+    });
+
  // ██████╗  █████╗ ███╗   ███╗███████╗
 // ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
 // ██║  ███╗███████║██╔████╔██║█████╗  
@@ -2678,11 +2835,7 @@ var DT = (function () {
         this.timer = 0;
     };
     DT.Game.prototype.startGame = function() {
-        requestAnimFrame(DT.animate);
-        if (!this.wasStarted) {
-            $(document).trigger('startGame', {});
-            DT.initKeyboardControl();
-        }
+        this.wasStarted = true;
     };
 
     DT.Game.prototype.updateTimer = function () {
@@ -2699,45 +2852,30 @@ var DT = (function () {
     };
     DT.Game.prototype.update = function() {
         this.updateTimer();
+        this.speed.increase();
     };
     DT.Game.prototype.reset = function() {
         $(document).trigger('resetGame', {});
         this.timer = 0;
     };
-    DT.pauseOn = function () {
-        if (!DT.game.wasPaused) {
-            $('.menu_page').css({'display': 'table'});
-            DT.stopSoundBeforPause();
-            DT.audio.sounds.pause.play();
-            cancelAnimFrame(DT.animate.id);
-            DT.game.wasPaused = true;
-        }
-    };
 
-    DT.pauseOff = function () {
-        if (DT.game.wasPaused) {
-            $('.menu_page').css({'display': 'none'});
-            DT.playSoundAfterPause();
-            DT.audio.sounds.pause.play();
-            DT.game.startGame();
-            DT.game.wasPaused = false;
-        }
-    };
     DT.game = new DT.Game();
 
-    // focus and blur events
-    $(function() {
-        $(window).focus(function() {
-            if (!DT.game.wasMuted) {
-                DT.setVolume(1);
-            }
-        });
-        $(window).blur(function() {
-            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
-                DT.handlers.pause();
-            }
-            DT.setVolume(0);
-        });
+    $(document).on('startGame', function (e, data) {
+        DT.game.startGame();
+    });
+    $(document).on('pauseGame', function () {
+        DT.game.wasPaused = true;
+    });
+    $(document).on('resumeGame', function (e, data) {
+        DT.game.wasPaused = false;
+        DT.game.startGame();
+    });
+    $(document).on('update', function (e, data) {
+        DT.game.update();
+    });
+    $(document).on('changeSpeed', function (e, data) {
+        DT.game.speed.setChanger(data.changer);
     });
 
 // ██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗ 
@@ -2753,6 +2891,8 @@ var DT = (function () {
         } else {
             return DT.Player.__instance;
         }
+        var self = this;
+        this.scene = options.scene || DT.scene;
         this.currentHelth = options.currentHelth || 100;
         this.currentScore = options.currentScore || 0;
         this.destPoint = options.destPoint || {x: 0, y: 0};
@@ -2760,6 +2900,91 @@ var DT = (function () {
         this.isFun = options.isFun || false;
         this.invulnerTimer = null;
         this.funTimer = null;
+        this.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
+        this.sphere.position.set(0, -2.5, 0);
+        this.light = new THREE.PointLight(0xff0000, 1.75, 15);
+        this.light.position.set(0, 0, 0);
+        this.light.color = this.sphere.material.color;
+        this.scene.add(this.light);
+        this.blink = {
+            color: new THREE.Color('red'),
+            frames: 0,
+            framesLeft: 0,
+            dr: 0,
+            dg: 0,
+            db: 0,
+            doBlink: function (color, frames) {
+                var defClr = {r: 1, g: 0, b: 0};
+                this.color = new THREE.Color(color);
+                this.frames = frames;
+                this.framesLeft = frames;
+                this.dr = (defClr.r - this.color.r)/frames;
+                this.dg = (defClr.g - this.color.g)/frames;
+                this.db = (defClr.b - this.color.b)/frames;
+
+            },
+        };
+        this.emitter = Fireworks.createEmitter({nParticles : 100})
+        .effectsStackBuilder()
+            .spawnerSteadyRate(25)
+            .position(Fireworks.createShapePoint(0, 0, 0))
+            .velocity(Fireworks.createShapePoint(0, 0, 2))
+            .lifeTime(0.7, 0.7)
+            .randomVelocityDrift(Fireworks.createVector(0, 0, 0))
+            .renderToThreejsParticleSystem({
+                particleSystem  : function(emitter){
+                    var i,
+                        geometry    = new THREE.Geometry(),
+                        texture = Fireworks.ProceduralTextures.buildTexture(),
+                        material    = new THREE.ParticleBasicMaterial({
+                            color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
+                            size        : 100,
+                            sizeAttenuation : false,
+                            vertexColors    : true,
+                            map     : texture,
+                            blending    : THREE.AdditiveBlending,
+                            depthWrite  : false,
+                            transparent : true
+                        }),
+                        particleSystem = new THREE.ParticleSystem(geometry, material);
+                        particleSystem.dynamic  = true;
+                        particleSystem.sortParticles = true;
+                    // init vertices
+                    for(i = 0; i < emitter.nParticles(); i++){
+                        geometry.vertices.push( new THREE.Vector3() );
+                    }
+                    // init colors
+                    geometry.colors = new Array(emitter.nParticles());
+                    for(i = 0; i < emitter.nParticles(); i++){
+                        geometry.colors[i]  = self.sphere.material.color;
+                    }
+                    
+                    self.scene.add(particleSystem);
+                    particleSystem.position = self.sphere.position;
+                    return particleSystem;
+                }
+            }).back()
+        .start();
+    };
+
+    DT.Player.prototype.updateBlink = function () {
+        // TODO: refactor
+        if (this.blink.framesLeft === 0) {
+            return;
+        }
+        if (this.blink.framesLeft === 1) {
+            this.sphere.material.color.setRGB(1,0,0)
+        }
+        if (this.blink.framesLeft === this.blink.frames) {
+            this.sphere.material.color.setRGB(this.blink.color.r,this.blink.color.g,this.blink.color.b);
+        }
+        if (this.blink.framesLeft < this.blink.frames) {
+            this.sphere.material.color.r += this.blink.dr;
+            this.sphere.material.color.g += this.blink.dg;
+            this.sphere.material.color.b += this.blink.db;
+        }
+        this.blink.framesLeft -= 1;
+        return this;
     };
 
     DT.Player.prototype.changeHelth = function(delta) {
@@ -2776,38 +3001,42 @@ var DT = (function () {
                 }
             }
             this.currentHelth = helth;
-            $(document).trigger('changeHelth', {helth: this.currentHelth});
+            $(document).trigger('showHelth', {helth: this.currentHelth});
         }
         return this;
     };
 
-    DT.Player.prototype.makeInvuler = function (time) {
+    DT.Player.prototype.makeInvulner = function (time) {
         this.invulnerTimer = (time || 10000) / 1000 * 60;
         this.isInvulnerability = true;
-        $(document).trigger('invulner', {invulner: true});
+        $(document).trigger('showInvulner', {invulner: true});
         return this;
     };
 
     DT.Player.prototype.stopInvulner = function () {
         this.invulnerTimer = 0;
+        this.isInvulnerability = false;
+        $(document).trigger('showInvulner', {invulner: false});
         return this;
     };
 
     DT.Player.prototype.changeScore = function(delta) {
         this.currentScore += delta;
-        $(document).trigger('changeScore', {score: this.currentScore});
+        $(document).trigger('showScore', {score: this.currentScore});
         return this;
     };
 
     DT.Player.prototype.makeFun = function(time) {
         this.isFun = true;
         this.funTimer = (time || 10000) / 1000 * 60;
-        $(document).trigger('fun', {isFun: true});
+        $(document).trigger('showFun', {isFun: true});
         return this;
     };
 
     DT.Player.prototype.stopFun = function () {
+        this.isFun = false;
         this.funTimer = 0;
+        $(document).trigger('showFun', {isFun: false});
         return this;
     };
 
@@ -2816,7 +3045,7 @@ var DT = (function () {
             this.invulnerTimer -= 1;
             if (this.invulnerTimer <= 0) {
                 this.isInvulnerability = false;
-                $(document).trigger('invulner', {invulner: false});
+                $(document).trigger('showInvulner', {invulner: false});
             } else {
                 return this;
             }
@@ -2828,17 +3057,14 @@ var DT = (function () {
         if (this.isFun) {
             this.funTimer -= 1;
             if (this.funTimer <= 0) {
-                this.isFun = false;
-                $(document).trigger('fun', {isFun: false});
-                clearInterval(DT.rainbow);
-                DT.blink.doBlink('red', 5);
+                this.stopFun();
             } else if (this.funTimer % 6 === 0) {
                 var color = new THREE.Color().setRGB(
                     DT.genRandomFloorBetween(0, 3),
                     DT.genRandomFloorBetween(0, 3),
                     DT.genRandomFloorBetween(0, 3)
                 );
-                DT.blink.doBlink(color, 10);
+                this.blink.doBlink(color, 10);
             }
         }
         return this;
@@ -2847,6 +3073,7 @@ var DT = (function () {
     DT.Player.prototype.update = function () {
         this.updateInvulnerability();
         this.updateFun();
+        this.updateBlink();
         return this;
     };
 
@@ -2859,6 +3086,43 @@ var DT = (function () {
         return this;
     };
 
+    DT.Player.prototype.changeDestPoint = function(dy, dx) {
+        if ((this.destPoint.x < DT.game.param.spacing && dx > 0) || (this.destPoint.x > -DT.game.param.spacing && dx < 0)) {
+            this.destPoint.x += dx * DT.game.param.spacing;
+        }
+        return this;
+    };
+
+    DT.Player.prototype.moveSphere = function(n) {
+        var i, self = this,
+            iterator = function(aix) {
+            var dx = self.destPoint[aix] - self.sphere.position[aix];
+            if (Math.abs(dx) > 0.01) {
+                self.sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
+            }
+        };
+        for (i = 0; i < n; i++) {
+            ['x'].forEach(iterator);
+        }
+            ['y'].forEach(function(aix) {
+                var dx = self.destPoint[aix] - self.sphere.position[aix];
+                if (Math.abs(dx) > 0.01) {
+                    self.sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
+                }
+            });
+        return this;
+    };
+
+    DT.Player.prototype.bump = function (amp) {
+        if (this.isInvulnerability) return;
+        for (var i = 0; i < 2; i++) {
+            amp = amp || 0.15;
+            this.sphere.position.x += DT.getSign() * amp;
+            this.sphere.position.y += DT.getSign() * amp;
+        }
+        return this;
+     };
+
     DT.player = new DT.Player({
         currentHelth: 100,
         currentScore: 0,
@@ -2869,7 +3133,38 @@ var DT = (function () {
     $(document).on('update', function (e, data) {
         DT.player.update();
     });
-
+    $(document).on('update', function (e, data) {
+        DT.player.moveSphere(3);
+        DT.player.light.position.x = DT.player.sphere.position.x;
+        DT.player.light.position.y = DT.player.sphere.position.y;
+    });
+    $(document).on('update', function (e, data) {
+        DT.player.emitter.update(data.delta).render();
+        DT.player.emitter._particles.forEach(function(el) {
+            el.velocity.vector.z += DT.audio.valueAudio/28;
+        });
+    });
+    $(document).on('makeFun', function (e, data) {
+        DT.player.makeFun();
+    });
+    $(document).on('stopFun', function (e, data) {
+        DT.player.stopFun();
+    });
+    $(document).on('changeScore', function (e, data) {
+        DT.player.changeScore(data.delta);
+    });
+    $(document).on('changeHelth', function (e, data) {
+        DT.player.changeHelth(data.delta);
+    });
+    $(document).on('makeInvulner', function (e, data) {
+        DT.player.makeInvulner();
+    });
+    $(document).on('stopInvulner', function (e, data) {
+        DT.player.stopInvulner();
+    });
+    $(document).on('blink', function (e, data) {
+        DT.player.blink.doBlink(data.color, data.frames);
+    });
     // TODO: передедать коллекции
     DT.collections = {
         caughtBonuses: []
@@ -2907,28 +3202,6 @@ var DT = (function () {
         DT.audio.music.paused = [];
         DT.audio.music.started = [];
     };
-
-    DT.renderer = new THREE.WebGLRenderer();
-
-    DT.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300);
-
-    DT.scene = new THREE.Scene();
-
-    DT.composer = null; // not use
-    // TODO: объединить с объектом player
-    DT.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
-    
-    DT.lights = {
-        light: new THREE.PointLight(0xffffff, 0.75, 100),
-        sphereLight: new THREE.PointLight(0xff0000, 1.75, 15),
-        sphereLightning: new THREE.PointLight(0xff0000, 0.75, 7.5),
-        directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
-    };
-    $(document).on('update', function (e, data) {
-        DT.moveSphere(DT.sphere, DT.player.destPoint, 3);
-        DT.lights.sphereLight.position.x = DT.sphere.position.x;
-        DT.lights.sphereLight.position.y = DT.sphere.position.y;
-    });
 
  // ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██████╗      ██╗███████╗ ██████╗████████╗
 // ██╔════╝ ██╔══██╗████╗ ████║██╔════╝    ██╔═══██╗██╔══██╗     ██║██╔════╝██╔════╝╚══██╔══╝
@@ -3067,10 +3340,10 @@ var DT = (function () {
             transparent: true,
             opacity: 0.5
         }),
-        sphere: DT.sphere
+        sphere: DT.player.sphere
     });
-    $(document).on('invulner', function (e, data) {
-        console.log('invulner');
+    $(document).on('showInvulner', function (e, data) {
+        console.log('showInvulner');
         if (data.invulner) {
             DT.shield.addToScene();
         } else {
@@ -3088,6 +3361,7 @@ var DT = (function () {
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
         this.number = options.number || 100;
+        this.createAndAdd();
     };
     DT.Dust.prototype = Object.create(DT.GameObject.prototype);
     DT.Dust.prototype.constructor = DT.Dust;
@@ -3139,7 +3413,7 @@ var DT = (function () {
             material: {
                 isFun: DT.player.isFun,
                 valueAudio: DT.audio.valueAudio,
-                color: DT.sphere.material.color
+                color: DT.player.sphere.material.color
             }, 
             geometry: {
                 speed: DT.game.speed.getValue()
@@ -3219,7 +3493,7 @@ var DT = (function () {
             });
             this.removeFromScene();
 
-            DT.player.changeHelth(-19);
+            $(document).trigger('changeHelth', {delta: -19});
             // вызвать вспышку экрана
             if (DT.player.isInvulnerability === false) {
                 DT.hit();
@@ -3317,14 +3591,14 @@ var DT = (function () {
         var distanceBerweenCenters = positon.distanceTo(options.sphere.position);
         if (distanceBerweenCenters < 0.9) {
             this.removeFromScene();
-            DT.player.changeScore(1);
+            $(document).trigger('changeScore', {delta: 1});
             DT.audio.sounds.catchCoin.play();
             DT.sendSocketMessage({
                 type: 'vibr',
                 time: 10
             });
-            DT.blink.doBlink(0xcfb53b, 60);
-            DT.bump();
+            $(document).trigger('blink', {color: 0xcfb53b, frames: 60});
+            DT.player.bump();
         }
         return this;
     };
@@ -3439,20 +3713,20 @@ var DT = (function () {
         return this;
     };
 
-    DT.Stones = function () {
-        if (!DT.Stones.__instance) {
-            DT.Stones.__instance = this;
+    DT.StonesCollection = function () {
+        if (!DT.StonesCollection.__instance) {
+            DT.StonesCollection.__instance = this;
         } else {
-            return DT.Stones.__instance;
+            return DT.StonesCollection.__instance;
         }
         DT.Collection.apply(this, [{
             constructor: DT.Stone
         }]);
     };
-    DT.Stones.prototype = Object.create(DT.Collection.prototype);
-    DT.Stones.prototype.constructor = DT.Stones;
+    DT.StonesCollection.prototype = Object.create(DT.Collection.prototype);
+    DT.StonesCollection.prototype.constructor = DT.StonesCollection;
 
-    DT.Stones.prototype.createObjects = function (options) {
+    DT.StonesCollection.prototype.createObjects = function (options) {
         DT.Collection.prototype.createObjects.apply(this, arguments);
         var el = this.collection[this.collection.length -1];
 
@@ -3469,31 +3743,31 @@ var DT = (function () {
         return this;
     };
     $(document).on('update', function (e, data) {
-        new DT.Stones()
+        new DT.StonesCollection()
             .createObjects({
                 spawnCoord: DT.game.param.spawnCoord,
             })
             .update({
                 dieCoord: DT.game.param.dieCoord,
                 opacityCoord: DT.game.param.opacityCoord,
-                sphere: DT.sphere
+                sphere: DT.player.sphere
             });
     });
 
-    DT.Coins = function () {
-        if (!DT.Coins.__instance) {
-            DT.Coins.__instance = this;
+    DT.CoinsCollection = function () {
+        if (!DT.CoinsCollection.__instance) {
+            DT.CoinsCollection.__instance = this;
         } else {
-            return DT.Coins.__instance;
+            return DT.CoinsCollection.__instance;
         }
         DT.Collection.apply(this, [{
             constructor: DT.Coin
         }]);
     };
-    DT.Coins.prototype = Object.create(DT.Collection.prototype);
-    DT.Coins.prototype.constructor = DT.Coins;
+    DT.CoinsCollection.prototype = Object.create(DT.Collection.prototype);
+    DT.CoinsCollection.prototype.constructor = DT.CoinsCollection;
 
-    DT.Coins.prototype.createObjects = function (options) {
+    DT.CoinsCollection.prototype.createObjects = function (options) {
         DT.Collection.prototype.createObjects.apply(this, arguments);
         if (!this.collection.length) {
             for (var i = 0; i < options.number; i++) {
@@ -3505,7 +3779,7 @@ var DT = (function () {
         return this;
     };
     $(document).on('update', function (e, data) {
-        new DT.Coins()
+        new DT.CoinsCollection()
             .createObjects({
                 x: DT.genCoord(),
                 y: -2.5,
@@ -3516,24 +3790,24 @@ var DT = (function () {
             .update({
                 dieCoord: DT.game.param.dieCoord,
                 opacityCoord: DT.game.param.opacityCoord,
-                sphere: DT.sphere
+                sphere: DT.player.sphere
             });
     });
 
-    DT.Bonuses = function (options) {
-        if (!DT.Bonuses.__instance) {
-            DT.Bonuses.__instance = this;
+    DT.BonusesCollection = function (options) {
+        if (!DT.BonusesCollection.__instance) {
+            DT.BonusesCollection.__instance = this;
         } else {
-            return DT.Bonuses.__instance;
+            return DT.BonusesCollection.__instance;
         }
         DT.Collection.apply(this, [{
             constructor: DT.Bonus
         }]);
     };
-    DT.Bonuses.prototype = Object.create(DT.Collection.prototype);
-    DT.Bonuses.prototype.constructor = DT.Bonuses;
+    DT.BonusesCollection.prototype = Object.create(DT.Collection.prototype);
+    DT.BonusesCollection.prototype.constructor = DT.BonusesCollection;
 
-    DT.Bonuses.prototype.createObjects = function (options) {
+    DT.BonusesCollection.prototype.createObjects = function (options) {
         DT.Collection.prototype.createObjects.apply(this, arguments);
         if (!this.collection.length) {
             for (var i = 0; i < options.number; i++) {
@@ -3543,7 +3817,7 @@ var DT = (function () {
         return this;
     };
     $(document).on('update', function (e, data) {
-        new DT.Bonuses()
+        new DT.BonusesCollection()
             .createObjects({
                 x: DT.genCoord(),
                 y: -2.5,
@@ -3552,17 +3826,17 @@ var DT = (function () {
             .update({
                 dieCoord: DT.game.param.dieCoord,
                 opacityCoord: DT.game.param.opacityCoord,
-                sphere: DT.sphere
+                sphere: DT.player.sphere
             });
     });
 
-    DT.useBonuses = function (type) {
+    DT.BonusesCollection.prototype.useBonuses = function (type) {
         // helth
-        if (type === 0) DT.player.changeHelth(100);
+        if (type === 0) $(document).trigger('changeHelth', {delta: 100});
         // invulnerability
-        if (type === 1) DT.player.makeInvuler();
+        if (type === 1) $(document).trigger('makeInvuler', {});
         // entertainment
-        if (type === 2) DT.player.makeFun();
+        if (type === 2) $(document).trigger('makeFun', {});
     };
 
     DT.catchBonus = function (type) {
@@ -3600,7 +3874,6 @@ var DT = (function () {
     };
 
     // TODO: refactor
-    DT.rainbow = null;
     DT.listOfModels = [
         {
             name: 'bonusH',
@@ -3618,48 +3891,90 @@ var DT = (function () {
             rotation: {x: 0, y: 0, z: 0}
         }];
 
-    DT.blink = {
-        color: new THREE.Color(),
-        frames: 0,
-        framesLeft: 0,
-        dr: 0,
-        dg: 0,
-        db: 0,
-        doBlink: function (color, frames) {
-            var defClr = {r: 1, g: 0, b: 0};
-            this.color = new THREE.Color(color);
-            this.frames = frames;
-            this.framesLeft = frames;
-            this.dr = (defClr.r - this.color.r)/frames;
-            this.dg = (defClr.g - this.color.g)/frames;
-            this.db = (defClr.b - this.color.b)/frames;
-        },
-        update: function () {
-            if (DT.blink.framesLeft === 0) {
-                // DT.sphere.material.color = new THREE.Color('red');
-                return;
-            }
-            if (DT.blink.framesLeft === DT.blink.frames) {
-                DT.lights.sphereLight.color.r = DT.sphere.material.color.r = DT.blink.color.r;
-                DT.lights.sphereLight.color.g = DT.sphere.material.color.g = DT.blink.color.g;
-                DT.lights.sphereLight.color.b = DT.sphere.material.color.b = DT.blink.color.b;
-            }
-            if (DT.blink.framesLeft < DT.blink.frames) {
-                DT.lights.sphereLight.color.r = DT.sphere.material.color.r += DT.blink.dr;
-                DT.lights.sphereLight.color.g = DT.sphere.material.color.g += DT.blink.dg;
-                DT.lights.sphereLight.color.b = DT.sphere.material.color.b += DT.blink.db;
-            }
-        DT.blink.framesLeft -= 1;
-        },
-    };
-    $(document).on('update', function (e, data) {
-        DT.blink.update();
-    });
-
     DT.bgTexture = THREE.ImageUtils.loadTexture('img/bg.jpg');
     DT.handlers = {};
     // DT.snapshot = null; // for restart
     DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://192.168.1.36';
+
+// ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
+// ██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝
+// ██║██╔██╗ ██║   ██║   █████╗  ██████╔╝█████╗  ███████║██║     █████╗  
+// ██║██║╚██╗██║   ██║   ██╔══╝  ██╔══██╗██╔══╝  ██╔══██║██║     ██╔══╝  
+// ██║██║ ╚████║   ██║   ███████╗██║  ██║██║     ██║  ██║╚██████╗███████╗
+// ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝
+                                                                      
+    $(document).on('startGame', function (e, data) {
+        $('.choose_control').fadeOut(250);
+    });
+    $(document).on('pauseGame', function () {
+        $('.menu_page').css({'display': 'table'});
+    });
+    $(document).on('resumeGame', function (e, data) {
+        $('.menu_page').css({'display': 'none'});
+    });
+    $(document).on('startGame', function (e, data) {
+        $('.gameTimer').css({'display': 'block'});
+    });
+    $(document).on('showScore', function (e, data) {
+        $('.current_coins').text(data.score);
+    });
+    $(document).on('showHelth', function (e, data) {
+        $('.helth').animate({width: data.helth + '%'});
+    });
+
+ // █████╗ ██╗   ██╗██████╗ ██╗ ██████╗ 
+// ██╔══██╗██║   ██║██╔══██╗██║██╔═══██╗
+// ███████║██║   ██║██║  ██║██║██║   ██║
+// ██╔══██║██║   ██║██║  ██║██║██║   ██║
+// ██║  ██║╚██████╔╝██████╔╝██║╚██████╔╝
+// ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝ ╚═════╝ 
+                                     
+    DT.setVolume = function (volume) {
+        DT.game.param.globalVolume = volume;
+        if (DT.game.param.prevGlobalVolume !== DT.game.param.globalVolume) {
+            DT.gainNodes.forEach(function(el) {
+                if (el) {
+                    el.gain.value = DT.game.param.globalVolume;
+                }
+            });
+            DT.game.param.prevGlobalVolume = DT.game.param.globalVolume;
+        }
+    };
+
+    $(window).on('focus', function() {
+        if (!DT.game.wasMuted) {
+            DT.setVolume(1);
+        }
+    });
+    $(window).on('blur', function() {
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+            $(document).trigger('pauseGame', {});
+        }
+        DT.setVolume(0);
+    });
+    $(document).on('startGame', function (e, data) {
+        DT.stopSound(2);
+        DT.playSound(0);
+    });
+    $(document).on('pauseGame', function () {
+        DT.stopSoundBeforPause();
+        DT.audio.sounds.pause.play();
+    });
+    $(document).on('resumeGame', function (e, data) {
+        DT.playSoundAfterPause();
+        DT.audio.sounds.pause.play();
+    });
+
+// ███████╗ ██████╗  ██████╗██╗  ██╗███████╗████████╗
+// ██╔════╝██╔═══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝
+// ███████╗██║   ██║██║     █████╔╝ █████╗     ██║   
+// ╚════██║██║   ██║██║     ██╔═██╗ ██╔══╝     ██║   
+// ███████║╚██████╔╝╚██████╗██║  ██╗███████╗   ██║   
+// ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   
+                                                  
+    $(document).on('startGame', function (e, data) {
+        DT.sendSocketMessage('gamestarted');
+    });
 
 // ██╗     ██╗███████╗████████╗███████╗███╗   ██╗███████╗██████╗ ███████╗
 // ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝
@@ -3668,35 +3983,22 @@ var DT = (function () {
 // ███████╗██║███████║   ██║   ███████╗██║ ╚████║███████╗██║  ██║███████║
 // ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚══════╝
                                                                       
-    $(document).on('changeScore', function (e, data) {
-        $('.current_coins').text(data.score);
-    });
-    $(document).on('changeHelth', function (e, data) {
-        $('.helth').animate({width: data.helth + '%'});
-    });
     $(document).on('gameOver', function (e, data) {
         DT.gameOver();
     });
-    $(document).on('fun', function (e, data) {
+    $(document).on('showFun', function (e, data) {
         if (data.isFun) {
-            DT.game.speed.setChanger(-18);
+            $(document).trigger('changeSpeed', {changer: -18});
             DT.stopSound(0);
             DT.playSound(1);
         } else {
-            DT.game.speed.setChanger(0);
+            $(document).trigger('changeSpeed', {changer: 0});
             DT.stopSound(1);
             DT.playSound(0);
         }
     });
     $(document).on('resetGame', function (e, data) {
 
-    });
-    $(document).on('startGame', function (e, data) {
-        DT.setStats();
-        $('.gameTimer').css({'display': 'block'});
-    });
-    $(document).on('update', function (e, data) {
-        DT.game.update();
     });
 
 // ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
@@ -3734,9 +4036,9 @@ var DT = (function () {
     };
     DT.handlers.pause = function () {
         if (DT.game.wasPaused) {
-            DT.pauseOff();
+            $(document).trigger('resumeGame', {});
         } else {
-            DT.pauseOn();
+            $(document).trigger('pauseGame', {});
         }
     };
     DT.handlers.mute = function() {
@@ -3751,10 +4053,10 @@ var DT = (function () {
         }
     };
     DT.handlers.left = function () {
-        DT.changeDestPoint(0, -1, DT.player.destPoint);
+        DT.player.changeDestPoint(0, -1);
     };
     DT.handlers.right = function () {
-        DT.changeDestPoint(0, 1, DT.player.destPoint);
+        DT.player.changeDestPoint(0, 1);
     };
     DT.handlers.restart = function () {
         DT.game.reset();
@@ -3771,55 +4073,10 @@ var DT = (function () {
             caughtBonuses: []
         };
         DT.audio.reset();
-        DT.game.startGame();
+        $(document).trigger('startGame', {});
         DT.playSound(0);
     };
 
-// ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗    ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
-// ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝    ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
-// ███████╗█████╗  ██████╔╝██║   ██║██║██║     █████╗      █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║
-// ╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██║██║     ██╔══╝      ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║
-// ███████║███████╗██║  ██║ ╚████╔╝ ██║╚██████╗███████╗    ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
-// ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚═╝ ╚═════╝╚══════╝    ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-                                                                                                                          
-    DT.setVolume = function (volume) {
-        DT.game.param.globalVolume = volume;
-        if (DT.game.param.prevGlobalVolume !== DT.game.param.globalVolume) {
-            DT.gainNodes.forEach(function(el) {
-                if (el) {
-                    el.gain.value = DT.game.param.globalVolume;
-                }
-            });
-            DT.game.param.prevGlobalVolume = DT.game.param.globalVolume;
-        }
-    };
-    // возвращает cookie с именем name, если есть или undefined
-    DT.getCookie = function (name) {
-        var matches = document.cookie.match(
-            new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)')
-        );
-        return matches ? decodeURIComponent(matches[1]) : undefined;
-    };
-
-    DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
-        return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
-    };
-    
-    DT.genCoord = function(delta) {
-        var offset = delta || DT.game.param.spacing,
-        x = Math.random() * offset * 2 - offset,
-        absX = Math.abs(x);
-        if (absX <= offset && absX >= offset * 0.33 ) {
-            if (x > 0) {
-                return offset;
-            }
-            if (x < 0) {
-                return offset * -1;
-            }
-        } else {
-            return 0;
-        }
-    };
     // game
     DT.gameOver = function() {
         DT.game.wasOver = true;
@@ -3854,63 +4111,6 @@ var DT = (function () {
             $('.hit').css({'display': 'table'}).fadeOut(250);
         });
     };
-    // player
-    DT.changeDestPoint = function(dy, dx, destPoint) {
-        if ((destPoint.x < DT.game.param.spacing && dx > 0) || (destPoint.x > -DT.game.param.spacing && dx < 0)) {
-            destPoint.x += dx * DT.game.param.spacing;
-        }
-        // if (DT.sphere.position.y < -2 && dy > 0) {
-        //     DT.player.jumpLength = 0;
-        //     DT.player.jump = true;
-        // }
-        // if (dy < 0) {
-        //     DT.player.jump = false;
-        // }
-    };
-    // player
-    DT.moveSphere = function(sphere, destPoint, n) {
-        var i,
-            iterator = function(aix) {
-            var dx = destPoint[aix] - sphere.position[aix];
-            if (Math.abs(dx) > 0.01) {
-                sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
-            }
-        };
-        for (i = 0; i < n; i++) {
-            ['x'].forEach(iterator);
-        }
-            ['y'].forEach(function(aix) {
-                var dx = destPoint[aix] - sphere.position[aix];
-                if (Math.abs(dx) > 0.01) {
-                    sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
-                }
-            });
-    };
-
-    DT.genRandomFloorBetween = function (min, max) {
-        var rand = min - 0.5 + Math.random()*(max-min+1);
-        rand = Math.round(rand);
-        return rand;
-    };
-
-    DT.genRandomBetween = function (min, max) {
-        return Math.random() * (max - min) + min;
-    };
-
-    DT.getSign = function () {
-        var signVal = Math.random() - 0.5;
-        return Math.abs(signVal)/signVal;
-    };
-    // player
-    DT.bump = function (amp) {
-        if (DT.player.isInvulnerability) return;
-        var i;
-        for (i = 0; i < 2; i++) {
-            amp = amp || 0.15;
-            DT.sphere.position.x += DT.getSign() * amp;
-            DT.sphere.position.y += DT.getSign() * amp;
-        }
-     };
 
     DT.sendSocketMessage = function (options) {
         var data = {
@@ -3927,12 +4127,7 @@ var DT = (function () {
     // game
     DT.startAfterChooseControl = function () {
         if (!DT.game.wasStarted) {
-            DT.game.startGame();
-            DT.stopSound(2);
-            DT.playSound(0);
-            $('.choose_control').fadeOut(250);
-            DT.game.wasStarted = true;
-            DT.sendSocketMessage('gamestarted');
+            $(document).trigger('startGame', {});
         }
         $(document).unbind('keyup',DT.handlers.startOnSpace);
     };
@@ -3958,10 +4153,10 @@ var DT = (function () {
 
     $(function(){
         $('.menu_button').click(function() {
-            DT.pauseOn();
+            $(document).trigger('pauseGame', {});
         });
         $('.resume').click(function() {
-            DT.pauseOff();
+            $(document).trigger('resumeGame', {});
         });
         $('.music_button').click(DT.handlers.mute);
         $('.fs_button').click(DT.handlers.fullscreen);
@@ -4202,48 +4397,41 @@ var DT = (function () {
         
         DT.initKeyboardControl = function () {
             $(document).keydown(function(event) {
-                var destPoint = DT.player.destPoint,
-                    changeDestPoint = DT.changeDestPoint,
-                    k = event.keyCode;
+                var k = event.keyCode;
                 // arrows control
                 if (k === 38) {
-                    changeDestPoint(1, 0, destPoint);
+                    DT.player.changeDestPoint(1, 0);
                 }
                 if (k === 40) {
-                    changeDestPoint(-1, 0, destPoint);
+                    DT.player.changeDestPoint(-1, 0);
                 }
                 if (k === 37) {
-                    changeDestPoint(0, -1, destPoint);
+                    DT.player.changeDestPoint(0, -1);
                 }
                 if (k === 39) {
-                    changeDestPoint(0, 1, destPoint);
+                    DT.player.changeDestPoint(0, 1);
                 }
                 // speedUp
-                if (k === 16) {
-                    DT.game.speed.setChanger(36);
-                    if (DT.player.isFun) {
-                        DT.stopSound(1);
-                        DT.playSound(0);
-                        clearInterval(DT.rainbow);
-                        DT.player.isFun = false;
-                        DT.blink.doBlink('red', 2);
-                    }
+                if (k === 16) { //shift
+                    $(document).trigger('stopFun', {});
+                    $(document).trigger('changeSpeed', {changer: 36});
                 }
                 if (k === 17) {
-                    DT.player.makeFun();
+                    $(document).trigger('makeFun', {});
                 }
             });
             $(document).keyup(function(event) {
                 var k = event.keyCode;
-                // speedDown
-                if (k === 16) {
-                    DT.game.speed.setChanger(0);
-                    DT.player.stopFun();
+                if (k === 16) { //shift
+                    $(document).trigger('changeSpeed', {changer: 0});
                 }
             });
+
             $(document).keyup(DT.handlers.pauseOnSpace);
-            DT.game.wasStarted = true;
         };
+        $(document).on('startGame', function (e, data) {
+            DT.initKeyboardControl();
+        });
             // WEBCAM CONTROL
         DT.enableWebcam = function () {
             // // Game config
@@ -4559,138 +4747,14 @@ var DT = (function () {
         DT.stats2.domElement.style.zIndex = 100;
         body.appendChild( DT.stats2.domElement );
     };
-    // when resize
-    var winResize = new THREEx.WindowResize(DT.renderer, DT.camera),
-        dieCoord = DT.game.param.dieCoord,
-        lens,
-        emitter,
-        fragmentsPosition = {x: -1000, y: 0, z: 0},
-        fragmentsCounter = 0;
-
-    // DT.renderer
-    DT.renderer.setSize(window.innerWidth, window.innerHeight);
-    DT.renderer.physicallyBasedShading = true;
-    document.body.appendChild(DT.renderer.domElement);
-
-    // DT.camera
-    DT.camera.position.set(0, 0.5, 15);
-    DT.camera.position.z = DT.camera.z = 15;
-    lens = DT.camera.lens = 35;
-
-    // DT.sphere
-    DT.sphere.position.set(0, -2.5, 0);
-
-    // DT.lights
-    DT.lights.light.position.set(0, 0, -1);
-    DT.scene.add(DT.lights.light);
-
-    DT.lights.sphereLight.position.set(0, 0, 0);
-    DT.scene.add(DT.lights.sphereLight);
-
-    DT.lights.directionalLight.position.set(0, 0, 1);
-    DT.scene.add(DT.lights.directionalLight);
-
-    // DT.dust
-    DT.dust.createAndAdd();
-
-    // create the emitter for sphere tail
-    emitter = Fireworks.createEmitter({nParticles : 100})
-        .effectsStackBuilder()
-            .spawnerSteadyRate(25)
-            .position(Fireworks.createShapePoint(0, 0, 0))
-            .velocity(Fireworks.createShapePoint(0, 0, 2))
-            .lifeTime(0.7, 0.7)
-            .randomVelocityDrift(Fireworks.createVector(0, 0, 0))
-            .renderToThreejsParticleSystem({
-                particleSystem  : function(emitter){
-                    var i,
-                        geometry    = new THREE.Geometry(),
-                        texture = Fireworks.ProceduralTextures.buildTexture(),
-                        material    = new THREE.ParticleBasicMaterial({
-                            color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
-                            size        : 100,
-                            sizeAttenuation : false,
-                            vertexColors    : true,
-                            map     : texture,
-                            blending    : THREE.AdditiveBlending,
-                            depthWrite  : false,
-                            transparent : true
-                        }),
-                        particleSystem = new THREE.ParticleSystem(geometry, material);
-                        particleSystem.dynamic  = true;
-                        particleSystem.sortParticles = true;
-                    // init vertices
-                    for(i = 0; i < emitter.nParticles(); i++){
-                        geometry.vertices.push( new THREE.Vector3() );
-                    }
-                    // init colors
-                    geometry.colors = new Array(emitter.nParticles());
-                    for(i = 0; i < emitter.nParticles(); i++){
-                        geometry.colors[i]  = DT.sphere.material.color;
-                    }
-                    
-                    DT.scene.add(particleSystem);
-                    particleSystem.position = DT.sphere.position;
-                    return particleSystem;
-                }
-            }).back()
-        .start();
-
-    // EFFECT
-    // var effect = new THREE.ParallaxBarrierEffect( DT.renderer );
-    var effect = new THREE.AnaglyphEffect( DT.renderer );
-
-    // EMITTER Particle system - sphere tail
-    $(document).on('update', function (e, data) {
-        emitter._particles.forEach(function(el) {
-            el.velocity.vector.z += DT.audio.valueAudio/28;
-        });
+    $(document).on('startGame', function (e, data) {
+        DT.setStats();
     });
-    // render the scene
     $(document).on('update', function (e, data) {
-        DT.renderer.render(DT.scene, DT.camera);
-        if (DT.player.isFun) {
-            effect.render(DT.scene, DT.camera);
-            effect.setSize( window.innerWidth, window.innerHeight );
-        }
-        if (!DT.backgroundMesh.visible) {
-            DT.backgroundMesh.visible = true;
-        }
-        emitter.update(data.delta).render();
         DT.stats.update();
         DT.stats2.update();
-        DT.game.speed.increase();
-        if ( DT.animation ) {
-            DT.animation.update( data.delta*1000 );
-        }
     });
-    // LENS
-    $(document).on('update', function (e, data) {
-        var camOffset = 6, camDelta = 0.1,
-            lensOffset = 18, lensDelta = 0.3;
-        // var composer = DT.composer;
-        if (DT.game.speed.getChanger() > 0) {
-            DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
-            lens = Math.max(lens -= lensDelta, DT.camera.lens - lensOffset);
-            // composer.render();
-        } else if (DT.game.speed.getChanger() < 0) {
-            DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
-            lens = Math.min(lens += lensDelta, DT.camera.lens + lensOffset);
-            // composer.render();
-        } else {
-            var delta = DT.camera.lens - lens;
-            if (delta < 0) {
-                
-                DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
-                lens = Math.max(lens -= lensDelta, DT.camera.lens);
-            } else {
-                
-                DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
-                lens = Math.min(lens += lensDelta, DT.camera.lens);
-            }
-        }
-        DT.camera.setLens(lens);
-    });
+
     return DT;
 } ());
 

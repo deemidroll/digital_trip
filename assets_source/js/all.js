@@ -4571,46 +4571,6 @@ var DT = (function () {
             $('#gameConnect').hide();
             $('#status').hide();
             DT.startAfterChooseControl();
-        });
-            // When the phone is turned, turn the vehicle
-        socket.on('turn', function(turn) {
-            if(turn < leftBreakThreshold) {
-                if(turn > leftTurnThreshold) {
-                    DT.player.destPoint.x = 0;
-                } else {
-                    DT.player.destPoint.x = -DT.game.param.spacing;
-                }
-            } else if (turn > rightBreakThreshold) {
-                if(turn < rightTurnThreshold) {
-                    DT.player.destPoint.x = 0;
-                } else {
-                    DT.player.destPoint.x = DT.game.param.spacing;
-                }
-            } else {
-                DT.player.destPoint.x = 0;
-            }
-        });
-        socket.on('click', function(click) {
-            DT.handlers[click]();
-        });
-    };
-    });
-    $(document).on('resetGame', function (e, data) {
-
-    });
-
-// ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
-// ██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝
-// ███████║███████║██╔██╗ ██║██║  ██║██║     █████╗  ██████╔╝███████╗
-// ██╔══██║██╔══██║██║╚██╗██║██║  ██║██║     ██╔══╝  ██╔══██╗╚════██║
-// ██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
-// ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
-
-    DT.handlers = {};
-    DT.handlers.startOnSpace = function(event) {
-        var k = event.keyCode;
-        if (k === 32) {
-            DT.startAfterChooseControl();
         }
     };
     DT.handlers.pauseOnSpace = function(event) {

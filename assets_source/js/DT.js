@@ -4519,6 +4519,7 @@ var DT = (function () {
         function threshold(value) {
             return (value > 0x15) ? 0xFF : 0;
         }
+        
             // check if white region from blend overlaps area of interest (e.g. handlers)
         function checkAreas() {
             var b, l = buttons.length;
@@ -4544,32 +4545,40 @@ var DT = (function () {
             }
         }
     };
-    DT.initPhoneControl = function() {
-        $('.message').html('Please open <span style=\'color: red\'>' + DT.server +'/m</span> with your phone and enter code <span style=\'font-weight:bold; color: red\' id=\'socketId\'></span>');
-        $('#socketId').html(DT.initSocket.socket.gameCode);
-    };
 
-    DT.initSocket = function() {
-        // Game config
-        var leftBreakThreshold = -3,
-            leftTurnThreshold = -20,
-            rightBreakThreshold = 3,
-            rightTurnThreshold = 20,
-            // set socket
-            socket = DT.initSocket.socket = io.connect(DT.server);
-        // When initial welcome message, reply with 'game' device type
-        socket.on('welcome', function(data) {
-            socket.emit('device', {'type':'game', 'cookieUID': DT.getCookie('UID')});
-        });
-        // We receive our game code to show the user
-        socket.on('initialize', function(gameCode) {
-            socket.gameCode = gameCode;
-        });
-        // When the user inputs the code into the phone client,
-        //  we become 'connected'.  Start the game.
-        socket.on('connected', function(data) {
-            $('#gameConnect').hide();
-            $('#status').hide();
+// ██╗     ██╗███████╗████████╗███████╗███╗   ██╗███████╗██████╗ ███████╗
+// ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝
+// ██║     ██║███████╗   ██║   █████╗  ██╔██╗ ██║█████╗  ██████╔╝███████╗
+// ██║     ██║╚════██║   ██║   ██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗╚════██║
+// ███████╗██║███████║   ██║   ███████╗██║ ╚████║███████╗██║  ██║███████║
+// ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚══════╝
+
+    $(document).on('showFun', function (e, data) {
+        if (data.isFun) {
+            $(document).trigger('changeSpeed', {changer: -18});
+            DT.stopSound(0);
+            DT.playSound(1);
+        } else {
+            $(document).trigger('changeSpeed', {changer: 0});
+            DT.stopSound(1);
+            DT.playSound(0);
+        }
+    });
+    $(document).on('resetGame', function (e, data) {
+
+    });
+
+// ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
+// ██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝
+// ███████║███████║██╔██╗ ██║██║  ██║██║     █████╗  ██████╔╝███████╗
+// ██╔══██║██╔══██║██║╚██╗██║██║  ██║██║     ██╔══╝  ██╔══██╗╚════██║
+// ██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
+// ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
+
+    DT.handlers = {};
+    DT.handlers.startOnSpace = function(event) {
+        var k = event.keyCode;
+        if (k === 32) {
             DT.startAfterChooseControl();
         }
     };

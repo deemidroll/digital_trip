@@ -2680,6 +2680,20 @@ var DT = (function () {
             now: nowMsec / 1000
         });
     };
+    $(document).on('startGame', function (e, data) {
+        DT.animate.id = requestAnimFrame(DT.animate);
+    });
+    $(document).on('pauseGame', function () {
+        cancelAnimFrame(DT.animate.id);
+    });
+    $(document).on('resumeGame', function (e, data) {
+        DT.animate.id = requestAnimFrame(DT.animate);
+    });
+    $(document).on('gameOver', function (e, data) {
+        setTimeout(function() {
+            cancelAnimFrame(DT.animate.id);
+        }, 300);
+    });
 
 // ████████╗██╗  ██╗██████╗ ███████╗███████╗    ██╗    ██╗ ██████╗ ██████╗ ██╗     ██████╗ 
 // ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔════╝    ██║    ██║██╔═══██╗██╔══██╗██║     ██╔══██╗
@@ -2805,18 +2819,15 @@ var DT = (function () {
 // ███████╗██╔╝ ██╗   ██║   ███████╗██║  ██║██║ ╚████║██║  ██║███████╗    ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗███████╗███████║
 // ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
-    DT.listOfModels = [
-        {
+    DT.listOfModels = [{
             name: 'bonusH',
             scale: {x: 0.02, y: 0.02, z: 0.02},
             rotation: {x: Math.PI / 1.3, y: -Math.PI / 1.3, z: -Math.PI / 1.3}
-        },
-        {
+        }, {
             name: 'bonusI',
             scale: {x: 0.5, y: 0.5, z: 0.5},
             rotation: {x: Math.PI / 1.3, y: -Math.PI / 1.3, z: -Math.PI / 1.3}
-        },
-        {
+        }, {
             name: 'bonusE',
             scale: {x: 0.025, y: 0.025, z: 0.025},
             rotation: {x: 0, y: 0, z: 0}
@@ -2858,34 +2869,34 @@ var DT = (function () {
         'startGame'     : 'custom',
         'pauseGame'     : 'custom',
         'resumeGame'    : 'custom',
+        'gameOver'      : 'custom',
         'resetGame'     : 'custom',
+
         'update'        : 'custom',
+
         'changeSpeed'   : 'custom',
+
         'makeFun'       : 'custom',
         'stopFun'       : 'custom',
+        'showFun'       : 'custom',
+
+        'makeInvulner'  : 'custom',
+        'stopInvulner'  : 'custom',
+        'showInvulner'  : 'custom',
+
         'changeHelth'   : 'custom',
         'showHelth'     : 'custom',
+
         'changeScore'   : 'custom',
         'showScore'     : 'custom',
+
+        'catchBonus'    : 'custom',
+
         'blink'         : 'custom',
+
         'focus'         : 'native',
         'blur'          : 'native',
     };
-
-    $(document).on('startGame', function (e, data) {
-        DT.animate.id = requestAnimFrame(DT.animate);
-    });
-    $(document).on('pauseGame', function () {
-        cancelAnimFrame(DT.animate.id);
-    });
-    $(document).on('resumeGame', function (e, data) {
-        DT.animate.id = requestAnimFrame(DT.animate);
-    });
-    $(document).on('gameOver', function (e, data) {
-        setTimeout(function() {
-            cancelAnimFrame(DT.animate.id);
-        }, 300);
-    });
 
  // ██████╗  █████╗ ███╗   ███╗███████╗
 // ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
@@ -2999,12 +3010,15 @@ var DT = (function () {
         this.isFun = options.isFun || false;
         this.invulnerTimer = null;
         this.funTimer = null;
+
         this.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
         this.sphere.position.set(0, -2.5, 0);
+
         this.light = new THREE.PointLight(0xff0000, 1.75, 15);
-        this.light.position.set(0, 0, 0);
+        this.light.position = this.sphere.position;
         this.light.color = this.sphere.material.color;
         this.scene.add(this.light);
+
         this.blink = {
             defColor: new THREE.Color('red'),
             color: new THREE.Color('white'),
@@ -3018,6 +3032,7 @@ var DT = (function () {
                 this.bColor.addColors(this.defColor, tempColor).multiplyScalar(1/frames);
             },
         };
+
         this.emitter = Fireworks.createEmitter({nParticles : 100})
         .effectsStackBuilder()
             .spawnerSteadyRate(25)
@@ -3162,10 +3177,15 @@ var DT = (function () {
         return this;
     };
 
-    DT.Player.prototype.update = function () {
+    DT.Player.prototype.update = function (data) {
         this.updateInvulnerability();
         this.updateFun();
         this.updateBlink();
+        this.moveSphere(3);
+        this.emitter.update(data.delta).render();
+        this.emitter._particles.forEach(function(el) {
+            el.velocity.vector.z += DT.audio.valueAudio/28;
+        });
         return this;
     };
 
@@ -3186,21 +3206,11 @@ var DT = (function () {
     };
 
     DT.Player.prototype.moveSphere = function(n) {
-        // TODO: refactor
-        var i, self = this,
-            iterator = function(aix) {
-            var dx = self.destPoint[aix] - self.sphere.position[aix];
-            if (Math.abs(dx) > 0.01) {
-                self.sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
-            }
-        };
-        for (i = 0; i < n; i++) {
-            ['x'].forEach(iterator);
-        }
-            ['y'].forEach(function(aix) {
+        var self = this;
+            ['x', 'y'].forEach(function(aix) {
                 var dx = self.destPoint[aix] - self.sphere.position[aix];
                 if (Math.abs(dx) > 0.01) {
-                    self.sphere.position[aix] += dx > 0 ? 0.1 : -0.1;
+                    self.sphere.position[aix] += dx > 0 ? 0.3 : -0.3;
                 }
             });
         return this;
@@ -3224,19 +3234,7 @@ var DT = (function () {
         isFun: false
     });
     $(document).on('update', function (e, data) {
-        DT.player.update();
-    });
-    // TODO: refactor
-    $(document).on('update', function (e, data) {
-        DT.player.moveSphere(3);
-        DT.player.light.position.x = DT.player.sphere.position.x;
-        DT.player.light.position.y = DT.player.sphere.position.y;
-    });
-    $(document).on('update', function (e, data) {
-        DT.player.emitter.update(data.delta).render();
-        DT.player.emitter._particles.forEach(function(el) {
-            el.velocity.vector.z += DT.audio.valueAudio/28;
-        });
+        DT.player.update(data);
     });
     $(document).on('makeFun', function (e, data) {
         DT.player.makeFun();

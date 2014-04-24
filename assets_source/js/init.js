@@ -505,9 +505,6 @@ var DT = (function () {
                     helth = 0;
                     $(document).trigger('gameOver', {});
                 }
-                if (k === 37) {
-                    changeDestPoint(0, -1, destPoint);
-                }
             }
             this.currentHelth = helth;
             $(document).trigger('showHelth', {helth: this.currentHelth});

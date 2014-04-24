@@ -26,7 +26,7 @@ yepnope([{
     load: [
         "js/vendor/jquery.min.js",
         "js/vendor/three.min.js",
-        "js/all.min.js",
+        "js/DT.min.js",
         "../socket.io/socket.io.js"
     ],
     callback: {

@@ -34,14 +34,10 @@ module.exports = function(grunt) {
             html: {
                 files: '../game/*.html',
             },
-            // config: {
-            //     files: ['package.json', 'Gruntfile.js'],
-            //     tasks: ['exit']
-            // },
         },
         concat_sourcemap: {
             options: {
-                // sourcesContent: true
+                sourcesContent: true
             },
             target: {
                 files: {
@@ -51,7 +47,6 @@ module.exports = function(grunt) {
                         'js/vendor/threex.windowresize.js',
                         'js/vendor/Stats.js',
                         'js/vendor/webaudio.js',
-                        // 'js/vendor/heaallrackr.js',
                         'js/vendor/THREEx.FullScreen.js',
                         'js/vendor/AnaglyphEffect.js',
                         'js/init.js',
@@ -68,7 +63,7 @@ module.exports = function(grunt) {
                     banner: '/* Created by deemidroll | deemidroll@gmail.com | 2014 */',
                 },
                 files: {
-                    '../assets/js/DT.min.js': ['../assets_source/js/DT.js'],
+                    '../assets/js/DT.min.js': ['js/DT.js'],
                     '../assets/js/myYepnope.min.js': ['js/myYepnope.js'],
                     '../assets/js/mobile.min.js': ['js/mobile.js'],
                 }
@@ -81,5 +76,5 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-newer');
     grunt.registerTask('process', ['concat_sourcemap', 'uglify']);
-    grunt.registerTask('default', ['sass', 'concat_sourcemap', 'uglify', 'watch']);
+    grunt.registerTask('default', ['newer:sass', 'concat_sourcemap', 'uglify', 'watch']);
 }

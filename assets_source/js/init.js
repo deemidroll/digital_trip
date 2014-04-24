@@ -43,7 +43,7 @@ var DT = (function () {
 // ╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██║██║     ██╔══╝      ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║
 // ███████║███████╗██║  ██║ ╚████╔╝ ██║╚██████╗███████╗    ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
 // ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚═╝ ╚═════╝╚══════╝    ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-                                                                                                                          
+
     DT.getCookie = function (name) {
         var matches = document.cookie.match(
             new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)')
@@ -80,7 +80,6 @@ var DT = (function () {
         var signVal = Math.random() - 0.5;
         return Math.abs(signVal)/signVal;
     };
-
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
         DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
@@ -102,7 +101,7 @@ var DT = (function () {
    // ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══╝      ██║███╗██║██║   ██║██╔══██╗██║     ██║  ██║
    // ██║   ██║  ██║██║  ██║███████╗███████╗    ╚███╔███╔╝╚██████╔╝██║  ██║███████╗██████╔╝
    // ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝ 
-                                                                                        
+
     DT.renderer = new THREE.WebGLRenderer();
     DT.renderer.setSize(window.innerWidth, window.innerHeight);
     DT.renderer.physicallyBasedShading = true;
@@ -111,7 +110,7 @@ var DT = (function () {
     DT.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300);
     DT.camera.position.set(0, 0.5, 15);
     DT.camera.position.z = DT.camera.z = 15;
-    var lens = DT.camera.lens = 35;
+    DT.camera.lens = DT.camera.lenz = 35;
 
     // when resize
     new THREEx.WindowResize(DT.renderer, DT.camera);
@@ -119,6 +118,32 @@ var DT = (function () {
     DT.scene = new THREE.Scene();
     $(document).on('update', function (e, data) {
         DT.renderer.render(DT.scene, DT.camera);
+    });
+
+    $(document).on('changeSpeed', function (e, data) {
+        DT.camera.lensDistortion = data.changer;
+    });
+    // TODO: refactor
+    $(document).on('update', function (e, data) {
+        var camOffset = 6, camDelta = 0.1,
+            lenOffset = 18, lenDelta = 0.3;
+        if (DT.camera.lensDistortion > 0) {
+            DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
+            DT.camera.lens = Math.max(DT.camera.lens -= lenDelta, DT.camera.lenz - lenOffset);
+        } else if (DT.camera.lensDistortion < 0) {
+            DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
+            DT.camera.lens = Math.min(DT.camera.lens += lenDelta, DT.camera.lenz + lenOffset);
+        } else {
+            var delta = DT.camera.lenz - DT.camera.lens;
+            if (delta < 0) {
+                DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
+                DT.camera.lens = Math.max(DT.camera.lens -= lenDelta, DT.camera.lenz);
+            } else {
+                DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
+                DT.camera.lens = Math.min(DT.camera.lens += lenDelta, DT.camera.lenz);
+            }
+        }
+        DT.camera.setLens(DT.camera.lens);
     });
     
     // LIGHTS
@@ -165,29 +190,6 @@ var DT = (function () {
         DT.effect.on = false;
     });
 
-    // TODO: refactor
-    // LENS
-    $(document).on('update', function (e, data) {
-        var camOffset = 6, camDelta = 0.1,
-            lensOffset = 18, lensDelta = 0.3;
-        if (DT.game.speed.getChanger() > 0) {
-            DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
-            lens = Math.max(lens -= lensDelta, DT.camera.lens - lensOffset);
-        } else if (DT.game.speed.getChanger() < 0) {
-            DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
-            lens = Math.min(lens += lensDelta, DT.camera.lens + lensOffset);
-        } else {
-            var delta = DT.camera.lens - lens;
-            if (delta < 0) {
-                DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
-                lens = Math.max(lens -= lensDelta, DT.camera.lens);
-            } else {
-                DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
-                lens = Math.min(lens += lensDelta, DT.camera.lens);
-            }
-        }
-        DT.camera.setLens(lens);
-    });
     // change IcosahedronGeometry prototype
     THREE.IcosahedronGeometry = function ( radius, detail ) {
         this.radius = radius;
@@ -247,9 +249,11 @@ var DT = (function () {
             // create a new material
             if (modelObj.name === 'bonusE') {
                 modelObj.material = new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } );
-                modelObj.material.emissive.r = modelObj.material.color.r * 0.5;
-                modelObj.material.emissive.g = modelObj.material.color.g * 0.5;
-                modelObj.material.emissive.b = modelObj.material.color.b * 0.5;
+                modelObj.material.emissive.setRGB(
+                    modelObj.material.color.r * 0.5,
+                    modelObj.material.color.g * 0.5,
+                    modelObj.material.color.b * 0.5
+                );
             } else {
                 modelObj.material = new THREE.MeshFaceMaterial( materials );
                 // shining of bonuses
@@ -1097,6 +1101,7 @@ var DT = (function () {
                                             
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
+        this.type = 1;
         DT.GameCollectionObject.apply(this, [{
             geometry: DT.listOfModels[this.type].geometry,
             material: DT.listOfModels[this.type].material,
@@ -1131,6 +1136,7 @@ var DT = (function () {
 
     DT.Bonus.prototype.update = function (options) {
         var self = this;
+        DT.GameCollectionObject.prototype.update.apply(this, arguments);
         if (this.type === 0) {
             this.updateParam('rotation', {z: 0.05});
         }
@@ -1143,21 +1149,11 @@ var DT = (function () {
         if (this.animation) {
             this.animation.update(options.delta);
         }
-        
         this.updateParam('position', {z: DT.game.speed.getValue()});
-        DT.GameCollectionObject.prototype.update.apply(this, arguments);
         if (DT.getDistance(this.tObject.position.x, this.tObject.position.y, this.tObject.position.z,
-                options.sphere.position.x, options.sphere.position.y, options.sphere.position.z) < 10) {
-            
-            this.tObject.scale.x *= 0.9;
-            this.tObject.scale.y *= 0.9;
-            this.tObject.scale.z *= 0.9;
-            
-            if (DT.getDistance(this.tObject.position.x, this.tObject.position.y, this.tObject.position.z,
-                    options.sphere.position.x, options.sphere.position.y, options.sphere.position.z) < 0.9) {
-                this.removeFromScene();
-                $(document).trigger('catchBonus', {type: self.type});
-            }
+                options.sphere.position.x, options.sphere.position.y, options.sphere.position.z) < 0.9) {
+            this.removeFromScene();
+            $(document).trigger('catchBonus', {type: self.type});
         }
     };
 
@@ -1301,7 +1297,7 @@ var DT = (function () {
         // helth
         if (type === 0) $(document).trigger('changeHelth', {delta: 100});
         // invulnerability
-        if (type === 1) $(document).trigger('makeInvuler', {});
+        if (type === 1) $(document).trigger('makeInvulner', {});
         // entertainment
         if (type === 2) $(document).trigger('makeFun', {});
         return this;

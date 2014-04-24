@@ -113,8 +113,15 @@ var DT = (function () {
     DT.camera.position.z = DT.camera.z = 15;
     var lens = DT.camera.lens = 35;
 
+    // when resize
+    new THREEx.WindowResize(DT.renderer, DT.camera);
+
     DT.scene = new THREE.Scene();
+    $(document).on('update', function (e, data) {
+        DT.renderer.render(DT.scene, DT.camera);
+    });
     
+    // LIGHTS
     DT.lights = {
         light: new THREE.PointLight(0xffffff, 0.75, 100),
         directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
@@ -126,38 +133,39 @@ var DT = (function () {
     DT.scene.add(DT.lights.directionalLight);
 
     // BACKGROUND
-    DT.bgTexture = THREE.ImageUtils.loadTexture('img/bg.jpg');
     DT.backgroundMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(44, 22, 0),
         new THREE.MeshBasicMaterial({
-            map: DT.bgTexture
-        }));
-    DT.backgroundMesh.material.depthTest = false;
+            map: THREE.ImageUtils.loadTexture('img/bg.jpg')
+        })
+    );
+    DT.backgroundMesh.material.depthTest = false;  
     DT.backgroundMesh.material.depthWrite = false;
     DT.backgroundMesh.visible = false;
     DT.scene.add(DT.backgroundMesh);
-
-   // when resize
-    var winResize = new THREEx.WindowResize(DT.renderer, DT.camera);
-
-    // EFFECT
-    DT.effect = new THREE.AnaglyphEffect(DT.renderer);
-
-    // TODO: refactor
-    // render the scene
     $(document).on('update', function (e, data) {
-        DT.renderer.render(DT.scene, DT.camera);
-        if (DT.player.isFun) {
-            DT.effect.render(DT.scene, DT.camera);
-            DT.effect.setSize( window.innerWidth, window.innerHeight );
-        }
         if (!DT.backgroundMesh.visible) {
             DT.backgroundMesh.visible = true;
         }
-        if ( DT.animation ) {
-            DT.animation.update( data.delta*1000 );
+    });
+
+    // EFFECT
+    DT.effect = new THREE.AnaglyphEffect(DT.renderer);
+    DT.effect.on = false;
+    $(document).on('update', function (e, data) {
+        if (DT.effect.on) {
+            DT.effect.render(DT.scene, DT.camera);
+            DT.effect.setSize( window.innerWidth, window.innerHeight );
         }
     });
+    $(document).on('makeFun', function (e, data) {
+        DT.effect.on = true;
+    });
+    $(document).on('stopFun', function (e, data) {
+        DT.effect.on = false;
+    });
+
+    // TODO: refactor
     // LENS
     $(document).on('update', function (e, data) {
         var camOffset = 6, camDelta = 0.1,
@@ -1113,10 +1121,11 @@ var DT = (function () {
             .createAndAdd();
         // TODO: сделать расширяемой возможность анимации
         if (this.type === 2) {
-            DT.animation = new THREE.MorphAnimation(this.tObject);
-            DT.animation.play();
+            this.animation = new THREE.MorphAnimation(this.tObject);
+            this.animation.play();
         }
     };
+
     DT.Bonus.prototype = Object.create(DT.GameCollectionObject.prototype);
     DT.Bonus.prototype.constructor = DT.Bonus;
 
@@ -1131,21 +1140,14 @@ var DT = (function () {
         if (this.type === 2) {
             // this.updateParam('rotation', {z: 0.05});
         }
+        if (this.animation) {
+            this.animation.update(options.delta);
+        }
         
         this.updateParam('position', {z: DT.game.speed.getValue()});
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
         if (DT.getDistance(this.tObject.position.x, this.tObject.position.y, this.tObject.position.z,
-                options.sphere.position.x, options.sphere.position.y, options.sphere.position.z) < 1.0) {
-            
-            if (this.type === 0) {
-                this.tObject.rotation.x += 0.2;
-            }
-            if (this.type === 1) {
-                this.tObject.rotation.y += 0.2;
-            }
-            if (this.type === 2) {
-                // this.tObject.rotation.z += 0.2;
-            }
+                options.sphere.position.x, options.sphere.position.y, options.sphere.position.z) < 10) {
             
             this.tObject.scale.x *= 0.9;
             this.tObject.scale.y *= 0.9;
@@ -1333,7 +1335,8 @@ var DT = (function () {
             .update({
                 dieCoord: DT.game.param.dieCoord,
                 opacityCoord: DT.game.param.opacityCoord,
-                sphere: DT.player.sphere
+                sphere: DT.player.sphere,
+                delta: data.delta*1000
             });
     });
     $(document).on('catchBonus', function (e, data) {

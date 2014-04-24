@@ -2672,7 +2672,7 @@ var DT = (function () {
         DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
         var deltaMsec = Math.min(200, nowMsec - DT.animate.lastTimeMsec);
         // keep looping
-        DT.animate.id = requestAnimFrame(DT.animate);
+        DT.animate.id = requestAnimationFrame(DT.animate);
         // change last time
         DT.animate.lastTimeMsec = nowMsec;
         // call each update function
@@ -3091,8 +3091,8 @@ var DT = (function () {
                     helth = 0;
                     $(document).trigger('gameOver', {});
                 }
-                if (helth > 100) {
-                    helth = 100;
+                if (k === 37) {
+                    changeDestPoint(0, -1, destPoint);
                 }
             }
             this.currentHelth = helth;
@@ -4757,21 +4757,6 @@ var DT = (function () {
         DT.stats2.domElement.style.zIndex = 100;
         body.appendChild( DT.stats2.domElement );
     };
-    $(document).on('startGame', function (e, data) {
-        DT.setStats();
-    });
-    $(document).on('update', function (e, data) {
-        DT.stats.update();
-        DT.stats2.update();
-    });
-
-// ████████╗██╗  ██╗███████╗    ███████╗███╗   ██╗██████╗ 
-// ╚══██╔══╝██║  ██║██╔════╝    ██╔════╝████╗  ██║██╔══██╗
-   // ██║   ███████║█████╗      █████╗  ██╔██╗ ██║██║  ██║
-   // ██║   ██╔══██║██╔══╝      ██╔══╝  ██║╚██╗██║██║  ██║
-   // ██║   ██║  ██║███████╗    ███████╗██║ ╚████║██████╔╝
-   // ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═══╝╚═════╝ 
-
     return DT;
 } ());
 

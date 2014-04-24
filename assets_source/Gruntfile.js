@@ -45,7 +45,7 @@ module.exports = function(grunt) {
             },
             target: {
                 files: {
-                    '../assets_source/js/all.js': [
+                    '../assets_source/js/DT.js': [
                         'js/vendor/fireworks-bundle.js',
                         'js/vendor/Detector.js',
                         'js/vendor/threex.windowresize.js',
@@ -68,7 +68,7 @@ module.exports = function(grunt) {
                     banner: '/* Created by deemidroll | deemidroll@gmail.com | 2014 */',
                 },
                 files: {
-                    '../assets/js/all.min.js': ['../assets_source/js/all.js'],
+                    '../assets/js/DT.min.js': ['../assets_source/js/DT.js'],
                     '../assets/js/myYepnope.min.js': ['js/myYepnope.js'],
                     '../assets/js/mobile.min.js': ['js/mobile.js'],
                 }

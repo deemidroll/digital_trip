@@ -2769,11 +2769,8 @@ var DT = (function () {
             DT.effect.setSize( window.innerWidth, window.innerHeight );
         }
     });
-    $(document).on('makeFun', function (e, data) {
-        DT.effect.on = true;
-    });
-    $(document).on('stopFun', function (e, data) {
-        DT.effect.on = false;
+    $(document).on('showFun', function (e, data) {
+        DT.effect.on = data.isFun;
     });
 
     // change IcosahedronGeometry prototype
@@ -2835,18 +2832,13 @@ var DT = (function () {
             // create a new material
             if (modelObj.name === 'bonusE') {
                 modelObj.material = new THREE.MeshLambertMaterial( { color: 0x606060, morphTargets: true } );
-                modelObj.material.emissive.setRGB(
-                    modelObj.material.color.r * 0.5,
-                    modelObj.material.color.g * 0.5,
-                    modelObj.material.color.b * 0.5
-                );
+                modelObj.material.emissive.copy(modelObj.material.color);
+                modelObj.material.emissive.multiplyScalar(0.5);
             } else {
                 modelObj.material = new THREE.MeshFaceMaterial( materials );
-                // shining of bonuses
                 modelObj.material.materials.forEach(function (el) {
-                    el.emissive.r = el.color.r * 0.5;
-                    el.emissive.g = el.color.g * 0.5;
-                    el.emissive.b = el.color.b * 0.5;
+                    el.emissive.copy(el.color);
+                    el.emissive.multiplyScalar(0.5);
                 });
             }
             modelObj.geometry = geometry;
@@ -3014,21 +3006,16 @@ var DT = (function () {
         this.light.color = this.sphere.material.color;
         this.scene.add(this.light);
         this.blink = {
-            color: new THREE.Color('red'),
+            defColor: new THREE.Color('red'),
+            color: new THREE.Color('white'),
+            bColor: new THREE.Color(0, 0, 0),
             frames: 0,
             framesLeft: 0,
-            dr: 0,
-            dg: 0,
-            db: 0,
             doBlink: function (color, frames) {
-                var defClr = {r: 1, g: 0, b: 0};
+                var tempColor = new THREE.Color(color).multiplyScalar(-1);
                 this.color = new THREE.Color(color);
-                this.frames = frames;
-                this.framesLeft = frames;
-                this.dr = (defClr.r - this.color.r)/frames;
-                this.dg = (defClr.g - this.color.g)/frames;
-                this.db = (defClr.b - this.color.b)/frames;
-
+                this.framesLeft = this.frames = frames;
+                this.bColor.addColors(this.defColor, tempColor).multiplyScalar(1/frames);
             },
         };
         this.emitter = Fireworks.createEmitter({nParticles : 100})
@@ -3080,15 +3067,13 @@ var DT = (function () {
             return;
         }
         if (this.blink.framesLeft === 1) {
-            this.sphere.material.color.setRGB(1,0,0)
+            this.sphere.material.color.copy(this.blink.defColor);
         }
         if (this.blink.framesLeft === this.blink.frames) {
-            this.sphere.material.color.setRGB(this.blink.color.r,this.blink.color.g,this.blink.color.b);
+            this.sphere.material.color.copy(this.blink.color);
         }
         if (this.blink.framesLeft < this.blink.frames) {
-            this.sphere.material.color.r += this.blink.dr;
-            this.sphere.material.color.g += this.blink.dg;
-            this.sphere.material.color.b += this.blink.db;
+            this.sphere.material.color.add(this.blink.bColor);
         }
         this.blink.framesLeft -= 1;
         return this;
@@ -3687,7 +3672,6 @@ var DT = (function () {
                                             
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-        this.type = 1;
         DT.GameCollectionObject.apply(this, [{
             geometry: DT.listOfModels[this.type].geometry,
             material: DT.listOfModels[this.type].material,

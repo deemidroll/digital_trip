@@ -3032,6 +3032,7 @@ var DT = (function () {
     DT.Game.prototype.reset = function() {
         this.timer = 0;
         this.speed.value = 36;
+        this.wasOver = false;
     };
     DT.Game.prototype.gameOver = function() {
         this.wasOver = true;

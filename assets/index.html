@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>digital trip</title>
     <link rel="stylesheet" type="text/css" href="css/game.css" />
+    <link rel="stylesheet" type="text/css" href="js/tests/qunit-1.14.0.css" />
     <link rel="icon" type="image/png" href="img/fav.png">
 </head>
 <body>
@@ -46,6 +47,10 @@
                 Please open up this page with your phone and enter code <span style="font-weight:bold" id="socketId"></span>
             </span>
             <div id="status"></div>
+            <!-- divs for tests -->
+            <div id="qunit"></div>
+            <div id="qunit-fixture"></div>
+            <!-- end divs for tests -->
         </div>
     </div>
     <div class="menu_page">
@@ -94,8 +99,16 @@
             <canvas id="debug" width="320" height="240" style="position: absolute; left:0; top:0;"></canvas>
         </div>
     </div>
-    
+
+    <!-- download manager -->
     <script src="js/vendor/yepnope.1.5.4-min.js"></script>
     <script src="js/myYepnope.min.js"></script>
+    <!-- end of download manager -->
+
+    <!-- scripts for tests -->
+    <script src="js/tests/qunit-1.14.0.js"></script>
+    <script src="js/tests/tests.js"></script>
+    <!-- end of scripts for tests -->
+
 </body>
 </html>

@@ -28,11 +28,11 @@ module.exports = function(grunt) {
                 tasks: ['newer:sass'],
             },
             js: {
-                files: ['js/*.js', 'js/*/*.js'],
+                files: ['js/*.js', 'js/*/*.js', '../assets/js/tests/tests.js'],
                 tasks: ['process'],
             },
             html: {
-                files: '../game/*.html',
+                files: '../assets/index.html',
             },
             // config: {
             //     files: ['package.json', 'Gruntfile.js'],
@@ -50,6 +50,7 @@ module.exports = function(grunt) {
                         'js/vendor/Detector.js',
                         'js/vendor/threex.windowresize.js',
                         'js/vendor/Stats.js',
+                        'js/vendor/threex.rendererstats.js',
                         'js/vendor/webaudio.js',
                         // 'js/vendor/headtrackr.js',
                         'js/vendor/THREEx.FullScreen.js',

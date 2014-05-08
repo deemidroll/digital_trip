@@ -85,15 +85,18 @@ var DT = (function () {
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
         DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
-        var deltaMsec = Math.min(200, nowMsec - DT.animate.lastTimeMsec);
+        var deltaMsec = Math.min(100, nowMsec - DT.animate.lastTimeMsec);
         // keep looping
         DT.animate.id = requestAnimFrame(DT.animate);
         // change last time
         DT.animate.lastTimeMsec = nowMsec;
+        DT.animate.timeElapsed = DT.animate.timeElapsed || 0;
+        DT.animate.timeElapsed += deltaMsec;
         // call each update function
-        DT.$document.trigger('update', {
+        DT.$document.trigger('updatePath', {
             delta: deltaMsec / 1000,
-            now: nowMsec / 1000
+            now: nowMsec / 1000,
+            timeElapsed: DT.animate.timeElapsed / 1000
         });
     };
     DT.$document.on('startGame', function (e, data) {
@@ -121,7 +124,7 @@ var DT = (function () {
    // ██║   ██║  ██║██║  ██║███████╗███████╗    ╚███╔███╔╝╚██████╔╝██║  ██║███████╗██████╔╝
    // ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝ 
 
-    DT.renderer = new THREE.WebGLRenderer();
+    DT.renderer = new THREE.WebGLRenderer({antialiasing: true});
     DT.renderer.setSize(window.innerWidth, window.innerHeight);
     DT.renderer.physicallyBasedShading = true;
     document.body.appendChild(DT.renderer.domElement);
@@ -135,9 +138,9 @@ var DT = (function () {
     new THREEx.WindowResize(DT.renderer, DT.camera);
 
     DT.scene = new THREE.Scene();
-    DT.$document.on('update', function (e, data) {
-        DT.renderer.render(DT.scene, DT.camera);
-    });
+    // DT.$document.on('update', function (e, data) {
+    //     DT.renderer.render(DT.scene, DT.camera);
+    // });
 
     DT.$document.on('changeSpeed', function (e, data) {
         DT.camera.lensDistortion = data.changer;
@@ -164,34 +167,147 @@ var DT = (function () {
         }
         DT.camera.setLens(DT.camera.lens);
     });
-    
+
+
+
+    // PATH
+    var parent = new THREE.Object3D();
+    DT.scene.add(parent);
+    var scale = 3;
+    var splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
+    parent.add(splineCamera);
+    var extrudePath = new THREE.Curves.GrannyKnot();
+    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 32, true, false);
+
+    var tubeMesh = THREE.SceneUtils.createMultiMaterialObject( tube, [
+                new THREE.MeshLambertMaterial({
+                    // color: 0xffffff,
+                    opacity: 0,
+                    transparent: true
+                }),
+                new THREE.MeshBasicMaterial({
+                    // color: 0x000000,
+                    opacity: 0,
+                    // wireframe: true, 
+                    transparent: true
+            })]);
+    parent.add(tubeMesh);
+    tubeMesh.scale.set( scale, scale, scale );
+
+    // var cameraEye = new THREE.Mesh( new THREE.SphereGeometry( 5 ), new THREE.MeshBasicMaterial( { color: 0xdddddd } ) );
+    // parent.add(cameraEye);
+
+    var binormal = new THREE.Vector3();
+    var normal = new THREE.Vector3();
+    var posPlayerLeft = new THREE.Vector3(),
+        posPlayerRight = new THREE.Vector3();
+
+    console.log(tube);
+    // tube.vertices.forEach(function (el) {
+    //     var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffff00, emissive: 0x990000}));
+    //     sphere.position = el.multiplyScalar(scale);
+    //     DT.scene.add(sphere);
+    // });
+    var targetRotation = 0;
+    DT.$document.on('updatePath', function (e, data) {
+     var time = data.timeElapsed;
+            var looptime = 20; // related to speed
+            var t = ( time % looptime ) / looptime;
+            // console.log(t);
+            var pos = tube.path.getPointAt( t );
+            pos.multiplyScalar( scale );
+
+            // interpolation
+            var segments = tube.tangents.length;
+            var pickt = t * segments;
+            var pick = Math.floor( pickt );
+            var pickNext = ( pick + 1 ) % segments;
+
+            binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
+            binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
+
+
+            var dir = tube.path.getTangentAt( t );
+
+            var offset = 0;
+
+            normal.copy( binormal ).cross( dir );
+
+            // We move on a offset on its binormal
+            // pos.add( normal.clone().multiplyScalar( offset ) );
+            // var posPlayer = new THREE.Vector3().copy(posPlayer)
+            // posPlayer.add( normal.clone().multiplyScalar( offset ) );
+            
+
+            splineCamera.position = pos;
+
+            // DT.player.sphere.position = posPlayer;
+            // DT.player.light.position = posPlayer;
+
+            // cameraEye.position = pos;
+
+
+            // Camera Orientation 1 - default look at
+            // splineCamera.lookAt( lookAt );
+
+            // Using arclength for stablization in look ahead.
+            var lookAt = tube.path.getPointAt( ( t + 30 / tube.path.getLength() ) % 1 ).multiplyScalar( scale );
+
+            // Camera Orientation 2 - up orientation via normal
+            // if (!lookAhead)
+            lookAt.copy( pos ).add( dir );
+            splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
+            splineCamera.rotation.setFromRotationMatrix( splineCamera.matrix, splineCamera.rotation.order );
+
+            parent.rotation.y += ( targetRotation - parent.rotation.y ) * 0.05;
+
+            // data.pos = posPlayer;
+            data.tube = tube;
+            data.t = t;
+            DT.$document.trigger('update', data);
+
+            // DT.renderer.render( DT.scene, DT.camera);
+            DT.renderer.render( DT.scene, splineCamera);
+    });
+
+
+
     // LIGHTS
     DT.lights = {
         light: new THREE.PointLight(0xffffff, 0.75, 100),
         directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
     };
-    DT.lights.light.position.set(0, 0, -1);
+    // DT.lights.light.position.set(0, 0, -1);
     DT.scene.add(DT.lights.light);
 
-    DT.lights.directionalLight.position.set(0, 0, 1);
+    // DT.lights.directionalLight.position.set(0, 0, 1);
     DT.scene.add(DT.lights.directionalLight);
 
-    // BACKGROUND
-    DT.backgroundMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(44, 22, 0),
-        new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture('img/bg.jpg')
-        })
-    );
-    DT.backgroundMesh.material.depthTest = false;  
-    DT.backgroundMesh.material.depthWrite = false;
-    DT.backgroundMesh.visible = false;
-    DT.scene.add(DT.backgroundMesh);
     DT.$document.on('update', function (e, data) {
-        if (!DT.backgroundMesh.visible) {
-            DT.backgroundMesh.visible = true;
-        }
+        var posLight = data.tube.path.getPointAt(data.t - 0.005);
+        posLight.multiplyScalar( scale );
+        DT.lights.light.position = posLight;
+        var posDirectLight = data.tube.path.getPointAt(data.t + 0.006);
+        posDirectLight.multiplyScalar( scale );
+        DT.lights.directionalLight.position = posDirectLight;  
     });
+
+    // BACKGROUND
+    // DT.backgroundMesh = new THREE.Mesh(
+    //     new THREE.PlaneGeometry(44, 22, 0),
+    //     new THREE.MeshBasicMaterial({
+    //         map: THREE.ImageUtils.loadTexture('img/bg.jpg')
+    //     })
+    // );
+    // DT.backgroundMesh.material.depthTest = false;  
+    // DT.backgroundMesh.material.depthWrite = false;
+    // DT.backgroundMesh.visible = false;
+    // DT.scene.add(DT.backgroundMesh);
+    // DT.$document.on('update', function (e, data) {
+    //     if (!DT.backgroundMesh.visible) {
+    //         DT.backgroundMesh.visible = true;
+    //     }
+    // });
 
     // EFFECT
     DT.effect = new THREE.AnaglyphEffect(DT.renderer);
@@ -429,19 +545,22 @@ var DT = (function () {
         this.scene = options.scene || DT.scene;
         this.currentHelth = options.currentHelth || 100;
         this.currentScore = options.currentScore || 0;
+        this.position = new THREE.Vector3();
         this.destPoint = options.destPoint || {x: 0, y: 0};
         this.isInvulnerability = options.isInvulnerability || false;
         this.isFun = options.isFun || false;
         this.invulnerTimer = null;
         this.funTimer = null;
 
-        this.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
-        this.sphere.position.set(0, -2.5, 0);
+        this.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000, emissive: 0x990000}));
+        // this.sphere.position.set(0, -2.5, 0);
+        this.sphere.position = this.position;
 
         this.light = new THREE.PointLight(0xff0000, 1.75, 15);
-        this.light.position = this.sphere.position;
+        this.light.position = this.position;
         this.light.color = this.sphere.material.color;
         this.scene.add(this.light);
+        this.scene.add(this.sphere);
 
         this.blink = {
             defColor: new THREE.Color('red'),
@@ -461,18 +580,18 @@ var DT = (function () {
         .effectsStackBuilder()
             .spawnerSteadyRate(25)
             .position(Fireworks.createShapePoint(0, 0, 0))
-            .velocity(Fireworks.createShapePoint(0, 0, 2))
-            .lifeTime(0.7, 0.7)
-            .randomVelocityDrift(Fireworks.createVector(0, 0, 0))
+            .velocity(Fireworks.createShapePoint(0, 0, 0 ))
+            .lifeTime(0.1, 0.1)
+            .randomVelocityDrift(Fireworks.createVector(1, 1, 1))
             .renderToThreejsParticleSystem({
                 particleSystem  : function(emitter){
                     var i,
                         geometry    = new THREE.Geometry(),
                         texture = Fireworks.ProceduralTextures.buildTexture(),
                         material    = new THREE.ParticleBasicMaterial({
-                            color       : new THREE.Color().setHSL(1, 0, 0.3).getHex(),
-                            size        : 100,
-                            sizeAttenuation : false,
+                            color       : new THREE.Color().setHSL(1, 0, 0.6).getHex(),
+                            size        : 2,
+                            sizeAttenuation : true,
                             vertexColors    : true,
                             map     : texture,
                             blending    : THREE.AdditiveBlending,
@@ -493,7 +612,8 @@ var DT = (function () {
                     }
                     
                     self.scene.add(particleSystem);
-                    particleSystem.position = self.sphere.position;
+                    // particleSystem.position = self.sphere.position;
+                    DT.particleSystem = particleSystem;
                     return particleSystem;
                 }
             }).back()
@@ -602,13 +722,25 @@ var DT = (function () {
     };
 
     DT.Player.prototype.update = function (data) {
+        var posPlayer = data.tube.path.getPointAt(data.t + 0.004);
+        posPlayer.multiplyScalar( scale );
+        var patricleVelocity = data.tube.path.getPointAt(data.t);
+
         this.updateInvulnerability();
         this.updateFun();
         this.updateBlink();
-        this.moveSphere(3);
+
+        this.moveSphere(posPlayer);
+        DT.particleSystem.position = posPlayer;
+        DT.particleSystem.scale.set(1,1,1);
+        DT.particleSystem.scale.addScalar(DT.audio.valueAudio/50);
+        // console.log(DT.particleSystem);
         this.emitter.update(data.delta).render();
         this.emitter._particles.forEach(function(el) {
-            el.velocity.vector.z += DT.audio.valueAudio/28;
+            el.velocity.vector = patricleVelocity;
+            // console.log(el);
+            // el.velocity.vector.z *= DT.audio.valueAudio/280;
+            // el.velocity.vector.addScalar(DT.audio.valueAudio/280);
         });
         return this;
     };
@@ -629,14 +761,18 @@ var DT = (function () {
         return this;
     };
 
-    DT.Player.prototype.moveSphere = function(n) {
+    DT.Player.prototype.moveSphere = function(pos) {
         var self = this;
-            ['x', 'y'].forEach(function(aix) {
-                var dx = self.destPoint[aix] - self.sphere.position[aix];
-                if (Math.abs(dx) > 0.01) {
-                    self.sphere.position[aix] += dx > 0 ? 0.3 : -0.3;
-                }
-            });
+        this.sphere.position = pos;
+        this.light.position = pos;
+        this.position = pos;
+
+            // ['x', 'y'].forEach(function(aix) {
+            //     var dx = self.destPoint[aix] - self.sphere.position[aix];
+            //     if (Math.abs(dx) > 0.01) {
+            //         self.sphere.position[aix] += dx > 0 ? 0.3 : -0.3;
+            //     }
+            // });
         return this;
     };
 
@@ -655,7 +791,8 @@ var DT = (function () {
         currentScore: 0,
         destPoint: {x: 0, y: -2.5},
         isInvulnerability: false,
-        isFun: false
+        isFun: false,
+        // scene: parent
     });
     DT.$document.on('update', function (e, data) {
         DT.player.update(data);
@@ -853,12 +990,16 @@ var DT = (function () {
     DT.Dust.prototype.constructor = DT.Dust;
 
     DT.Dust.prototype.create = function () {
-        for (var i = 0; i < this.number; i++) {
-            this.geometry.vertices.push(new THREE.Vector3(
-                DT.genRandomBetween(-10, 10),
-                DT.genRandomBetween(-10, 10),
-                DT.genRandomBetween(-100, 0)
-            ));
+        // for (var i = 0; i < this.number; i++) {
+        //     this.geometry.vertices.push(new THREE.Vector3(
+        //         DT.genRandomBetween(-10, 10),
+        //         DT.genRandomBetween(-10, 10),
+        //         DT.genRandomBetween(-100, 0)
+        //     ));
+        // }
+        var N = tube.vertices.length;
+        for (var i = 0; i < N; i += 10) {
+            this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(scale));
         }
         this.material.visible = false;
         return this;
@@ -877,15 +1018,15 @@ var DT = (function () {
     };
 
     DT.Dust.prototype.updateGeometry = function (options) {
-        this.geometry.vertices.forEach(function (el) {
-            el.z += options.speed;
-            if (el.z > 10) {
-                el.x = DT.genRandomBetween(-10, 10);
-                el.y = DT.genRandomBetween(-10, 10);
-                el.z = -100;
-            }
-        });
-        this.geometry.verticesNeedUpdate = true;
+        // this.geometry.vertices.forEach(function (el) {
+        //     el.z += options.speed;
+        //     if (el.z > 10) {
+        //         el.x = DT.genRandomBetween(-10, 10);
+        //         el.y = DT.genRandomBetween(-10, 10);
+        //         el.z = -100;
+        //     }
+        // });
+        // this.geometry.verticesNeedUpdate = true;
         return this;
     };
     // Dust object 
@@ -900,9 +1041,6 @@ var DT = (function () {
                 isFun: DT.player.isFun,
                 valueAudio: DT.audio.valueAudio,
                 color: DT.player.sphere.material.color
-            }, 
-            geometry: {
-                speed: DT.game.speed.getValue()
             }
         });
     });
@@ -1214,20 +1352,20 @@ var DT = (function () {
         }
         return this;
     };
-    DT.$document.on('update', function (e, data) {
-        new DT.StonesCollection()
-            .createObjects({
-                spawnCoord: DT.game.param.spawnCoord,
-            })
-            .update({
-                dieCoord: DT.game.param.dieCoord,
-                opacityCoord: DT.game.param.opacityCoord,
-                sphere: DT.player.sphere
-            });
-    });
-    DT.$document.on('resetGame', function (e, data) {
-        new DT.StonesCollection().removeObjects();
-    });
+    // DT.$document.on('update', function (e, data) {
+    //     new DT.StonesCollection()
+    //         .createObjects({
+    //             spawnCoord: DT.game.param.spawnCoord,
+    //         })
+    //         .update({
+    //             dieCoord: DT.game.param.dieCoord,
+    //             opacityCoord: DT.game.param.opacityCoord,
+    //             sphere: DT.player.sphere
+    //         });
+    // });
+    // DT.$document.on('resetGame', function (e, data) {
+    //     new DT.StonesCollection().removeObjects();
+    // });
 
 
     DT.CoinsCollection = function () {
@@ -1254,24 +1392,24 @@ var DT = (function () {
         }
         return this;
     };
-    DT.$document.on('update', function (e, data) {
-        new DT.CoinsCollection()
-            .createObjects({
-                x: DT.genCoord(),
-                y: -2.5,
-                spawnCoord: DT.game.param.spawnCoord,
-                zAngle: 0,
-                number: 10
-            })
-            .update({
-                dieCoord: DT.game.param.dieCoord,
-                opacityCoord: DT.game.param.opacityCoord,
-                sphere: DT.player.sphere
-            });
-    });
-    DT.$document.on('resetGame', function (e, data) {
-        new DT.CoinsCollection().removeObjects()
-    });
+    // DT.$document.on('update', function (e, data) {
+    //     new DT.CoinsCollection()
+    //         .createObjects({
+    //             x: DT.genCoord(),
+    //             y: -2.5,
+    //             spawnCoord: DT.game.param.spawnCoord,
+    //             zAngle: 0,
+    //             number: 10
+    //         })
+    //         .update({
+    //             dieCoord: DT.game.param.dieCoord,
+    //             opacityCoord: DT.game.param.opacityCoord,
+    //             sphere: DT.player.sphere
+    //         });
+    // });
+    // DT.$document.on('resetGame', function (e, data) {
+    //     new DT.CoinsCollection().removeObjects()
+    // });
 
     DT.BonusesCollection = function (options) {
         if (!DT.BonusesCollection.__instance) {
@@ -1327,26 +1465,26 @@ var DT = (function () {
     DT.BonusesCollection.prototype.reset = function () {
         this.caughtBonuses.length = 0;
     };
-    DT.$document.on('update', function (e, data) {
-        new DT.BonusesCollection()
-            .createObjects({
-                x: DT.genCoord(),
-                y: -2.5,
-                spawnCoord: DT.game.param.spawnCoord,
-            })
-            .update({
-                dieCoord: DT.game.param.dieCoord,
-                opacityCoord: DT.game.param.opacityCoord,
-                sphere: DT.player.sphere,
-                delta: data.delta*1000
-            });
-    });
-    DT.$document.on('catchBonus', function (e, data) {
-        new DT.BonusesCollection().catchBonus(data.type);
-    });
-    DT.$document.on('resetGame', function (e, data) {
-        new DT.BonusesCollection().removeObjects().reset(); 
-    });
+    // DT.$document.on('update', function (e, data) {
+    //     new DT.BonusesCollection()
+    //         .createObjects({
+    //             x: DT.genCoord(),
+    //             y: -2.5,
+    //             spawnCoord: DT.game.param.spawnCoord,
+    //         })
+    //         .update({
+    //             dieCoord: DT.game.param.dieCoord,
+    //             opacityCoord: DT.game.param.opacityCoord,
+    //             sphere: DT.player.sphere,
+    //             delta: data.delta*1000
+    //         });
+    // });
+    // DT.$document.on('catchBonus', function (e, data) {
+    //     new DT.BonusesCollection().catchBonus(data.type);
+    // });
+    // DT.$document.on('resetGame', function (e, data) {
+    //     new DT.BonusesCollection().removeObjects().reset(); 
+    // });
 
  // █████╗ ██╗   ██╗██████╗ ██╗ ██████╗ 
 // ██╔══██╗██║   ██║██╔══██╗██║██╔═══██╗
@@ -1382,11 +1520,11 @@ var DT = (function () {
         }
     };
     DT.audio.reset = function () {
-        DT.audio.music.startedAt = [];
-        DT.audio.music.pausedAt = [];
-        DT.audio.music.stopped = [];
-        DT.audio.music.paused = [];
-        DT.audio.music.started = [];
+        DT.audio.music.startedAt.length = 0;
+        DT.audio.music.pausedAt.length = 0;
+        DT.audio.music.stopped.length = 0;
+        DT.audio.music.paused.length = 0;
+        DT.audio.music.started.length = 0;
     };
 
     DT.setVolume = function (volume) {

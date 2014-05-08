@@ -177,7 +177,7 @@ var DT = (function () {
     var splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(splineCamera);
     var extrudePath = new THREE.Curves.GrannyKnot();
-    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 32, true, false);
+    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 15, true, false);
 
     var tubeMesh = THREE.SceneUtils.createMultiMaterialObject( tube, [
                 new THREE.MeshLambertMaterial({
@@ -187,8 +187,8 @@ var DT = (function () {
                 }),
                 new THREE.MeshBasicMaterial({
                     // color: 0x000000,
-                    opacity: 0,
-                    // wireframe: true, 
+                    opacity: 0.1,
+                    wireframe: true,  
                     transparent: true
             })]);
     parent.add(tubeMesh);
@@ -202,16 +202,24 @@ var DT = (function () {
     var posPlayerLeft = new THREE.Vector3(),
         posPlayerRight = new THREE.Vector3();
 
-    console.log(tube);
-    // tube.vertices.forEach(function (el) {
-    //     var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xffff00, emissive: 0x990000}));
-    //     sphere.position = el.multiplyScalar(scale);
-    //     DT.scene.add(sphere);
+    // var binorLen = tube.binormals.length;
+    // var norLen = tube.normals.length;
+    // tube.binormals.forEach(function (el, i) {
+    //     var sphereR = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0x0000ff, emissive: 0x000011}));
+    //     sphereR.position = tube.path.getPointAt(1/binorLen * i).add(el).multiplyScalar(scale);
+    //     DT.scene.add(sphereR);
+    //     var sphereL = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000, emissive: 0x110000}));
+    //     sphereL.position = tube.path.getPointAt(1/binorLen * i).add(el.clone().negate()).multiplyScalar(scale);
+    //     DT.scene.add(sphereL);
+    //     var sphereM = new THREE.Mesh(new THREE.SphereGeometry(0.1, 32, 32), new THREE.MeshPhongMaterial({color: 0x00ff00, emissive: 0x001100}));
+    //     sphereM.position = tube.path.getPointAt(1/binorLen * i).clone().multiplyScalar(scale);
+    //     DT.scene.add(sphereM);
     // });
+
     var targetRotation = 0;
     DT.$document.on('updatePath', function (e, data) {
      var time = data.timeElapsed;
-            var looptime = 20; // related to speed
+            var looptime = 40; // related to speed
             var t = ( time % looptime ) / looptime;
             // console.log(t);
             var pos = tube.path.getPointAt( t );
@@ -264,6 +272,9 @@ var DT = (function () {
             // data.pos = posPlayer;
             data.tube = tube;
             data.t = t;
+            data.normal = normal;
+            data.normal = normal;
+            data.binormal = binormal;
             DT.$document.trigger('update', data);
 
             // DT.renderer.render( DT.scene, DT.camera);
@@ -546,13 +557,13 @@ var DT = (function () {
         this.currentHelth = options.currentHelth || 100;
         this.currentScore = options.currentScore || 0;
         this.position = new THREE.Vector3();
-        this.destPoint = options.destPoint || {x: 0, y: 0};
+        this.destPoint = options.destPoint || new THREE.Vector3(0, 0, 0);
         this.isInvulnerability = options.isInvulnerability || false;
         this.isFun = options.isFun || false;
         this.invulnerTimer = null;
         this.funTimer = null;
 
-        this.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000, emissive: 0x990000}));
+        this.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
         // this.sphere.position.set(0, -2.5, 0);
         this.sphere.position = this.position;
 
@@ -722,57 +733,67 @@ var DT = (function () {
     };
 
     DT.Player.prototype.update = function (data) {
-        var posPlayer = data.tube.path.getPointAt(data.t + 0.004);
-        posPlayer.multiplyScalar( scale );
-        var patricleVelocity = data.tube.path.getPointAt(data.t);
+        var left   = new THREE.Vector3(-1, 0, 0),
+            right  = new THREE.Vector3( 1, 0, 0);
+
+        // var self = this;
+        var pos = data.tube.path.getPointAt(data.t + 0.004);
+        var posPlayer = pos.clone().multiplyScalar( scale );
+        data.pos = posPlayer.clone();
+
+        if (this.destPoint.equals(left)) posPlayer.add(binormal.multiplyScalar(scale).negate());
+        if (this.destPoint.equals(right)) posPlayer.add(binormal.multiplyScalar(scale));
+
+        data.posPlayer = posPlayer;
 
         this.updateInvulnerability();
         this.updateFun();
         this.updateBlink();
 
-        this.moveSphere(posPlayer);
-        DT.particleSystem.position = posPlayer;
-        DT.particleSystem.scale.set(1,1,1);
-        DT.particleSystem.scale.addScalar(DT.audio.valueAudio/50);
-        // console.log(DT.particleSystem);
-        this.emitter.update(data.delta).render();
-        this.emitter._particles.forEach(function(el) {
-            el.velocity.vector = patricleVelocity;
-            // console.log(el);
-            // el.velocity.vector.z *= DT.audio.valueAudio/280;
-            // el.velocity.vector.addScalar(DT.audio.valueAudio/280);
-        });
+        this.moveSphere(data);
+
+        // DT.particleSystem.position = posPlayer;
+        // DT.particleSystem.scale.set(1,1,1);
+        // DT.particleSystem.scale.addScalar(DT.audio.valueAudio/50);
+        
+        // var posVel = posPlayer.clone().add(pos.sub(data.tube.path.getPointAt(data.t + 0.005)));
+        // this.emitter.update(data.delta).render();
+        // this.emitter._particles.forEach(function(el) {
+        //     el.velocity.vector = posVel;
+        // });
         return this;
     };
 
     DT.Player.prototype.reset = function () {
         this.currentHelth = 100;
         this.currentScore = 0;
-        this.destPoint = {x: 0, y: -2.5};
+        this.destPoint = new THREE.Vector3(0, 0, 0);
         this.isInvulnerability = false;
         this.isFun = false;
         return this;
     };
 
-    DT.Player.prototype.changeDestPoint = function(dy, dx) {
-        if ((this.destPoint.x < DT.game.param.spacing && dx > 0) || (this.destPoint.x > -DT.game.param.spacing && dx < 0)) {
-            this.destPoint.x += dx * DT.game.param.spacing;
+    DT.Player.prototype.changeDestPoint = function(vector3) {
+        if (!vector3.equals(this.destPoint)) {
+            this.destPoint.add(vector3);
         }
         return this;
     };
 
-    DT.Player.prototype.moveSphere = function(pos) {
-        var self = this;
-        this.sphere.position = pos;
-        this.light.position = pos;
-        this.position = pos;
+    DT.Player.prototype.moveSphere = function(data) {
+        var posPlayer = data.posPlayer.clone(),
+            pos = data.pos.clone(),
+            deltaPos = this.position.clone().sub(pos);
+            
+        // this.position.add(deltaPos);
+        this.position = posPlayer;
 
-            // ['x', 'y'].forEach(function(aix) {
-            //     var dx = self.destPoint[aix] - self.sphere.position[aix];
-            //     if (Math.abs(dx) > 0.01) {
-            //         self.sphere.position[aix] += dx > 0 ? 0.3 : -0.3;
-            //     }
-            // });
+        // if (!posPlayer.equals(this.position)) {
+        //     this.position.add(posPlayer.clone().sub(pos).multiplyScalar(0.1));
+        // }
+
+        this.light.position = this.sphere.position = this.position.clone();
+        // this.position.copy(data.pos).add(posPlayer.clone().sub(pos).multiplyScalar(0.1));
         return this;
     };
 
@@ -789,7 +810,7 @@ var DT = (function () {
     DT.player = new DT.Player({
         currentHelth: 100,
         currentScore: 0,
-        destPoint: {x: 0, y: -2.5},
+        destPoint: new THREE.Vector3(0, 0, 0),
         isInvulnerability: false,
         isFun: false,
         // scene: parent
@@ -1726,16 +1747,16 @@ var DT = (function () {
             var k = event.keyCode;
             // arrows control
             if (k === 38) {
-                DT.player.changeDestPoint(1, 0);
+                // DT.player.changeDestPoint(new THREE.Vector3(0, 1, 0));
             }
             if (k === 40) {
-                DT.player.changeDestPoint(-1, 0);
+                // DT.player.changeDestPoint(new THREE.Vector3( 0, -1,0));
             }
             if (k === 37) {
-                DT.player.changeDestPoint(0, -1);
+                DT.handlers.toTheLeft();
             }
             if (k === 39) {
-                DT.player.changeDestPoint(0, 1);
+                DT.handlers.toTheRight();
             }
             // speedUp
             if (k === 16) { //shift
@@ -1798,18 +1819,18 @@ var DT = (function () {
         socket.on('turn', function(turn) {
             if(turn < leftBreakThreshold) {
                 if(turn > leftTurnThreshold) {
-                    DT.player.destPoint.x = 0;
+                    DT.handlers.center()
                 } else {
-                    DT.player.destPoint.x = -DT.game.param.spacing;
+                    DT.handlers.left();
                 }
             } else if (turn > rightBreakThreshold) {
                 if(turn < rightTurnThreshold) {
-                    DT.player.destPoint.x = 0;
+                    DT.handlers.center()
                 } else {
-                    DT.player.destPoint.x = DT.game.param.spacing;
+                    DT.handlers.right();
                 }
             } else {
-                DT.player.destPoint.x = 0;
+                DT.handlers.center()
             }
         });
         socket.on('click', function(click) {
@@ -1923,18 +1944,18 @@ var DT = (function () {
         //         // console.log(angle);
         //         if(angle < leftBreakThreshold) {
         //             if(angle > leftTurnThreshold) {
-        //                 DT.player.destPoint.x = 0;
+        //                 DT.handlers.center();
         //             } else {
-        //                 DT.player.destPoint.x = -DT.game.param.spacing;
+        //                 DT.handlers.left();
         //             }
         //         } else if (angle > rightBreakThreshold) {
         //             if(angle < rightTurnThreshold) {
-        //                 DT.player.destPoint.x = 0;
+        //                 DT.handlers.center();
         //             } else {
-        //                 DT.player.destPoint.x = DT.game.param.spacing;
+        //                 DT.handlers.right();
         //             }
         //         } else {
-        //             DT.player.destPoint.x = 0;
+        //             DT.handlers.center();
         //         }
         //     }
         // });
@@ -2108,7 +2129,7 @@ var DT = (function () {
                 if (average > 30) {
                     console.log( 'Button ' + buttons[b].name + ' triggered.' ); // do stuff
                     // messageArea.innerHTML = '<font size='+4' color=white>'+ buttons[b].name + '</b></font>';
-                    DT.player.destPoint.x = buttons[b].coord;
+                    DT.handlers[name]();
                 }
             }
         }
@@ -2185,11 +2206,20 @@ var DT = (function () {
             DT.game.wasMuted = false;
         }
     };
+    DT.handlers.toTheLeft = function () {
+        DT.player.changeDestPoint(new THREE.Vector3(-1, 0, 0));
+    };
+    DT.handlers.toTheRight = function () {
+        DT.player.changeDestPoint(new THREE.Vector3(1, 0, 0));
+    };
     DT.handlers.left = function () {
-        DT.player.changeDestPoint(0, -1);
+        DT.player.destPoint.copy(new THREE.Vector3(-1, 0, 0));
     };
     DT.handlers.right = function () {
-        DT.player.changeDestPoint(0, 1);
+        DT.player.destPoint.copy(new THREE.Vector3(1, 0, 0));
+    };
+    DT.handlers.center = function () {
+        DT.player.destPoint.copy(new THREE.Vector3(0, 0, 0));
     };
     DT.handlers.restart = function () {
         

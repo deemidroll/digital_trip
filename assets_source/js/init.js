@@ -199,8 +199,6 @@ var DT = (function () {
 
     var binormal = new THREE.Vector3();
     var normal = new THREE.Vector3();
-    var posPlayerLeft = new THREE.Vector3(),
-        posPlayerRight = new THREE.Vector3();
 
     // var binorLen = tube.binormals.length;
     // var norLen = tube.normals.length;
@@ -590,13 +588,12 @@ var DT = (function () {
             },
         };
 
-        this.emitter = Fireworks.createEmitter({nParticles : 100})
+        this.emitter = Fireworks.createEmitter({nParticles : 10})
         .effectsStackBuilder()
             .spawnerSteadyRate(25)
             .position(Fireworks.createShapePoint(0, 0, 0))
-            .velocity(Fireworks.createShapePoint(0, 0, 0 ))
-            .lifeTime(0.1, 0.1)
-            .randomVelocityDrift(Fireworks.createVector(1, 1, 1))
+            .velocity(Fireworks.createShapePoint(0, 0, 0))
+            .lifeTime(0.2, 0.7)
             .renderToThreejsParticleSystem({
                 particleSystem  : function(emitter){
                     var i,
@@ -604,7 +601,7 @@ var DT = (function () {
                         texture = Fireworks.ProceduralTextures.buildTexture(),
                         material    = new THREE.ParticleBasicMaterial({
                             color       : new THREE.Color().setHSL(1, 0, 0.6).getHex(),
-                            size        : 2,
+                            size        : 1.6,
                             sizeAttenuation : true,
                             vertexColors    : true,
                             map     : texture,
@@ -625,9 +622,9 @@ var DT = (function () {
                         geometry.colors[i]  = self.sphere.material.color;
                     }
                     
-                    self.scene.add(particleSystem);
-                    // particleSystem.position = self.sphere.position;
-                    DT.particleSystem = particleSystem;
+                    parent.add(particleSystem);
+                    // particleSystem.position = self.position;
+                    self.particleSystem = particleSystem;
                     return particleSystem;
                 }
             }).back()
@@ -755,15 +752,18 @@ var DT = (function () {
 
         this.moveSphere(data);
 
-        // DT.particleSystem.position = posPlayer;
-        // DT.particleSystem.scale.set(1,1,1);
-        // DT.particleSystem.scale.addScalar(DT.audio.valueAudio/50);
-        
-        // var posVel = posPlayer.clone().add(pos.sub(data.tube.path.getPointAt(data.t + 0.005)));
-        // this.emitter.update(data.delta).render();
-        // this.emitter._particles.forEach(function(el) {
-        //     el.velocity.vector = posVel;
-        // });
+        this.particleSystem.position.copy(this.position);
+        this.particleSystem.scale.set(1,1,1);
+        this.particleSystem.scale.addScalar(DT.audio.valueAudio/50);
+        var dt = DT.audio.valueAudio/5000;
+        console.log(dt);
+
+        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(scale);
+
+        this.emitter.update(data.delta).render();
+        this.emitter._particles.forEach(function(el) {
+            el.velocity.vector = posVel;
+        });
         return this;
     };
 
@@ -811,8 +811,6 @@ var DT = (function () {
         
         if (this.moveIterator > max) this.moveIterator = max;
         if (this.moveIterator <  0) this.moveIterator =  0;
-        
-        console.log(this.moveIterator);
 
         offsetSide = this.prevActualPos.clone().sub(normalPos).multiplyScalar(this.moveIterator / max);
         
@@ -821,25 +819,6 @@ var DT = (function () {
         if (!normalPos.equals(actualPos)) {
             this.prevActualPos = actualPos;
         }
-
-        // var l = actualPos.clone().sub(this.position).length();
-        // console.log(l);
-
-        // offsetSide = actualPos.clone().sub(normalPos);
-        // offsetSide.setLength(offsetSide.length()/10);
-        // this.position.add(offsetSide);
-
-        // this.position.add(actualPos.clone().sub(this.position).multiplyScalar(1));
-
-        // var self = this;
-        // ['x','y','z'].forEach(function(aix) {
-        //     var dx = actualPos[aix] - self.position[aix];
-        //     if (Math.abs(dx) > 0.01) {
-        //         self.position[aix] += dx > 0 ? 0.7 : -0.7;
-        //     }
-        // });
-
-        // this.position.add(actualPos.clone().sub(this.position).multiplyScalar(0.2));
 
         this.light.position = this.sphere.position = this.position;
         return this;

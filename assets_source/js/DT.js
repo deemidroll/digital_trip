@@ -3440,26 +3440,48 @@ var DT = (function () {
             actualPos = data.actualPos,
             offsetForw,
             offsetSide,
-            prevPos = this.prevPos || data.pos;
+            max = 7;
 
         if (this.firstMove) {
             this.position = actualPos;
+            this.prevActualPos = actualPos;
+            this.prevNormalPos = normalPos;
             this.firstMove = !this.firstMove;
         }
 
         offsetForw = normalPos.clone().sub(this.position);
         this.position.add(offsetForw);
+        this.prevActualPos.add(normalPos.clone().sub(this.prevNormalPos));
+        this.prevNormalPos.add(normalPos.clone().sub(this.prevNormalPos));
 
-        if (this.position.distanceTo(actualPos) > 0.1) {
+        if (!this.position.equals(actualPos)) {
+            this.prevActualPos = actualPos;
             this.moveIterator += 1;
-            if (this.moveIterator > 10) this.moveIterator = 10;
-            offsetSide = actualPos.clone().sub(normalPos).multiplyScalar(this.moveIterator / 10);
         } else {
-            this.moveIterator = 0;
-            offsetSide = actualPos.clone().sub(normalPos);
+            this.moveIterator -= 1;
+        }
+        
+        if (this.moveIterator > max) this.moveIterator = max;
+        if (this.moveIterator <  0) this.moveIterator =  0;
+        
+        console.log(this.moveIterator);
+
+        offsetSide = this.prevActualPos.clone().sub(normalPos).multiplyScalar(this.moveIterator / max);
+        
+        this.position.add(offsetSide);
+
+        if (!normalPos.equals(actualPos)) {
+            this.prevActualPos = actualPos;
         }
 
-        this.position.add(offsetSide);
+        // var l = actualPos.clone().sub(this.position).length();
+        // console.log(l);
+
+        // offsetSide = actualPos.clone().sub(normalPos);
+        // offsetSide.setLength(offsetSide.length()/10);
+        // this.position.add(offsetSide);
+
+        // this.position.add(actualPos.clone().sub(this.position).multiplyScalar(1));
 
         // var self = this;
         // ['x','y','z'].forEach(function(aix) {

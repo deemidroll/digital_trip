@@ -142,31 +142,31 @@ var DT = (function () {
     //     DT.renderer.render(DT.scene, DT.camera);
     // });
 
-    DT.$document.on('changeSpeed', function (e, data) {
-        DT.camera.lensDistortion = data.changer;
-    });
-    // TODO: refactor
-    DT.$document.on('update', function (e, data) {
-        var camOffset = 6, camDelta = 0.1,
-            lenOffset = 18, lenDelta = 0.3;
-        if (DT.camera.lensDistortion > 0) {
-            DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
-            DT.camera.lens = Math.max(DT.camera.lens -= lenDelta, DT.camera.lenz - lenOffset);
-        } else if (DT.camera.lensDistortion < 0) {
-            DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
-            DT.camera.lens = Math.min(DT.camera.lens += lenDelta, DT.camera.lenz + lenOffset);
-        } else {
-            var delta = DT.camera.lenz - DT.camera.lens;
-            if (delta < 0) {
-                DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
-                DT.camera.lens = Math.max(DT.camera.lens -= lenDelta, DT.camera.lenz);
-            } else {
-                DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
-                DT.camera.lens = Math.min(DT.camera.lens += lenDelta, DT.camera.lenz);
-            }
-        }
-        DT.camera.setLens(DT.camera.lens);
-    });
+    // DT.$document.on('changeSpeed', function (e, data) {
+    //     DT.camera.lensDistortion = data.changer;
+    // });
+    // // TODO: refactor
+    // DT.$document.on('update', function (e, data) {
+    //     var camOffset = 6, camDelta = 0.1,
+    //         lenOffset = 18, lenDelta = 0.3;
+    //     if (DT.camera.lensDistortion > 0) {
+    //         DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
+    //         DT.camera.lens = Math.max(DT.camera.lens -= lenDelta, DT.camera.lenz - lenOffset);
+    //     } else if (DT.camera.lensDistortion < 0) {
+    //         DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
+    //         DT.camera.lens = Math.min(DT.camera.lens += lenDelta, DT.camera.lenz + lenOffset);
+    //     } else {
+    //         var delta = DT.camera.lenz - DT.camera.lens;
+    //         if (delta < 0) {
+    //             DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
+    //             DT.camera.lens = Math.max(DT.camera.lens -= lenDelta, DT.camera.lenz);
+    //         } else {
+    //             DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
+    //             DT.camera.lens = Math.min(DT.camera.lens += lenDelta, DT.camera.lenz);
+    //         }
+    //     }
+    //     DT.camera.setLens(DT.camera.lens);
+    // });
 
 
 
@@ -573,6 +573,9 @@ var DT = (function () {
         this.scene.add(this.light);
         this.scene.add(this.sphere);
 
+        this.firstMove = true;
+        this.moveIterator = 0;
+
         this.blink = {
             defColor: new THREE.Color('red'),
             color: new THREE.Color('white'),
@@ -739,12 +742,12 @@ var DT = (function () {
         // var self = this;
         var pos = data.tube.path.getPointAt(data.t + 0.004);
         var posPlayer = pos.clone().multiplyScalar( scale );
-        data.pos = posPlayer.clone();
+        data.normalPos = posPlayer.clone();
 
         if (this.destPoint.equals(left)) posPlayer.add(binormal.multiplyScalar(scale).negate());
         if (this.destPoint.equals(right)) posPlayer.add(binormal.multiplyScalar(scale));
 
-        data.posPlayer = posPlayer;
+        data.actualPos = posPlayer.clone();
 
         this.updateInvulnerability();
         this.updateFun();
@@ -781,19 +784,42 @@ var DT = (function () {
     };
 
     DT.Player.prototype.moveSphere = function(data) {
-        var posPlayer = data.posPlayer.clone(),
-            pos = data.pos.clone(),
-            deltaPos = this.position.clone().sub(pos);
-            
-        // this.position.add(deltaPos);
-        this.position = posPlayer;
+        var normalPos = data.normalPos,
+            actualPos = data.actualPos,
+            offsetForw,
+            offsetSide,
+            prevPos = this.prevPos || data.pos;
 
-        // if (!posPlayer.equals(this.position)) {
-        //     this.position.add(posPlayer.clone().sub(pos).multiplyScalar(0.1));
-        // }
+        if (this.firstMove) {
+            this.position = actualPos;
+            this.firstMove = !this.firstMove;
+        }
 
-        this.light.position = this.sphere.position = this.position.clone();
-        // this.position.copy(data.pos).add(posPlayer.clone().sub(pos).multiplyScalar(0.1));
+        offsetForw = normalPos.clone().sub(this.position);
+        this.position.add(offsetForw);
+
+        if (this.position.distanceTo(actualPos) > 0.1) {
+            this.moveIterator += 1;
+            if (this.moveIterator > 10) this.moveIterator = 10;
+            offsetSide = actualPos.clone().sub(normalPos).multiplyScalar(this.moveIterator / 10);
+        } else {
+            this.moveIterator = 0;
+            offsetSide = actualPos.clone().sub(normalPos);
+        }
+
+        this.position.add(offsetSide);
+
+        // var self = this;
+        // ['x','y','z'].forEach(function(aix) {
+        //     var dx = actualPos[aix] - self.position[aix];
+        //     if (Math.abs(dx) > 0.01) {
+        //         self.position[aix] += dx > 0 ? 0.7 : -0.7;
+        //     }
+        // });
+
+        // this.position.add(actualPos.clone().sub(this.position).multiplyScalar(0.2));
+
+        this.light.position = this.sphere.position = this.position;
         return this;
     };
 

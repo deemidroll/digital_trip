@@ -3420,7 +3420,6 @@ var DT = (function () {
         // this.particleSystem.scale.set(1,1,1);
         // this.particleSystem.scale.addScalar(DT.audio.valueAudio/500);
         var dt = DT.audio.valueAudio/10;
-        console.log(dt);
         var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(scale).setLength(3 + dt);
 
         this.emitter.update(data.delta).render();
@@ -3660,11 +3659,16 @@ var DT = (function () {
             return DT.Shield.__instance;
         }
         DT.GameObject.apply(this, arguments);
-        this.material.color = options.sphere.material.color;
-        this.tObject.position = options.sphere.position;
+        this.material.color = options.player.sphere.material.color;
+        this.tObject.position = options.player.position;
+        this.player = options.player
     };
     DT.Shield.prototype = Object.create(DT.GameObject.prototype);
     DT.Shield.prototype.constructor = DT.Shield;
+
+    DT.Shield.prototype.update = function () {
+        this.tObject.position = this.player.position;
+    };
 
     DT.shield = new DT.Shield({
         THREEConstructor: THREE.Mesh,
@@ -3674,8 +3678,13 @@ var DT = (function () {
             transparent: true,
             opacity: 0.5
         }),
-        sphere: DT.player.sphere
+        player: DT.player
     });
+
+    DT.$document.on('update', function (e, data) {
+        DT.shield.update();
+    });
+
     DT.$document.on('showInvulner', function (e, data) {
         console.log('showInvulner');
         if (data.invulner) {

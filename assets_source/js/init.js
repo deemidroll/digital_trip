@@ -176,8 +176,18 @@ var DT = (function () {
     var scale = 3;
     var splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(splineCamera);
-    var extrudePath = new THREE.Curves.GrannyKnot();
-    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 15, true, false);
+    // var extrudePath = new THREE.Curves.GrannyKnot();
+    // var extrudePath = new THREE.Curves.HeartCurve();
+    // var extrudePath = new THREE.Curves.KnotCurve();
+    // var extrudePath = new THREE.Curves.HelixCurve();
+    // var extrudePath = new THREE.Curves.TrefoilKnot();
+    var extrudePath = new THREE.Curves.TorusKnot();
+    // var extrudePath = new THREE.Curves.CinquefoilKnot();
+    // var extrudePath = new THREE.Curves.DecoratedTorusKnot4a();
+    // var extrudePath = new THREE.Curves.DecoratedTorusKnot4b();
+    // var extrudePath = new THREE.Curves.DecoratedTorusKnot5a();
+    // var extrudePath = new THREE.Curves.DecoratedTorusKnot5c();
+    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 15, true, true);
 
     var tubeMesh = THREE.SceneUtils.createMultiMaterialObject( tube, [
                 new THREE.MeshLambertMaterial({
@@ -217,7 +227,7 @@ var DT = (function () {
     var targetRotation = 0;
     DT.$document.on('updatePath', function (e, data) {
      var time = data.timeElapsed;
-            var looptime = 40; // related to speed
+            var looptime = 30; // related to speed
             var t = ( time % looptime ) / looptime;
             // console.log(t);
             var pos = tube.path.getPointAt( t );
@@ -601,7 +611,7 @@ var DT = (function () {
                         texture = Fireworks.ProceduralTextures.buildTexture(),
                         material    = new THREE.ParticleBasicMaterial({
                             color       : new THREE.Color().setHSL(1, 0, 0.6).getHex(),
-                            size        : 1.6,
+                            size        : 1.3,
                             sizeAttenuation : true,
                             vertexColors    : true,
                             map     : texture,
@@ -753,12 +763,13 @@ var DT = (function () {
         this.moveSphere(data);
 
         this.particleSystem.position.copy(this.position);
-        this.particleSystem.scale.set(1,1,1);
-        this.particleSystem.scale.addScalar(DT.audio.valueAudio/50);
-        var dt = DT.audio.valueAudio/5000;
-        console.log(dt);
 
-        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(scale);
+        // visualize audio
+        // this.particleSystem.scale.set(1,1,1);
+        // this.particleSystem.scale.addScalar(DT.audio.valueAudio/500);
+        var dt = DT.audio.valueAudio/10;
+        console.log(dt);
+        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(scale).setLength(3 + dt);
 
         this.emitter.update(data.delta).render();
         this.emitter._particles.forEach(function(el) {

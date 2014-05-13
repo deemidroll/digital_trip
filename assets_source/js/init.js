@@ -129,10 +129,10 @@ var DT = (function () {
     DT.renderer.physicallyBasedShading = true;
     document.body.appendChild(DT.renderer.domElement);
 
-    DT.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 300);
-    DT.camera.position.set(0, 0.5, 15);
-    DT.camera.position.z = DT.camera.z = 15;
-    DT.camera.lens = DT.camera.lenz = 35;
+    DT.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
+    DT.camera.position.set(0, 0.5, 200);
+    // DT.camera.position.z = DT.camera.z = 15;
+    // DT.camera.lens = DT.camera.lenz = 35;
 
     // when resize
     new THREEx.WindowResize(DT.renderer, DT.camera);
@@ -173,13 +173,12 @@ var DT = (function () {
     // PATH
     var parent = new THREE.Object3D();
     DT.scene.add(parent);
-    var scale = 3;
+    DT.scale = 3;
     var splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(splineCamera);
     // var extrudePath = new THREE.Curves.GrannyKnot();
     // var extrudePath = new THREE.Curves.HeartCurve();
     // var extrudePath = new THREE.Curves.KnotCurve();
-    // var extrudePath = new THREE.Curves.HelixCurve();
     // var extrudePath = new THREE.Curves.TrefoilKnot();
     var extrudePath = new THREE.Curves.TorusKnot();
     // var extrudePath = new THREE.Curves.CinquefoilKnot();
@@ -202,93 +201,65 @@ var DT = (function () {
                     transparent: true
             })]);
     parent.add(tubeMesh);
-    tubeMesh.scale.set( scale, scale, scale );
-
-    // var cameraEye = new THREE.Mesh( new THREE.SphereGeometry( 5 ), new THREE.MeshBasicMaterial( { color: 0xdddddd } ) );
-    // parent.add(cameraEye);
+    tubeMesh.scale.set( DT.scale, DT.scale, DT.scale );
 
     var binormal = new THREE.Vector3();
     var normal = new THREE.Vector3();
-
-    // var binorLen = tube.binormals.length;
-    // var norLen = tube.normals.length;
-    // tube.binormals.forEach(function (el, i) {
-    //     var sphereR = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0x0000ff, emissive: 0x000011}));
-    //     sphereR.position = tube.path.getPointAt(1/binorLen * i).add(el).multiplyScalar(scale);
-    //     DT.scene.add(sphereR);
-    //     var sphereL = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000, emissive: 0x110000}));
-    //     sphereL.position = tube.path.getPointAt(1/binorLen * i).add(el.clone().negate()).multiplyScalar(scale);
-    //     DT.scene.add(sphereL);
-    //     var sphereM = new THREE.Mesh(new THREE.SphereGeometry(0.1, 32, 32), new THREE.MeshPhongMaterial({color: 0x00ff00, emissive: 0x001100}));
-    //     sphereM.position = tube.path.getPointAt(1/binorLen * i).clone().multiplyScalar(scale);
-    //     DT.scene.add(sphereM);
-    // });
-
     var targetRotation = 0;
+
+    DT.cam = 0;
+
     DT.$document.on('updatePath', function (e, data) {
-     var time = data.timeElapsed;
-            var looptime = 30; // related to speed
-            var t = ( time % looptime ) / looptime;
-            // console.log(t);
-            var pos = tube.path.getPointAt( t );
-            pos.multiplyScalar( scale );
+        var time = data.timeElapsed,
+            looptime = 30, // related to speed
+            t = ( time % looptime ) / looptime,
+            pos = tube.path.getPointAt( t );
+        
+        pos.multiplyScalar(DT.scale);
 
-            // interpolation
-            var segments = tube.tangents.length;
-            var pickt = t * segments;
-            var pick = Math.floor( pickt );
-            var pickNext = ( pick + 1 ) % segments;
+        // interpolation
+        var segments = tube.tangents.length,
+            pickt = t * segments,
+            pick = Math.floor( pickt ),
+            pickNext = ( pick + 1 ) % segments;
 
-            binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
-            binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
+        binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
+        binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
 
+        var dir = tube.path.getTangentAt( t ),
+            offset = 0;
 
-            var dir = tube.path.getTangentAt( t );
+        normal.copy( binormal ).cross( dir );
 
-            var offset = 0;
+        splineCamera.position = pos;
 
-            normal.copy( binormal ).cross( dir );
+        // Camera Orientation 1 - default look at
+        // splineCamera.lookAt( lookAt );
 
-            // We move on a offset on its binormal
-            // pos.add( normal.clone().multiplyScalar( offset ) );
-            // var posPlayer = new THREE.Vector3().copy(posPlayer)
-            // posPlayer.add( normal.clone().multiplyScalar( offset ) );
-            
+        // Using arclength for stablization in look ahead.
+        var lookAt = tube.path.getPointAt( ( t + 30 / tube.path.getLength() ) % 1 ).multiplyScalar(DT.scale);
 
-            splineCamera.position = pos;
+        // Camera Orientation 2 - up orientation via normal
+        // if (!lookAhead)
+        lookAt.copy( pos ).add( dir );
+        splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
+        splineCamera.rotation.setFromRotationMatrix( splineCamera.matrix, splineCamera.rotation.order );
 
-            // DT.player.sphere.position = posPlayer;
-            // DT.player.light.position = posPlayer;
+        parent.rotation.y += ( targetRotation - parent.rotation.y ) * 0.05;
 
-            // cameraEye.position = pos;
-
-
-            // Camera Orientation 1 - default look at
-            // splineCamera.lookAt( lookAt );
-
-            // Using arclength for stablization in look ahead.
-            var lookAt = tube.path.getPointAt( ( t + 30 / tube.path.getLength() ) % 1 ).multiplyScalar( scale );
-
-            // Camera Orientation 2 - up orientation via normal
-            // if (!lookAhead)
-            lookAt.copy( pos ).add( dir );
-            splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
-            splineCamera.rotation.setFromRotationMatrix( splineCamera.matrix, splineCamera.rotation.order );
-
-            parent.rotation.y += ( targetRotation - parent.rotation.y ) * 0.05;
-
-            // data.pos = posPlayer;
-            data.tube = tube;
-            data.t = t;
-            data.normal = normal;
-            data.normal = normal;
-            data.binormal = binormal;
-            DT.$document.trigger('update', data);
-
-            // DT.renderer.render( DT.scene, DT.camera);
-            DT.renderer.render( DT.scene, splineCamera);
+        data.tube = tube;
+        data.t = t;
+        data.normal = normal;
+        data.binormal = binormal;
+        DT.$document.trigger('update', data);
+        
+        if (DT.cam === 0) DT.renderer.render(DT.scene, splineCamera);
+        if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera);
     });
 
+    DT.$document.on('keyup', function (e, data) {
+        if (e.which == 67) DT.cam = DT.cam > 0 ? 0 : DT.cam + 1;
+    });
 
 
     // LIGHTS
@@ -296,37 +267,58 @@ var DT = (function () {
         light: new THREE.PointLight(0xffffff, 0.75, 100),
         directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
     };
-    // DT.lights.light.position.set(0, 0, -1);
     DT.scene.add(DT.lights.light);
-
-    // DT.lights.directionalLight.position.set(0, 0, 1);
     DT.scene.add(DT.lights.directionalLight);
 
     DT.$document.on('update', function (e, data) {
         var posLight = data.tube.path.getPointAt(data.t - 0.005);
-        posLight.multiplyScalar( scale );
+        posLight.multiplyScalar(DT.scale);
         DT.lights.light.position = posLight;
+
         var posDirectLight = data.tube.path.getPointAt(data.t + 0.006);
-        posDirectLight.multiplyScalar( scale );
+        posDirectLight.multiplyScalar(DT.scale);
         DT.lights.directionalLight.position = posDirectLight;  
     });
 
     // BACKGROUND
-    // DT.backgroundMesh = new THREE.Mesh(
-    //     new THREE.PlaneGeometry(44, 22, 0),
-    //     new THREE.MeshBasicMaterial({
-    //         map: THREE.ImageUtils.loadTexture('img/bg.jpg')
-    //     })
-    // );
-    // DT.backgroundMesh.material.depthTest = false;  
-    // DT.backgroundMesh.material.depthWrite = false;
+    var mult = 40,
+        far = 500,
+        pi_2 = Math.PI/2;
+    DT.backgroundMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(44 * mult, 22 * mult, 0),
+        new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture('img/bg2.jpg')
+        })
+    );
+
+    DT.backgroundMesh.material.depthTest = false;  
+    DT.backgroundMesh.material.depthWrite = false;
     // DT.backgroundMesh.visible = false;
-    // DT.scene.add(DT.backgroundMesh);
-    // DT.$document.on('update', function (e, data) {
-    //     if (!DT.backgroundMesh.visible) {
-    //         DT.backgroundMesh.visible = true;
-    //     }
-    // });
+    DT.backgroundMesh.position.set(far, 0, 0);
+    DT.backgroundMesh.rotation.set(0, -pi_2, pi_2);
+    DT.scene.add(DT.backgroundMesh);
+
+    DT.backgroundMesh1 = new THREE.Mesh(
+        new THREE.PlaneGeometry(44 * mult, 22 * mult, 0),
+        new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture('img/bg1.jpg')
+        })
+    );
+    // DT.backgroundMesh1 = DT.backgroundMesh.clone();
+    DT.backgroundMesh1.position.set(-far, 0, 0);
+    DT.backgroundMesh1.rotation.set(0, pi_2, pi_2);
+    DT.scene.add(DT.backgroundMesh1);
+
+    // DT.backgroundMesh2 = DT.backgroundMesh.clone();
+    // DT.backgroundMesh2.position.set(0, far, 0);
+    // // DT.backgroundMesh2.rotation.set(pi_2, pi_2, 0);
+    // DT.scene.add(DT.backgroundMesh2);
+
+    // DT.backgroundMesh3 = DT.backgroundMesh.clone();
+    // DT.backgroundMesh3.position.set(0, -far, 0);
+    // // DT.backgroundMesh3.rotation.set(pi_2, pi_2, 0);
+    // DT.scene.add(DT.backgroundMesh3);
+
 
     // EFFECT
     DT.effect = new THREE.AnaglyphEffect(DT.renderer);
@@ -748,11 +740,11 @@ var DT = (function () {
 
         // var self = this;
         var pos = data.tube.path.getPointAt(data.t + 0.004);
-        var posPlayer = pos.clone().multiplyScalar( scale );
+        var posPlayer = pos.clone().multiplyScalar(DT.scale);
         data.normalPos = posPlayer.clone();
 
-        if (this.destPoint.equals(left)) posPlayer.add(binormal.multiplyScalar(scale).negate());
-        if (this.destPoint.equals(right)) posPlayer.add(binormal.multiplyScalar(scale));
+        if (this.destPoint.equals(left)) posPlayer.add(binormal.multiplyScalar(DT.scale).negate());
+        if (this.destPoint.equals(right)) posPlayer.add(binormal.multiplyScalar(DT.scale));
 
         data.actualPos = posPlayer.clone();
 
@@ -768,7 +760,7 @@ var DT = (function () {
         // this.particleSystem.scale.set(1,1,1);
         // this.particleSystem.scale.addScalar(DT.audio.valueAudio/500);
         var dt = DT.audio.valueAudio/10;
-        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(scale).setLength(3 + dt);
+        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale).setLength(3 + dt);
 
         this.emitter.update(data.delta).render();
         this.emitter._particles.forEach(function(el) {
@@ -1067,7 +1059,7 @@ var DT = (function () {
         // }
         var N = tube.vertices.length;
         for (var i = 0; i < N; i += 10) {
-            this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(scale));
+            this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
         }
         this.material.visible = false;
         return this;

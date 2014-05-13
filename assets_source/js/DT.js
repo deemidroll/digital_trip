@@ -2937,7 +2937,7 @@ var DT = (function () {
         far = 500,
         pi_2 = Math.PI/2;
     DT.backgroundMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(44 * mult / 3, 22 * mult / 3, 0),
+        new THREE.PlaneGeometry(44 * mult / 5, 22 * mult / 5, 0),
         new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture('img/bg3.jpg')
         })
@@ -2951,12 +2951,12 @@ var DT = (function () {
     DT.scene.add(DT.backgroundMesh);
 
     DT.backgroundMesh1 = new THREE.Mesh(
-        new THREE.PlaneGeometry(44 * mult, 22 * mult, 0),
+        new THREE.PlaneGeometry(1366, 768, 0),
         new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture('img/bg1.jpg')
         })
     );
-    DT.backgroundMesh1.position.set(-far, 0, 0);
+    DT.backgroundMesh1.position.set(-100, 0, 0);
     DT.backgroundMesh1.rotation.set(0, pi_2, pi_2);
     DT.scene.add(DT.backgroundMesh1);
 
@@ -3098,7 +3098,7 @@ var DT = (function () {
             spawnCoord: -200,
             opacityCoord: 2,
             dieCoord: 30,
-            stonesCloseness: 18,
+            stonesCloseness: 30,
             globalVolume: 1,
             prevGlobalVolume: 1
         };
@@ -3597,14 +3597,14 @@ var DT = (function () {
     };
 
     DT.GameCollectionObject.prototype.update = function (options) {
-        if (this.tObject.position.z > options.dieCoord) {
+        if (this.tObject.position.distanceTo(options.dieCoord) < 5) {
             this.removeFromScene();
         } 
-        if (this.tObject.position.z > options.opacityCoord) {
+        if (this.tObject.position.distanceTo(options.opacityCoord) < 5) {
             if (this.tObject.children.length > 0) {
                 this.tObject.children.forEach(function (el) {
                     el.material.transparent = true;
-                    el.material.opacity = 0.5; 
+                    el.material.opacity = 0.5;
                 });
             } else {
                 this.tObject.material = new THREE.MeshLambertMaterial({
@@ -3776,11 +3776,11 @@ var DT = (function () {
         //     depth = DT.genRandomFloorBetween(80, 100) / 255;
         //     color = new THREE.Color().setRGB(depth, depth, depth);
         // }
-        
+
         radius = DT.genRandomBetween(1, 2);
         depth = DT.genRandomFloorBetween(80, 100) / 255;
-        
         color = new THREE.Color().setRGB(depth, depth, depth);
+        
         geometry = new THREE.IcosahedronGeometry(radius, 0);
         material = new THREE.MeshPhongMaterial({
             shading: THREE.FlatShading,
@@ -3794,7 +3794,7 @@ var DT = (function () {
             THREEConstructor: THREE.Mesh,
             collection: options.collection
         }]);
-        this.position.copy(options.posoiton)
+        this.tObject.position = options.position;
         this.setParam('rotation', {
             x: Math.random(),
             y: Math.random()
@@ -3825,18 +3825,18 @@ var DT = (function () {
                 DT.hit();
             }
         }
-        if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance + 1 && el.position.z - options.sphere.position.z > 1) {
+        if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance + 1) {
             DT.audio.sounds.stoneMiss.play();
         }
-        if (DT.getDistance(options.sphere.position.x, options.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < this.minDistance) {
-            el.material.emissive = new THREE.Color().setRGB(
-                el.material.color.r * 0.5,
-                el.material.color.g * 0.5,
-                el.material.color.b * 0.5);
-        } else {
-            el.material.emissive = new THREE.Color().setRGB(0,0,0);
-        }
-        this.updateParam('rotation', {x: 0.014, y: 0.014});
+        // if (DT.getDistance(options.sphere.position.x, options.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < this.minDistance) {
+        //     el.material.emissive = new THREE.Color().setRGB(
+        //         el.material.color.r * 0.5,
+        //         el.material.color.g * 0.5,
+        //         el.material.color.b * 0.5);
+        // } else {
+        //     el.material.emissive = new THREE.Color().setRGB(0,0,0);
+        // }
+        this.updateParam('rotation', {x: 0.014, y: 0.014})
             // .updateParam('position', {z: DT.game.speed.getValue()});
         return this;
     };
@@ -3874,7 +3874,7 @@ var DT = (function () {
         coin_cap_geo.computeCentroids();
         coin_cap_geo.computeFaceNormals();
         
-        var coin_cap_texture = THREE.ImageUtils.loadTexture('./img/avers.png'),
+        var coin_cap_texture = DT.Coin.texture,
             coin_sides_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b}),
             coin_sides = new THREE.Mesh( coin_sides_geo, coin_sides_mat ),
             coin_cap_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b, map: coin_cap_texture}),
@@ -3893,13 +3893,25 @@ var DT = (function () {
         this.tObject.add(coin_sides);
         this.tObject.add(coin_cap_top);
         this.tObject.add(coin_cap_bottom);
+
+        var t = options.t + 0.25 + options.dt;
+            t = t > 1 ? t - 1 : t;
+        var binormal = new THREE.Vector3(),
+            segments = options.tube.tangents.length,
+            pickt = t * segments,
+            pick = Math.floor( pickt ),
+            pickNext = ( pick + 1 ) % segments;
+
+        binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
+        binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
         
-        this.setParam('position', {
-            x: options.x,
-            y: options.y,
-            z: options.z
-        })
-            .setParam('rotation', {
+        var pos = options.tube.path.getPointAt(t)
+            .multiplyScalar(DT.scale)
+            .add(binormal.clone().multiplyScalar(options.offset * DT.scale));
+
+        this.tObject.position = pos;
+
+        this.setParam('rotation', {
             x: 1.5,
             y: 0,
             z: options.zAngle
@@ -3909,10 +3921,11 @@ var DT = (function () {
     DT.Coin.prototype = Object.create(DT.GameCollectionObject.prototype);
     DT.Coin.prototype.constructor = DT.Coin;
 
+    DT.Coin.texture = THREE.ImageUtils.loadTexture('./img/avers.png')
+
     DT.Coin.prototype.update = function (options) {
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
-        this.updateParam('rotation', {z: 0.05})
-            .updateParam('position', {z: DT.game.speed.getValue()});
+        this.updateParam('rotation', {z: 0.05});
         var positon = this.tObject.position;
         var distanceBerweenCenters = positon.distanceTo(options.sphere.position);
         if (distanceBerweenCenters < 0.9) {
@@ -4043,8 +4056,7 @@ var DT = (function () {
         var el = this.collection[this.collection.length -1];
 
         if (el) {
-            var dist = DT.getDistance(0, 0, DT.game.param.spawnCoord,
-                el.tObject.position.x, el.tObject.position.y, el.tObject.position.z);
+            var dist = el.tObject.position.distanceTo(options.position)
             if (dist <= DT.game.param.stonesCloseness) {
                 return this;
             }
@@ -4054,14 +4066,22 @@ var DT = (function () {
         }
         return this;
     };
+    // data.tube.path.getPointAt(data.t + 0.008).multiplyScalar(DT.scale),
     // DT.$document.on('update', function (e, data) {
     //     new DT.StonesCollection()
     //         .createObjects({
-    //             spawnCoord: DT.game.param.spawnCoord,
+    //             position: data.tube.path.getPointAt(data.t + 0.08)
+    //             .add(new THREE.Vector3(
+    //                     DT.genRandomBetween(-1, 1),
+    //                     DT.genRandomBetween(-1, 1),
+    //                     DT.genRandomBetween(-1, 1)
+    //                 ))
+    //             .multiplyScalar(DT.scale)
+                    
     //         })
     //         .update({
-    //             dieCoord: DT.game.param.dieCoord,
-    //             opacityCoord: DT.game.param.opacityCoord,
+    //             dieCoord: data.tube.path.getPointAt(data.t - 0.008).multiplyScalar(DT.scale),
+    //             opacityCoord: data.tube.path.getPointAt(data.t + 0.002).multiplyScalar(DT.scale),
     //             sphere: DT.player.sphere
     //         });
     // });
@@ -4088,30 +4108,31 @@ var DT = (function () {
         if (!this.collection.length) {
             for (var i = 0; i < options.number; i++) {
                 options.zAngle = i * 0.25;
-                options.z = options.spawnCoord - i * 10;
+                options.dt = i * 0.004 ;
                 new this.constructor(options);
             }
         }
         return this;
     };
-    // DT.$document.on('update', function (e, data) {
-    //     new DT.CoinsCollection()
-    //         .createObjects({
-    //             x: DT.genCoord(),
-    //             y: -2.5,
-    //             spawnCoord: DT.game.param.spawnCoord,
-    //             zAngle: 0,
-    //             number: 10
-    //         })
-    //         .update({
-    //             dieCoord: DT.game.param.dieCoord,
-    //             opacityCoord: DT.game.param.opacityCoord,
-    //             sphere: DT.player.sphere
-    //         });
-    // });
-    // DT.$document.on('resetGame', function (e, data) {
-    //     new DT.CoinsCollection().removeObjects()
-    // });
+    DT.$document.on('update', function (e, data) {
+        new DT.CoinsCollection()
+            .createObjects({
+                offset: DT.genRandomFloorBetween(-1, 1),
+                binormal: data.binormal,
+                tube: data.tube,
+                t: data.t,
+                zAngle: 0,
+                number: 10
+            })
+            .update({
+                dieCoord: data.tube.path.getPointAt(data.t - 0.008).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(data.t + 0.002).multiplyScalar(DT.scale),
+                sphere: DT.player.sphere
+            });
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        new DT.CoinsCollection().removeObjects()
+    });
 
     DT.BonusesCollection = function (options) {
         if (!DT.BonusesCollection.__instance) {

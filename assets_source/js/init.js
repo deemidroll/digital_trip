@@ -285,14 +285,14 @@ var DT = (function () {
         far = 500,
         pi_2 = Math.PI/2;
     DT.backgroundMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(44 * mult, 22 * mult, 0),
+        new THREE.PlaneGeometry(44 * mult / 3, 22 * mult / 3, 0),
         new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture('img/bg2.jpg')
+            map: THREE.ImageUtils.loadTexture('img/bg3.jpg')
         })
     );
 
-    DT.backgroundMesh.material.depthTest = false;  
-    DT.backgroundMesh.material.depthWrite = false;
+    // DT.backgroundMesh.material.depthTest = false;  
+    // DT.backgroundMesh.material.depthWrite = false;
     // DT.backgroundMesh.visible = false;
     DT.backgroundMesh.position.set(far, 0, 0);
     DT.backgroundMesh.rotation.set(0, -pi_2, pi_2);
@@ -304,21 +304,9 @@ var DT = (function () {
             map: THREE.ImageUtils.loadTexture('img/bg1.jpg')
         })
     );
-    // DT.backgroundMesh1 = DT.backgroundMesh.clone();
     DT.backgroundMesh1.position.set(-far, 0, 0);
     DT.backgroundMesh1.rotation.set(0, pi_2, pi_2);
     DT.scene.add(DT.backgroundMesh1);
-
-    // DT.backgroundMesh2 = DT.backgroundMesh.clone();
-    // DT.backgroundMesh2.position.set(0, far, 0);
-    // // DT.backgroundMesh2.rotation.set(pi_2, pi_2, 0);
-    // DT.scene.add(DT.backgroundMesh2);
-
-    // DT.backgroundMesh3 = DT.backgroundMesh.clone();
-    // DT.backgroundMesh3.position.set(0, -far, 0);
-    // // DT.backgroundMesh3.rotation.set(pi_2, pi_2, 0);
-    // DT.scene.add(DT.backgroundMesh3);
-
 
     // EFFECT
     DT.effect = new THREE.AnaglyphEffect(DT.renderer);
@@ -419,6 +407,7 @@ var DT = (function () {
         'resetGame'     : 'custom',
 
         'update'        : 'custom',
+        'updatePath'    : 'custom',
 
         'changeSpeed'   : 'custom',
 
@@ -1061,14 +1050,14 @@ var DT = (function () {
         for (var i = 0; i < N; i += 10) {
             this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
         }
-        this.material.visible = false;
+        // this.material.visible = false;
         return this;
     };
 
     DT.Dust.prototype.updateMaterial = function (options) {
-        if (!this.material.visible) {
-            this.material.visible = true;
-        }
+        // if (!this.material.visible) {
+        //     this.material.visible = true;
+        // }
         this.material.color = options.isFun ? options.color : new THREE.Color().setRGB(
             options.valueAudio/1/1 || 70/255,
             options.valueAudio/255/1 || 68/255,
@@ -1113,28 +1102,33 @@ var DT = (function () {
 // ╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚══════╝
 
     DT.Stone = function (options) {
-        var radius, color, x, y, depth, geometry, material,
-            part = Math.random();
+        var radius, color, depth, geometry, material;
+            // part = Math.random();
         // 
-        if (part >= 0 && part < 0.16) {
-            x = DT.genRandomBetween(-15, -5);
-            y = DT.genRandomBetween(-15, -5);
-        } else if (part >= 0.16 && part < 0.32){
-            x = DT.genRandomBetween(5, 15);
-            y = DT.genRandomBetween(5, 15);
-        } else {
-            x = DT.genRandomBetween(-5, 5);
-            y = DT.genRandomBetween(-5, 5);
-        }
+        // if (part >= 0 && part < 0.16) {
+        //     x = DT.genRandomBetween(-15, -5);
+        //     y = DT.genRandomBetween(-15, -5);
+        // } else if (part >= 0.16 && part < 0.32){
+        //     x = DT.genRandomBetween(5, 15);
+        //     y = DT.genRandomBetween(5, 15);
+        // } else {
+        //     x = DT.genRandomBetween(-5, 5);
+        //     y = DT.genRandomBetween(-5, 5);
+        // }
         //
-        if (Math.abs(x) > 5 || Math.abs(y) > 5) {
-            radius = DT.genRandomBetween(1.5, 3);
-            color = new THREE.Color(0x464451);
-        } else {
-            radius = DT.genRandomBetween(1, 2);
-            depth = DT.genRandomFloorBetween(80, 100) / 255;
-            color = new THREE.Color().setRGB(depth, depth, depth);
-        }
+        // if (Math.abs(x) > 5 || Math.abs(y) > 5) {
+        //     radius = DT.genRandomBetween(1.5, 3);
+        //     color = new THREE.Color(0x464451);
+        // } else {
+        //     radius = DT.genRandomBetween(1, 2);
+        //     depth = DT.genRandomFloorBetween(80, 100) / 255;
+        //     color = new THREE.Color().setRGB(depth, depth, depth);
+        // }
+        
+        radius = DT.genRandomBetween(1, 2);
+        depth = DT.genRandomFloorBetween(80, 100) / 255;
+        
+        color = new THREE.Color().setRGB(depth, depth, depth);
         geometry = new THREE.IcosahedronGeometry(radius, 0);
         material = new THREE.MeshPhongMaterial({
             shading: THREE.FlatShading,
@@ -1148,12 +1142,8 @@ var DT = (function () {
             THREEConstructor: THREE.Mesh,
             collection: options.collection
         }]);
-        this.setParam('position', {
-            x: x,
-            y: y,
-            z: options.spawnCoord
-        })
-        .setParam('rotation', {
+        this.position.copy(options.posoiton)
+        this.setParam('rotation', {
             x: Math.random(),
             y: Math.random()
         })
@@ -1194,8 +1184,8 @@ var DT = (function () {
         } else {
             el.material.emissive = new THREE.Color().setRGB(0,0,0);
         }
-        this.updateParam('rotation', {x: 0.014, y: 0.014})
-            .updateParam('position', {z: DT.game.speed.getValue()});
+        this.updateParam('rotation', {x: 0.014, y: 0.014});
+            // .updateParam('position', {z: DT.game.speed.getValue()});
         return this;
     };
 

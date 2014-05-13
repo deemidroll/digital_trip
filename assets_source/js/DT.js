@@ -3957,12 +3957,25 @@ var DT = (function () {
             THREEConstructor: THREE.Mesh,
             collection: options.collection
         }]);
-        this.setParam('position', {
-                x: options.x,
-                y: options.y,
-                z: options.spawnCoord * 2
-            })
-            .setParam('scale', {
+
+        var t = options.t + 0.5;
+            t = t > 1 ? t - 1 : t;
+        var binormal = new THREE.Vector3(),
+            segments = options.tube.tangents.length,
+            pickt = t * segments,
+            pick = Math.floor( pickt ),
+            pickNext = ( pick + 1 ) % segments;
+
+        binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
+        binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
+
+        var pos = options.tube.path.getPointAt(t)
+            .multiplyScalar(DT.scale)
+            .add(binormal.clone().multiplyScalar(options.offset * DT.scale));
+
+        this.tObject.position = pos;
+
+        this.setParam('scale', {
                 x: DT.listOfModels[this.type].scale.x || 1,
                 y: DT.listOfModels[this.type].scale.y || 1,
                 z: DT.listOfModels[this.type].scale.z || 1
@@ -3998,9 +4011,8 @@ var DT = (function () {
         if (this.animation) {
             this.animation.update(options.delta);
         }
-        this.updateParam('position', {z: DT.game.speed.getValue()});
-        if (DT.getDistance(this.tObject.position.x, this.tObject.position.y, this.tObject.position.z,
-                options.sphere.position.x, options.sphere.position.y, options.sphere.position.z) < 0.9) {
+
+        if (this.tObject.position.distanceTo(options.sphere.position) < 0.9) {
             this.removeFromScene();
             DT.$document.trigger('catchBonus', {type: self.type});
         }
@@ -4118,7 +4130,6 @@ var DT = (function () {
         new DT.CoinsCollection()
             .createObjects({
                 offset: DT.genRandomFloorBetween(-1, 1),
-                binormal: data.binormal,
                 tube: data.tube,
                 t: data.t,
                 zAngle: 0,
@@ -4188,26 +4199,26 @@ var DT = (function () {
     DT.BonusesCollection.prototype.reset = function () {
         this.caughtBonuses.length = 0;
     };
-    // DT.$document.on('update', function (e, data) {
-    //     new DT.BonusesCollection()
-    //         .createObjects({
-    //             x: DT.genCoord(),
-    //             y: -2.5,
-    //             spawnCoord: DT.game.param.spawnCoord,
-    //         })
-    //         .update({
-    //             dieCoord: DT.game.param.dieCoord,
-    //             opacityCoord: DT.game.param.opacityCoord,
-    //             sphere: DT.player.sphere,
-    //             delta: data.delta*1000
-    //         });
-    // });
-    // DT.$document.on('catchBonus', function (e, data) {
-    //     new DT.BonusesCollection().catchBonus(data.type);
-    // });
-    // DT.$document.on('resetGame', function (e, data) {
-    //     new DT.BonusesCollection().removeObjects().reset(); 
-    // });
+    DT.$document.on('update', function (e, data) {
+        new DT.BonusesCollection()
+            .createObjects({
+                offset: DT.genRandomFloorBetween(-1, 1),
+                tube: data.tube,
+                t: data.t,
+            })
+            .update({
+                dieCoord: data.tube.path.getPointAt(data.t - 0.008).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(data.t + 0.002).multiplyScalar(DT.scale),
+                sphere: DT.player.sphere,
+                delta: data.delta * 1000
+            });
+    });
+    DT.$document.on('catchBonus', function (e, data) {
+        new DT.BonusesCollection().catchBonus(data.type);
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        new DT.BonusesCollection().removeObjects().reset(); 
+    });
 
  // █████╗ ██╗   ██╗██████╗ ██╗ ██████╗ 
 // ██╔══██╗██║   ██║██╔══██╗██║██╔═══██╗

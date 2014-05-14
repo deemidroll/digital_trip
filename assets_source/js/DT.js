@@ -2473,180 +2473,647 @@ THREEx.FullScreen.bindKey	= function(opts){
 }
 
 /**
- * @author mrdoob / http://mrdoob.com/
- * @author marklundin / http://mark-lundin.com/
+ * @author alteredq / http://alteredqualia.com/
+ *
+ * Full-screen textured quad shader
+ */
+
+THREE.CopyShader = {
+
+	uniforms: {
+
+		"tDiffuse": { type: "t", value: null },
+		"opacity":  { type: "f", value: 1.0 }
+
+	},
+
+	vertexShader: [
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vUv = uv;",
+			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+		"}"
+
+	].join("\n"),
+
+	fragmentShader: [
+
+		"uniform float opacity;",
+
+		"uniform sampler2D tDiffuse;",
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vec4 texel = texture2D( tDiffuse, vUv );",
+			"gl_FragColor = opacity * texel;",
+
+		"}"
+
+	].join("\n")
+
+};
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ *
+ * Dot screen shader
+ * based on glfx.js sepia shader
+ * https://github.com/evanw/glfx.js
+ */
+
+THREE.DotScreenShader = {
+
+	uniforms: {
+
+		"tDiffuse": { type: "t", value: null },
+		"tSize":    { type: "v2", value: new THREE.Vector2( 256, 256 ) },
+		"center":   { type: "v2", value: new THREE.Vector2( 0.5, 0.5 ) },
+		"angle":    { type: "f", value: 1.57 },
+		"scale":    { type: "f", value: 1.0 }
+
+	},
+
+	vertexShader: [
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vUv = uv;",
+			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+		"}"
+
+	].join("\n"),
+
+	fragmentShader: [
+
+		"uniform vec2 center;",
+		"uniform float angle;",
+		"uniform float scale;",
+		"uniform vec2 tSize;",
+
+		"uniform sampler2D tDiffuse;",
+
+		"varying vec2 vUv;",
+
+		"float pattern() {",
+
+			"float s = sin( angle ), c = cos( angle );",
+
+			"vec2 tex = vUv * tSize - center;",
+			"vec2 point = vec2( c * tex.x - s * tex.y, s * tex.x + c * tex.y ) * scale;",
+
+			"return ( sin( point.x ) * sin( point.y ) ) * 4.0;",
+
+		"}",
+
+		"void main() {",
+
+			"vec4 color = texture2D( tDiffuse, vUv );",
+
+			"float average = ( color.r + color.g + color.b ) / 3.0;",
+
+			"gl_FragColor = vec4( vec3( average * 10.0 - 5.0 + pattern() ), color.a );",
+
+		"}"
+
+	].join("\n")
+
+};
+
+/**
+ * @author felixturner / http://airtight.cc/
+ *
+ * RGB Shift Shader
+ * Shifts red and blue channels from center in opposite directions
+ * Ported from http://kriss.cx/tom/2009/05/rgb-shift/
+ * by Tom Butterworth / http://kriss.cx/tom/
+ *
+ * amount: shift distance (1 is width of input)
+ * angle: shift angle in radians
+ */
+
+THREE.RGBShiftShader = {
+
+	uniforms: {
+
+		"tDiffuse": { type: "t", value: null },
+		"amount":   { type: "f", value: 0.005 },
+		"angle":    { type: "f", value: 0.0 }
+
+	},
+
+	vertexShader: [
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vUv = uv;",
+			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+		"}"
+
+	].join("\n"),
+
+	fragmentShader: [
+
+		"uniform sampler2D tDiffuse;",
+		"uniform float amount;",
+		"uniform float angle;",
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vec2 offset = amount * vec2( cos(angle), sin(angle));",
+			"vec4 cr = texture2D(tDiffuse, vUv + offset);",
+			"vec4 cga = texture2D(tDiffuse, vUv);",
+			"vec4 cb = texture2D(tDiffuse, vUv - offset);",
+			"gl_FragColor = vec4(cr.r, cga.g, cb.b, cga.a);",
+
+		"}"
+
+	].join("\n")
+
+};
+
+/**
  * @author alteredq / http://alteredqualia.com/
  */
 
-THREE.AnaglyphEffect = function ( renderer, width, height ) {
+THREE.EffectComposer = function ( renderer, renderTarget ) {
 
-	var eyeRight = new THREE.Matrix4();
-	var eyeLeft = new THREE.Matrix4();
-	var focalLength = 125;
-	var _aspect, _near, _far, _fov;
+	this.renderer = renderer;
 
-	var _cameraL = new THREE.PerspectiveCamera();
-	_cameraL.matrixAutoUpdate = false;
+	if ( renderTarget === undefined ) {
 
-	var _cameraR = new THREE.PerspectiveCamera();
-	_cameraR.matrixAutoUpdate = false;
+		var width = window.innerWidth || 1;
+		var height = window.innerHeight || 1;
+		var parameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
 
-	var _camera = new THREE.OrthographicCamera( -1, 1, 1, - 1, 0, 1 );
+		renderTarget = new THREE.WebGLRenderTarget( width, height, parameters );
 
-	var _scene = new THREE.Scene();
+	}
 
-	var _params = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat };
+	this.renderTarget1 = renderTarget;
+	this.renderTarget2 = renderTarget.clone();
 
-	if ( width === undefined ) width = 512;
-	if ( height === undefined ) height = 512;
+	this.writeBuffer = this.renderTarget1;
+	this.readBuffer = this.renderTarget2;
 
-	var _renderTargetL = new THREE.WebGLRenderTarget( width, height, _params );
-	var _renderTargetR = new THREE.WebGLRenderTarget( width, height, _params );
+	this.passes = [];
 
-	var _material = new THREE.ShaderMaterial( {
+	if ( THREE.CopyShader === undefined )
+		console.error( "THREE.EffectComposer relies on THREE.CopyShader" );
 
-		uniforms: {
+	this.copyPass = new THREE.ShaderPass( THREE.CopyShader );
 
-			"mapLeft": { type: "t", value: _renderTargetL },
-			"mapRight": { type: "t", value: _renderTargetR }
+};
 
-		},
+THREE.EffectComposer.prototype = {
 
-		vertexShader: [
+	swapBuffers: function() {
 
-			"varying vec2 vUv;",
+		var tmp = this.readBuffer;
+		this.readBuffer = this.writeBuffer;
+		this.writeBuffer = tmp;
 
-			"void main() {",
+	},
 
-			"	vUv = vec2( uv.x, uv.y );",
-			"	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+	addPass: function ( pass ) {
 
-			"}"
+		this.passes.push( pass );
 
-		].join("\n"),
+	},
 
-		fragmentShader: [
+	insertPass: function ( pass, index ) {
 
-			"uniform sampler2D mapLeft;",
-			"uniform sampler2D mapRight;",
-			"varying vec2 vUv;",
+		this.passes.splice( index, 0, pass );
 
-			"void main() {",
+	},
 
-			"	vec4 colorL, colorR;",
-			"	vec2 uv = vUv;",
+	render: function ( delta ) {
 
-			"	colorL = texture2D( mapLeft, uv );",
-			"	colorR = texture2D( mapRight, uv );",
+		this.writeBuffer = this.renderTarget1;
+		this.readBuffer = this.renderTarget2;
 
-				// http://3dtv.at/Knowhow/AnaglyphComparison_en.aspx
+		var maskActive = false;
 
-			"	gl_FragColor = vec4( colorL.g * 0.7 + colorL.b * 0.3, colorR.g, colorR.b, colorL.a + colorR.a ) * 1.1;",
+		var pass, i, il = this.passes.length;
 
-			"}"
+		for ( i = 0; i < il; i ++ ) {
 
-		].join("\n")
+			pass = this.passes[ i ];
 
-	} );
+			if ( !pass.enabled ) continue;
 
-	var mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), _material );
-	_scene.add( mesh );
+			pass.render( this.renderer, this.writeBuffer, this.readBuffer, delta, maskActive );
 
-	this.setSize = function ( width, height ) {
+			if ( pass.needsSwap ) {
 
-		if ( _renderTargetL ) _renderTargetL.dispose();
-		if ( _renderTargetR ) _renderTargetR.dispose();
-		_renderTargetL = new THREE.WebGLRenderTarget( width, height, _params );
-		_renderTargetR = new THREE.WebGLRenderTarget( width, height, _params );
+				if ( maskActive ) {
 
-		_material.uniforms[ "mapLeft" ].value = _renderTargetL;
-		_material.uniforms[ "mapRight" ].value = _renderTargetR;
+					var context = this.renderer.context;
 
-		renderer.setSize( width, height );
+					context.stencilFunc( context.NOTEQUAL, 1, 0xffffffff );
 
-	};
+					this.copyPass.render( this.renderer, this.writeBuffer, this.readBuffer, delta );
 
-	/*
-	 * Renderer now uses an asymmetric perspective projection
-	 * (http://paulbourke.net/miscellaneous/stereographics/stereorender/).
-	 *
-	 * Each camera is offset by the eye seperation and its projection matrix is
-	 * also skewed asymetrically back to converge on the same projection plane.
-	 * Added a focal length parameter to, this is where the parallax is equal to 0.
-	 */
+					context.stencilFunc( context.EQUAL, 1, 0xffffffff );
 
-	this.render = function ( scene, camera ) {
+				}
 
-		scene.updateMatrixWorld();
+				this.swapBuffers();
 
-		if ( camera.parent === undefined ) camera.updateMatrixWorld();
+			}
 
-		var hasCameraChanged = ( _aspect !== camera.aspect ) || ( _near !== camera.near ) || ( _far !== camera.far ) || ( _fov !== camera.fov );
+			if ( pass instanceof THREE.MaskPass ) {
 
-		if ( hasCameraChanged ) {
+				maskActive = true;
 
-			_aspect = camera.aspect;
-			_near = camera.near;
-			_far = camera.far;
-			_fov = camera.fov;
+			} else if ( pass instanceof THREE.ClearMaskPass ) {
 
-			var projectionMatrix = camera.projectionMatrix.clone();
-			// var eyeSep = focalLength / 30 * 0.5;
-			var eyeSep = 0.05;
-			// var eyeSepOnProjection = eyeSep * _near / focalLength;
-			var eyeSepOnProjection = 0;
-			var ymax = _near * Math.tan( THREE.Math.degToRad( _fov * 0.5 ) );
-			var xmin, xmax;
+				maskActive = false;
 
-			// translate xOffset
-
-			eyeRight.elements[12] = eyeSep;
-			eyeLeft.elements[12] = -eyeSep;
-
-			// for left eye
-
-			xmin = -ymax * _aspect + eyeSepOnProjection;
-			xmax = ymax * _aspect + eyeSepOnProjection;
-
-			projectionMatrix.elements[0] = 2 * _near / ( xmax - xmin );
-			projectionMatrix.elements[8] = ( xmax + xmin ) / ( xmax - xmin );
-
-			_cameraL.projectionMatrix.copy( projectionMatrix );
-
-			// for right eye
-
-			xmin = -ymax * _aspect - eyeSepOnProjection;
-			xmax = ymax * _aspect - eyeSepOnProjection;
-
-			projectionMatrix.elements[0] = 2 * _near / ( xmax - xmin );
-			projectionMatrix.elements[8] = ( xmax + xmin ) / ( xmax - xmin );
-
-			_cameraR.projectionMatrix.copy( projectionMatrix );
+			}
 
 		}
 
-		_cameraL.matrixWorld.copy( camera.matrixWorld ).multiply( eyeLeft );
-		_cameraL.position.copy( camera.position );
-		_cameraL.near = camera.near;
-		_cameraL.far = camera.far;
+	},
 
-		renderer.render( scene, _cameraL, _renderTargetL, true );
+	reset: function ( renderTarget ) {
 
-		_cameraR.matrixWorld.copy( camera.matrixWorld ).multiply( eyeRight );
-		_cameraR.position.copy( camera.position );
-		_cameraR.near = camera.near;
-		_cameraR.far = camera.far;
+		if ( renderTarget === undefined ) {
 
-		renderer.render( scene, _cameraR, _renderTargetR, true );
+			renderTarget = this.renderTarget1.clone();
 
-		renderer.render( _scene, _camera );
+			renderTarget.width = window.innerWidth;
+			renderTarget.height = window.innerHeight;
 
-	};
+		}
 
-	this.dispose = function() {
-		if ( _renderTargetL ) _renderTargetL.dispose();
-		if ( _renderTargetR ) _renderTargetR.dispose();
+		this.renderTarget1 = renderTarget;
+		this.renderTarget2 = renderTarget.clone();
+
+		this.writeBuffer = this.renderTarget1;
+		this.readBuffer = this.renderTarget2;
+
+	},
+
+	setSize: function ( width, height ) {
+
+		var renderTarget = this.renderTarget1.clone();
+
+		renderTarget.width = width;
+		renderTarget.height = height;
+
+		this.reset( renderTarget );
+
 	}
+
+};
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
+
+THREE.RenderPass = function ( scene, camera, overrideMaterial, clearColor, clearAlpha ) {
+
+	this.scene = scene;
+	this.camera = camera;
+
+	this.overrideMaterial = overrideMaterial;
+
+	this.clearColor = clearColor;
+	this.clearAlpha = ( clearAlpha !== undefined ) ? clearAlpha : 1;
+
+	this.oldClearColor = new THREE.Color();
+	this.oldClearAlpha = 1;
+
+	this.enabled = true;
+	this.clear = true;
+	this.needsSwap = false;
+
+};
+
+THREE.RenderPass.prototype = {
+
+	render: function ( renderer, writeBuffer, readBuffer, delta ) {
+
+		this.scene.overrideMaterial = this.overrideMaterial;
+
+		if ( this.clearColor ) {
+
+			this.oldClearColor.copy( renderer.getClearColor() );
+			this.oldClearAlpha = renderer.getClearAlpha();
+
+			renderer.setClearColor( this.clearColor, this.clearAlpha );
+
+		}
+
+		renderer.render( this.scene, this.camera, readBuffer, this.clear );
+
+		if ( this.clearColor ) {
+
+			renderer.setClearColor( this.oldClearColor, this.oldClearAlpha );
+
+		}
+
+		this.scene.overrideMaterial = null;
+
+	}
+
+};
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
+
+THREE.MaskPass = function ( scene, camera ) {
+
+	this.scene = scene;
+	this.camera = camera;
+
+	this.enabled = true;
+	this.clear = true;
+	this.needsSwap = false;
+
+	this.inverse = false;
+
+};
+
+THREE.MaskPass.prototype = {
+
+	render: function ( renderer, writeBuffer, readBuffer, delta ) {
+
+		var context = renderer.context;
+
+		// don't update color or depth
+
+		context.colorMask( false, false, false, false );
+		context.depthMask( false );
+
+		// set up stencil
+
+		var writeValue, clearValue;
+
+		if ( this.inverse ) {
+
+			writeValue = 0;
+			clearValue = 1;
+
+		} else {
+
+			writeValue = 1;
+			clearValue = 0;
+
+		}
+
+		context.enable( context.STENCIL_TEST );
+		context.stencilOp( context.REPLACE, context.REPLACE, context.REPLACE );
+		context.stencilFunc( context.ALWAYS, writeValue, 0xffffffff );
+		context.clearStencil( clearValue );
+
+		// draw into the stencil buffer
+
+		renderer.render( this.scene, this.camera, readBuffer, this.clear );
+		renderer.render( this.scene, this.camera, writeBuffer, this.clear );
+
+		// re-enable update of color and depth
+
+		context.colorMask( true, true, true, true );
+		context.depthMask( true );
+
+		// only render where stencil is set to 1
+
+		context.stencilFunc( context.EQUAL, 1, 0xffffffff );  // draw if == 1
+		context.stencilOp( context.KEEP, context.KEEP, context.KEEP );
+
+	}
+
+};
+
+
+THREE.ClearMaskPass = function () {
+
+	this.enabled = true;
+
+};
+
+THREE.ClearMaskPass.prototype = {
+
+	render: function ( renderer, writeBuffer, readBuffer, delta ) {
+
+		var context = renderer.context;
+
+		context.disable( context.STENCIL_TEST );
+
+	}
+
+};
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
+
+THREE.ShaderPass = function ( shader, textureID ) {
+
+	this.textureID = ( textureID !== undefined ) ? textureID : "tDiffuse";
+
+	this.uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+
+	this.material = new THREE.ShaderMaterial( {
+
+		uniforms: this.uniforms,
+		vertexShader: shader.vertexShader,
+		fragmentShader: shader.fragmentShader
+
+	} );
+
+	this.renderToScreen = false;
+
+	this.enabled = true;
+	this.needsSwap = true;
+	this.clear = false;
+
+
+	this.camera = new THREE.OrthographicCamera( -1, 1, 1, -1, 0, 1 );
+	this.scene  = new THREE.Scene();
+
+	this.quad = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), null );
+	this.scene.add( this.quad );
+
+};
+
+THREE.ShaderPass.prototype = {
+
+	render: function ( renderer, writeBuffer, readBuffer, delta ) {
+
+		if ( this.uniforms[ this.textureID ] ) {
+
+			this.uniforms[ this.textureID ].value = readBuffer;
+
+		}
+
+		this.quad.material = this.material;
+
+		if ( this.renderToScreen ) {
+
+			renderer.render( this.scene, this.camera );
+
+		} else {
+
+			renderer.render( this.scene, this.camera, writeBuffer, this.clear );
+
+		}
+
+	}
+
+};
+
+/**
+ * @author Felix Turner / www.airtight.cc / @felixturner
+ *
+ * Bad TV Shader
+ * Simulates a bad TV via horizontal distortion and vertical roll
+ * Uses Ashima WebGl Noise: https://github.com/ashima/webgl-noise
+ *
+ * time: steadily increasing float passed in
+ * distortion: amount of thick distortion
+ * distortion2: amount of fine grain distortion
+ * speed: distortion vertical travel speed
+ * rollSpeed: vertical roll speed
+ * 
+ * The MIT License
+ * 
+ * Copyright (c) 2014 Felix Turner
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * 
+ */
+
+THREE.BadTVShader = {
+	uniforms: {
+		"tDiffuse": { type: "t", value: null },
+		"time":     { type: "f", value: 0.0 },
+		"distortion":     { type: "f", value: 3.0 },
+		"distortion2":     { type: "f", value: 5.0 },
+		"speed":     { type: "f", value: 0.2 },
+		"rollSpeed":     { type: "f", value: 0.1 },
+	},
+
+	vertexShader: [
+		"varying vec2 vUv;",
+		"void main() {",
+		"vUv = uv;",
+		"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+		"}"
+
+	].join("\n"),
+
+	fragmentShader: [
+
+		"uniform sampler2D tDiffuse;",
+		"uniform float time;",
+		"uniform float distortion;",
+		"uniform float distortion2;",
+		"uniform float speed;",
+		"uniform float rollSpeed;",
+		"varying vec2 vUv;",
+		
+		// Start Ashima 2D Simplex Noise
+
+		"vec3 mod289(vec3 x) {",
+		"  return x - floor(x * (1.0 / 289.0)) * 289.0;",
+		"}",
+
+		"vec2 mod289(vec2 x) {",
+		"  return x - floor(x * (1.0 / 289.0)) * 289.0;",
+		"}",
+
+		"vec3 permute(vec3 x) {",
+		"  return mod289(((x*34.0)+1.0)*x);",
+		"}",
+
+		"float snoise(vec2 v)",
+		"  {",
+		"  const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0",
+		"                      0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)",
+		"                     -0.577350269189626,  // -1.0 + 2.0 * C.x",
+		"                      0.024390243902439); // 1.0 / 41.0",
+		"  vec2 i  = floor(v + dot(v, C.yy) );",
+		"  vec2 x0 = v -   i + dot(i, C.xx);",
+
+		"  vec2 i1;",
+		"  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);",
+		"  vec4 x12 = x0.xyxy + C.xxzz;",
+		" x12.xy -= i1;",
+
+		"  i = mod289(i); // Avoid truncation effects in permutation",
+		"  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))",
+		"		+ i.x + vec3(0.0, i1.x, 1.0 ));",
+
+		"  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);",
+		"  m = m*m ;",
+		"  m = m*m ;",
+
+		"  vec3 x = 2.0 * fract(p * C.www) - 1.0;",
+		"  vec3 h = abs(x) - 0.5;",
+		"  vec3 ox = floor(x + 0.5);",
+		"  vec3 a0 = x - ox;",
+
+		"  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );",
+
+		"  vec3 g;",
+		"  g.x  = a0.x  * x0.x  + h.x  * x0.y;",
+		"  g.yz = a0.yz * x12.xz + h.yz * x12.yw;",
+		"  return 130.0 * dot(m, g);",
+		"}",
+
+		// End Ashima 2D Simplex Noise
+
+		"void main() {",
+
+			"vec2 p = vUv;",
+			"float ty = time*speed;",
+			"float yt = p.y - ty;",
+
+			//smooth distortion
+			"float offset = snoise(vec2(yt*3.0,0.0))*0.2;",
+			// boost distortion
+			"offset = pow( offset*distortion,3.0)/distortion;",
+			//add fine grain distortion
+			"offset += snoise(vec2(yt*50.0,0.0))*distortion2*0.001;",
+			//combine distortion on X with roll on Y
+			"gl_FragColor = texture2D(tDiffuse,  vec2(fract(p.x + offset),fract(p.y-time*rollSpeed) ));",
+
+		"}"
+
+	].join("\n")
 
 };
 
@@ -2860,8 +3327,8 @@ var DT = (function () {
     var parent = new THREE.Object3D();
     DT.scene.add(parent);
     DT.scale = 3;
-    var splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
-    parent.add(splineCamera);
+    DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
+    parent.add(DT.splineCamera);
     // var extrudePath = new THREE.Curves.GrannyKnot();
     // var extrudePath = new THREE.Curves.HeartCurve();
     // var extrudePath = new THREE.Curves.KnotCurve();
@@ -2919,10 +3386,10 @@ var DT = (function () {
 
         normal.copy( binormal ).cross( dir );
 
-        splineCamera.position = pos;
+        DT.splineCamera.position = pos;
 
         // Camera Orientation 1 - default look at
-        // splineCamera.lookAt( lookAt );
+        // DT.splineCamera.lookAt( lookAt );
 
         // Using arclength for stablization in look ahead.
         var lookAt = tube.path.getPointAt( ( t + 30 / tube.path.getLength() ) % 1 ).multiplyScalar(DT.scale);
@@ -2930,8 +3397,8 @@ var DT = (function () {
         // Camera Orientation 2 - up orientation via normal
         // if (!lookAhead)
         lookAt.copy( pos ).add( dir );
-        splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
-        splineCamera.rotation.setFromRotationMatrix( splineCamera.matrix, splineCamera.rotation.order );
+        DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, normal);
+        DT.splineCamera.rotation.setFromRotationMatrix( DT.splineCamera.matrix, DT.splineCamera.rotation.order );
 
         parent.rotation.y += ( targetRotation - parent.rotation.y ) * 0.05;
 
@@ -2939,10 +3406,8 @@ var DT = (function () {
         data.t = t;
         data.normal = normal;
         data.binormal = binormal;
-        DT.$document.trigger('update', data);
         
-        if (DT.cam === 0) DT.renderer.render(DT.scene, splineCamera);
-        if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera);
+        DT.$document.trigger('update', data);
     });
 
     DT.$document.on('keyup', function (e, data) {
@@ -2997,16 +3462,50 @@ var DT = (function () {
     DT.scene.add(DT.backgroundMesh1);
 
     // EFFECT
-    DT.effect = new THREE.AnaglyphEffect(DT.renderer);
-    DT.effect.on = false;
+    DT.effectComposer = new THREE.EffectComposer( DT.renderer );
+    DT.effectComposer.addPass( new THREE.RenderPass( DT.scene, DT.splineCamera ) );
+    DT.effectComposer.on = false;
+
+    // var effectRBGShifter = new THREE.ShaderPass( THREE.RGBShiftShader );
+    // effectRBGShifter.uniforms[ 'amount' ].value = 0.005;
+    // effectRBGShifter.renderToScreen = true;
+    // DT.effectComposer.addPass( effectRBGShifter );
+
+    // var effectDotScreenShader = new THREE.ShaderPass( THREE.DotScreenShader );
+    // effectDotScreenShader.uniforms[ 'scale' ].value = 4;
+    // effectDotScreenShader.renderToScreen = true;
+    // DT.effectComposer.addPass( effectDotScreenShader );
+
+    var badTVParams = {
+        mute:true,
+        show: true,
+        distortion: 3.0,
+        distortion2: 1.0,
+        speed: 0.3,
+        rollSpeed: 0.1
+    }
+    
+    var badTVPass = new THREE.ShaderPass( THREE.BadTVShader );
+    badTVPass.on = false;
+    badTVPass.uniforms[ "distortion" ].value = badTVParams.distortion;
+    badTVPass.uniforms[ "distortion2" ].value = badTVParams.distortion2;
+    badTVPass.uniforms[ "speed" ].value = badTVParams.speed;
+    badTVPass.uniforms[ "rollSpeed" ].value = badTVParams.rollSpeed;
+    badTVPass.renderToScreen = true;
+    DT.effectComposer.addPass(badTVPass);
+
     DT.$document.on('update', function (e, data) {
-        if (DT.effect.on) {
-            DT.effect.render(DT.scene, DT.camera);
-            DT.effect.setSize( window.innerWidth, window.innerHeight );
-        }
+        if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
+        if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
+        if (DT.effectComposer.on) {
+            DT.effectComposer.render();
+        };
     });
-    DT.$document.on('showFun', function (e, data) {
-        DT.effect.on = data.isFun;
+    DT.$document.on('bump', function (e, data) {
+        DT.effectComposer.on = true;
+        DT.effectComposer.timeOut = setTimeout(function () {
+            DT.effectComposer.on = false;
+        }, 2000);
     });
 
     // change IcosahedronGeometry prototype
@@ -3116,6 +3615,7 @@ var DT = (function () {
         'catchBonus'    : 'custom',
 
         'blink'         : 'custom',
+        'bump'          : 'custom',
 
         'focus'         : 'native',
         'blur'          : 'native',
@@ -3832,6 +4332,7 @@ var DT = (function () {
             this.removeFromScene();
 
             DT.$document.trigger('changeHelth', {delta: -19});
+            DT.$document.trigger('bump', {});
             // вызвать вспышку экрана
             if (DT.player.isInvulnerability === false) {
                 DT.hit();
@@ -3847,16 +4348,23 @@ var DT = (function () {
                 .add(binormal.multiplyScalar(DT.scale * DT.player.destPoint.x));
 
         if (el.position.distanceTo(estimatedPlayerPosition) < this.minDistance) {
-            el.material.emissive = new THREE.Color().setRGB(
-                el.material.color.r * 1.5,
-                el.material.color.g * 0,
-                el.material.color.b * 0
-            );
-            el.material.wireframe = true;
+            if (DT.player.isFun) {
+                el.material.emissive = new THREE.Color().setRGB(1,0,0);
+                el.material.wireframe = true;
+            } else {
+                el.material.emissive = new THREE.Color().setRGB(0.5,0,0);
+                el.material.wireframe = false;
+            }
         } else {
-            el.material.emissive = new THREE.Color().setRGB(0,0,0);
-            el.material.wireframe = false;
+            if (DT.player.isFun) {
+                el.material.emissive = new THREE.Color().setRGB(0,1,0);
+                el.material.wireframe = true;
+            } else {
+                el.material.emissive = new THREE.Color().setRGB(0,0,0);
+                el.material.wireframe = false;
+            }
         }
+
         this.updateParam('rotation', {x: 0.014, y: 0.014});
         return this;
     };
@@ -4103,7 +4611,7 @@ var DT = (function () {
             .createObjects({
                 position: data.tube.path.getPointAt(t)
                     .multiplyScalar(DT.scale)
-                    .add(binormal.multiplyScalar(DT.scale * DT.genRandomFloorBetween(-1, 1))),
+                    .add(binormal.multiplyScalar(DT.genRandomBetween(-5, 5))),
                 t: t,
                 sphere: DT.player.sphere,
             })

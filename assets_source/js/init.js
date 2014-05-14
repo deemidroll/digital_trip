@@ -208,8 +208,8 @@ var DT = (function () {
     var parent = new THREE.Object3D();
     DT.scene.add(parent);
     DT.scale = 3;
-    var splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
-    parent.add(splineCamera);
+    DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
+    parent.add(DT.splineCamera);
     // var extrudePath = new THREE.Curves.GrannyKnot();
     // var extrudePath = new THREE.Curves.HeartCurve();
     // var extrudePath = new THREE.Curves.KnotCurve();
@@ -267,10 +267,10 @@ var DT = (function () {
 
         normal.copy( binormal ).cross( dir );
 
-        splineCamera.position = pos;
+        DT.splineCamera.position = pos;
 
         // Camera Orientation 1 - default look at
-        // splineCamera.lookAt( lookAt );
+        // DT.splineCamera.lookAt( lookAt );
 
         // Using arclength for stablization in look ahead.
         var lookAt = tube.path.getPointAt( ( t + 30 / tube.path.getLength() ) % 1 ).multiplyScalar(DT.scale);
@@ -278,8 +278,8 @@ var DT = (function () {
         // Camera Orientation 2 - up orientation via normal
         // if (!lookAhead)
         lookAt.copy( pos ).add( dir );
-        splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
-        splineCamera.rotation.setFromRotationMatrix( splineCamera.matrix, splineCamera.rotation.order );
+        DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, normal);
+        DT.splineCamera.rotation.setFromRotationMatrix( DT.splineCamera.matrix, DT.splineCamera.rotation.order );
 
         parent.rotation.y += ( targetRotation - parent.rotation.y ) * 0.05;
 
@@ -287,10 +287,8 @@ var DT = (function () {
         data.t = t;
         data.normal = normal;
         data.binormal = binormal;
-        DT.$document.trigger('update', data);
         
-        if (DT.cam === 0) DT.renderer.render(DT.scene, splineCamera);
-        if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera);
+        DT.$document.trigger('update', data);
     });
 
     DT.$document.on('keyup', function (e, data) {
@@ -345,16 +343,50 @@ var DT = (function () {
     DT.scene.add(DT.backgroundMesh1);
 
     // EFFECT
-    DT.effect = new THREE.AnaglyphEffect(DT.renderer);
-    DT.effect.on = false;
+    DT.effectComposer = new THREE.EffectComposer( DT.renderer );
+    DT.effectComposer.addPass( new THREE.RenderPass( DT.scene, DT.splineCamera ) );
+    DT.effectComposer.on = false;
+
+    // var effectRBGShifter = new THREE.ShaderPass( THREE.RGBShiftShader );
+    // effectRBGShifter.uniforms[ 'amount' ].value = 0.005;
+    // effectRBGShifter.renderToScreen = true;
+    // DT.effectComposer.addPass( effectRBGShifter );
+
+    // var effectDotScreenShader = new THREE.ShaderPass( THREE.DotScreenShader );
+    // effectDotScreenShader.uniforms[ 'scale' ].value = 4;
+    // effectDotScreenShader.renderToScreen = true;
+    // DT.effectComposer.addPass( effectDotScreenShader );
+
+    var badTVParams = {
+        mute:true,
+        show: true,
+        distortion: 3.0,
+        distortion2: 1.0,
+        speed: 0.3,
+        rollSpeed: 0.1
+    }
+    
+    var badTVPass = new THREE.ShaderPass( THREE.BadTVShader );
+    badTVPass.on = false;
+    badTVPass.uniforms[ "distortion" ].value = badTVParams.distortion;
+    badTVPass.uniforms[ "distortion2" ].value = badTVParams.distortion2;
+    badTVPass.uniforms[ "speed" ].value = badTVParams.speed;
+    badTVPass.uniforms[ "rollSpeed" ].value = badTVParams.rollSpeed;
+    badTVPass.renderToScreen = true;
+    DT.effectComposer.addPass(badTVPass);
+
     DT.$document.on('update', function (e, data) {
-        if (DT.effect.on) {
-            DT.effect.render(DT.scene, DT.camera);
-            DT.effect.setSize( window.innerWidth, window.innerHeight );
-        }
+        if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
+        if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
+        if (DT.effectComposer.on) {
+            DT.effectComposer.render();
+        };
     });
-    DT.$document.on('showFun', function (e, data) {
-        DT.effect.on = data.isFun;
+    DT.$document.on('bump', function (e, data) {
+        DT.effectComposer.on = true;
+        DT.effectComposer.timeOut = setTimeout(function () {
+            DT.effectComposer.on = false;
+        }, 2000);
     });
 
     // change IcosahedronGeometry prototype
@@ -464,6 +496,7 @@ var DT = (function () {
         'catchBonus'    : 'custom',
 
         'blink'         : 'custom',
+        'bump'          : 'custom',
 
         'focus'         : 'native',
         'blur'          : 'native',
@@ -1180,6 +1213,7 @@ var DT = (function () {
             this.removeFromScene();
 
             DT.$document.trigger('changeHelth', {delta: -19});
+            DT.$document.trigger('bump', {});
             // вызвать вспышку экрана
             if (DT.player.isInvulnerability === false) {
                 DT.hit();
@@ -1195,16 +1229,23 @@ var DT = (function () {
                 .add(binormal.multiplyScalar(DT.scale * DT.player.destPoint.x));
 
         if (el.position.distanceTo(estimatedPlayerPosition) < this.minDistance) {
-            el.material.emissive = new THREE.Color().setRGB(
-                el.material.color.r * 1.5,
-                el.material.color.g * 0,
-                el.material.color.b * 0
-            );
-            el.material.wireframe = true;
+            if (DT.player.isFun) {
+                el.material.emissive = new THREE.Color().setRGB(1,0,0);
+                el.material.wireframe = true;
+            } else {
+                el.material.emissive = new THREE.Color().setRGB(0.5,0,0);
+                el.material.wireframe = false;
+            }
         } else {
-            el.material.emissive = new THREE.Color().setRGB(0,0,0);
-            el.material.wireframe = false;
+            if (DT.player.isFun) {
+                el.material.emissive = new THREE.Color().setRGB(0,1,0);
+                el.material.wireframe = true;
+            } else {
+                el.material.emissive = new THREE.Color().setRGB(0,0,0);
+                el.material.wireframe = false;
+            }
         }
+
         this.updateParam('rotation', {x: 0.014, y: 0.014});
         return this;
     };
@@ -1451,7 +1492,7 @@ var DT = (function () {
             .createObjects({
                 position: data.tube.path.getPointAt(t)
                     .multiplyScalar(DT.scale)
-                    .add(binormal.multiplyScalar(DT.scale * DT.genRandomFloorBetween(-1, 1))),
+                    .add(binormal.multiplyScalar(DT.genRandomBetween(-5, 5))),
                 t: t,
                 sphere: DT.player.sphere,
             })

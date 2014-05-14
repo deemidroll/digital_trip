@@ -2688,6 +2688,21 @@ var DT = (function () {
                 }
             );
         }();
+    // if (!Array.prototype.every) {
+    //         console.log("polyfill every");
+    //         Array.prototype.every = function(fun /*, thisp */) {
+    //             "use strict";
+    //             if (this == null) throw new TypeError();
+    //             var t = Object(this);
+    //             var len = t.length >>> 0;
+    //             if (typeof fun != "function") throw new TypeError();
+    //             var thisp = arguments[1];
+    //             for (var i = 0; i < len; i++) {
+    //                 if (i in t && !fun.call(thisp, t[i], i, t)) return false;
+    //             }
+    //             return true;
+    //         };
+    // }
     DT.$document = $(document);
     DT.$window = $(window);
 
@@ -2733,6 +2748,25 @@ var DT = (function () {
     DT.genRandomSign = function () {
         var signVal = Math.random() - 0.5;
         return Math.abs(signVal)/signVal;
+    };
+    DT.normalizeT = function (t) {
+        t = t % 1;
+        t < 0 ? 1 - t : t;
+        return t;
+    };
+    DT.getBinormalAt = function (t, tube) {
+        tube = tube || DT.tube;
+        var binormal = new THREE.Vector3(),
+            segments = tube.tangents.length,
+            pickt = t * segments,
+            pick = Math.floor( pickt ),
+            pickNext = ( pick + 1 ) % segments;
+
+        tube = tube || DT.tube;
+
+        binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
+        binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
+        return binormal;
     };
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
@@ -2840,6 +2874,8 @@ var DT = (function () {
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot5c();
     var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 15, true, true);
 
+    DT.tube = tube;
+
     var tubeMesh = THREE.SceneUtils.createMultiMaterialObject( tube, [
                 new THREE.MeshLambertMaterial({
                     // color: 0xffffff,
@@ -2848,8 +2884,8 @@ var DT = (function () {
                 }),
                 new THREE.MeshBasicMaterial({
                     // color: 0x000000,
-                    opacity: 0.1,
-                    wireframe: true,  
+                    opacity: 0,
+                    // wireframe: true,  
                     transparent: true
             })]);
     parent.add(tubeMesh);
@@ -3376,17 +3412,12 @@ var DT = (function () {
     };
 
     DT.Player.prototype.update = function (data) {
-        var left   = new THREE.Vector3(-1, 0, 0),
-            right  = new THREE.Vector3( 1, 0, 0);
-
         // var self = this;
         var pos = data.tube.path.getPointAt(data.t + 0.004);
         var posPlayer = pos.clone().multiplyScalar(DT.scale);
         data.normalPos = posPlayer.clone();
 
-        if (this.destPoint.equals(left)) posPlayer.add(binormal.multiplyScalar(DT.scale).negate());
-        if (this.destPoint.equals(right)) posPlayer.add(binormal.multiplyScalar(DT.scale));
-
+        posPlayer.add(binormal.multiplyScalar(DT.scale * this.destPoint.x));
         data.actualPos = posPlayer.clone();
 
         this.updateInvulnerability();
@@ -3398,10 +3429,8 @@ var DT = (function () {
         this.particleSystem.position.copy(this.position);
 
         // visualize audio
-        // this.particleSystem.scale.set(1,1,1);
-        // this.particleSystem.scale.addScalar(DT.audio.valueAudio/500);
-        var dt = DT.audio.valueAudio/10;
-        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale).setLength(3 + dt);
+        var dt = DT.audio.valueAudio/10,
+            posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale).setLength(3 + dt);
 
         this.emitter.update(data.delta).render();
         this.emitter._particles.forEach(function(el) {
@@ -3597,20 +3626,23 @@ var DT = (function () {
     };
 
     DT.GameCollectionObject.prototype.update = function (options) {
-        if (this.tObject.position.distanceTo(options.dieCoord) < 5) {
+        if (this.tObject.position.distanceTo(options.dieCoord) < 10) {
             this.removeFromScene();
         } 
-        if (this.tObject.position.distanceTo(options.opacityCoord) < 5) {
+        var dist = this.tObject.position.distanceTo(options.opacityCoord),
+            far = 15;
+        if (dist < far) {
+            var opacity = dist / far;
             if (this.tObject.children.length > 0) {
                 this.tObject.children.forEach(function (el) {
                     el.material.transparent = true;
-                    el.material.opacity = 0.5;
+                    el.material.opacity = opacity;
                 });
             } else {
                 this.tObject.material = new THREE.MeshLambertMaterial({
                      shading: THREE.FlatShading,
                      transparent: true,
-                     opacity: 0.5
+                     opacity: opacity
                  });
             }
         }
@@ -3755,27 +3787,6 @@ var DT = (function () {
 
     DT.Stone = function (options) {
         var radius, color, depth, geometry, material;
-            // part = Math.random();
-        // 
-        // if (part >= 0 && part < 0.16) {
-        //     x = DT.genRandomBetween(-15, -5);
-        //     y = DT.genRandomBetween(-15, -5);
-        // } else if (part >= 0.16 && part < 0.32){
-        //     x = DT.genRandomBetween(5, 15);
-        //     y = DT.genRandomBetween(5, 15);
-        // } else {
-        //     x = DT.genRandomBetween(-5, 5);
-        //     y = DT.genRandomBetween(-5, 5);
-        // }
-        //
-        // if (Math.abs(x) > 5 || Math.abs(y) > 5) {
-        //     radius = DT.genRandomBetween(1.5, 3);
-        //     color = new THREE.Color(0x464451);
-        // } else {
-        //     radius = DT.genRandomBetween(1, 2);
-        //     depth = DT.genRandomFloorBetween(80, 100) / 255;
-        //     color = new THREE.Color().setRGB(depth, depth, depth);
-        // }
 
         radius = DT.genRandomBetween(1, 2);
         depth = DT.genRandomFloorBetween(80, 100) / 255;
@@ -3794,6 +3805,7 @@ var DT = (function () {
             THREEConstructor: THREE.Mesh,
             collection: options.collection
         }]);
+        this.t = options.t;
         this.tObject.position = options.position;
         this.setParam('rotation', {
             x: Math.random(),
@@ -3828,16 +3840,24 @@ var DT = (function () {
         if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance + 1) {
             DT.audio.sounds.stoneMiss.play();
         }
-        // if (DT.getDistance(options.sphere.position.x, options.sphere.position.y, el.position.z, el.position.x, el.position.y, el.position.z) < this.minDistance) {
-        //     el.material.emissive = new THREE.Color().setRGB(
-        //         el.material.color.r * 0.5,
-        //         el.material.color.g * 0.5,
-        //         el.material.color.b * 0.5);
-        // } else {
-        //     el.material.emissive = new THREE.Color().setRGB(0,0,0);
-        // }
-        this.updateParam('rotation', {x: 0.014, y: 0.014})
-            // .updateParam('position', {z: DT.game.speed.getValue()});
+
+        var binormal = DT.getBinormalAt(this.t),
+            estimatedPlayerPosition = options.data.tube.path.getPointAt(this.t)
+                .multiplyScalar(DT.scale)
+                .add(binormal.multiplyScalar(DT.scale * DT.player.destPoint.x));
+
+        if (el.position.distanceTo(estimatedPlayerPosition) < this.minDistance) {
+            el.material.emissive = new THREE.Color().setRGB(
+                el.material.color.r * 1.5,
+                el.material.color.g * 0,
+                el.material.color.b * 0
+            );
+            el.material.wireframe = true;
+        } else {
+            el.material.emissive = new THREE.Color().setRGB(0,0,0);
+            el.material.wireframe = false;
+        }
+        this.updateParam('rotation', {x: 0.014, y: 0.014});
         return this;
     };
 
@@ -3894,16 +3914,8 @@ var DT = (function () {
         this.tObject.add(coin_cap_top);
         this.tObject.add(coin_cap_bottom);
 
-        var t = options.t + 0.25 + options.dt;
-            t = t > 1 ? t - 1 : t;
-        var binormal = new THREE.Vector3(),
-            segments = options.tube.tangents.length,
-            pickt = t * segments,
-            pick = Math.floor( pickt ),
-            pickNext = ( pick + 1 ) % segments;
-
-        binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
-        binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
+        var t = DT.normalizeT(options.t + 0.25 + options.dt);
+        var binormal = DT.getBinormalAt(t);
         
         var pos = options.tube.path.getPointAt(t)
             .multiplyScalar(DT.scale)
@@ -3960,14 +3972,7 @@ var DT = (function () {
 
         var t = options.t + 0.5;
             t = t > 1 ? t - 1 : t;
-        var binormal = new THREE.Vector3(),
-            segments = options.tube.tangents.length,
-            pickt = t * segments,
-            pick = Math.floor( pickt ),
-            pickNext = ( pick + 1 ) % segments;
-
-        binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
-        binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
+        var binormal = DT.getBinormalAt(t);
 
         var pos = options.tube.path.getPointAt(t)
             .multiplyScalar(DT.scale)
@@ -4073,33 +4078,45 @@ var DT = (function () {
                 return this;
             }
         }
+        var near = 5
+        var isCoinsNear = ! new DT.CoinsCollection().collection.every(function (coin) {
+                return coin.tObject.position.distanceTo(options.position) > near;
+            });
+        var isBonusesNear = ! new DT.BonusesCollection().collection.every(function (bonus) {
+                return bonus.tObject.position.distanceTo(options.position) > near;
+            });
+
+        if (isCoinsNear || isBonusesNear) {
+            return this;
+        }
         for (var i = 0; i < options.number; i++) {
             new this.constructor(options);
         }
         return this;
     };
-    // data.tube.path.getPointAt(data.t + 0.008).multiplyScalar(DT.scale),
-    // DT.$document.on('update', function (e, data) {
-    //     new DT.StonesCollection()
-    //         .createObjects({
-    //             position: data.tube.path.getPointAt(data.t + 0.08)
-    //             .add(new THREE.Vector3(
-    //                     DT.genRandomBetween(-1, 1),
-    //                     DT.genRandomBetween(-1, 1),
-    //                     DT.genRandomBetween(-1, 1)
-    //                 ))
-    //             .multiplyScalar(DT.scale)
-                    
-    //         })
-    //         .update({
-    //             dieCoord: data.tube.path.getPointAt(data.t - 0.008).multiplyScalar(DT.scale),
-    //             opacityCoord: data.tube.path.getPointAt(data.t + 0.002).multiplyScalar(DT.scale),
-    //             sphere: DT.player.sphere
-    //         });
-    // });
-    // DT.$document.on('resetGame', function (e, data) {
-    //     new DT.StonesCollection().removeObjects();
-    // });
+
+    DT.$document.on('update', function (e, data) {
+        var t = DT.normalizeT(data.t + 0.08),
+            binormal = DT.getBinormalAt(t);
+
+        new DT.StonesCollection()
+            .createObjects({
+                position: data.tube.path.getPointAt(t)
+                    .multiplyScalar(DT.scale)
+                    .add(binormal.multiplyScalar(DT.scale * DT.genRandomFloorBetween(-1, 1))),
+                t: t,
+                sphere: DT.player.sphere,
+            })
+            .update({
+                dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t + 0.002)).multiplyScalar(DT.scale),
+                sphere: DT.player.sphere,
+                data: data
+            });
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        new DT.StonesCollection().removeObjects();
+    });
 
 
     DT.CoinsCollection = function () {
@@ -4136,9 +4153,10 @@ var DT = (function () {
                 number: 10
             })
             .update({
-                dieCoord: data.tube.path.getPointAt(data.t - 0.008).multiplyScalar(DT.scale),
-                opacityCoord: data.tube.path.getPointAt(data.t + 0.002).multiplyScalar(DT.scale),
-                sphere: DT.player.sphere
+                dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t + 0.002)).multiplyScalar(DT.scale),
+                sphere: DT.player.sphere,
+                data: data
             });
     });
     DT.$document.on('resetGame', function (e, data) {
@@ -4207,8 +4225,8 @@ var DT = (function () {
                 t: data.t,
             })
             .update({
-                dieCoord: data.tube.path.getPointAt(data.t - 0.008).multiplyScalar(DT.scale),
-                opacityCoord: data.tube.path.getPointAt(data.t + 0.002).multiplyScalar(DT.scale),
+                dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t + 0.002)).multiplyScalar(DT.scale),
                 sphere: DT.player.sphere,
                 delta: data.delta * 1000
             });

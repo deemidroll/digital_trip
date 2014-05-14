@@ -1111,10 +1111,10 @@ var DT = (function () {
         //         DT.genRandomBetween(-100, 0)
         //     ));
         // }
-        // var N = tube.vertices.length;
-        // for (var i = 0; i < N; i += 16) {
-        //     this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
-        // }
+        var N = tube.vertices.length;
+        for (var i = 0; i < N; i += 16) {
+            this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
+        }
         // this.material.visible = false;
         return this;
     };
@@ -1123,10 +1123,12 @@ var DT = (function () {
         // if (!this.material.visible) {
         //     this.material.visible = true;
         // }
-        this.material.color = options.isFun ? options.color : new THREE.Color().setRGB(
-            options.valueAudio/1/1 || 70/255,
-            options.valueAudio/255/1 || 68/255,
-            options.valueAudio/255/1 || 81/255
+        this.material.color = options.isFun ? options.color : 
+        new THREE.Color().setRGB(
+            0,0,0
+            // options.valueAudio/1/1 || 70/255,
+            // options.valueAudio/255/1 || 68/255,
+            // options.valueAudio/255/1 || 81/255
         );
         return this;
     };

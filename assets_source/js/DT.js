@@ -3339,7 +3339,7 @@ var DT = (function () {
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot4b();
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot5a();
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot5c();
-    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 15, true, true);
+    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 16, true, true);
 
     DT.tube = tube;
 
@@ -3505,7 +3505,7 @@ var DT = (function () {
         DT.effectComposer.on = true;
         DT.effectComposer.timeOut = setTimeout(function () {
             DT.effectComposer.on = false;
-        }, 2000);
+        }, 1000);
     });
 
     // change IcosahedronGeometry prototype
@@ -4230,10 +4230,10 @@ var DT = (function () {
         //         DT.genRandomBetween(-100, 0)
         //     ));
         // }
-        var N = tube.vertices.length;
-        for (var i = 0; i < N; i += 10) {
-            this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
-        }
+        // var N = tube.vertices.length;
+        // for (var i = 0; i < N; i += 16) {
+        //     this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
+        // }
         // this.material.visible = false;
         return this;
     };
@@ -4624,6 +4624,64 @@ var DT = (function () {
     });
     DT.$document.on('resetGame', function (e, data) {
         new DT.StonesCollection().removeObjects();
+    });
+
+    DT.StaticStonesCollection = function () {
+        if (!DT.StaticStonesCollection.__instance) {
+            DT.StaticStonesCollection.__instance = this;
+        } else {
+            return DT.StaticStonesCollection.__instance;
+        }
+        DT.Collection.apply(this, [{
+            constructor: DT.Stone
+        }]);
+    };
+    DT.StaticStonesCollection.prototype = Object.create(DT.Collection.prototype);
+    DT.StaticStonesCollection.prototype.constructor = DT.StaticStonesCollection;
+
+    DT.StaticStonesCollection.prototype.createObjects = function (options) {
+        DT.Collection.prototype.createObjects.apply(this, arguments);
+        var el = this.collection[this.collection.length -1];
+
+        if (el) {
+            var dist = el.tObject.position.distanceTo(options.position)
+            if (dist <= DT.game.param.stonesCloseness) {
+                return this;
+            }
+        }
+        var near = 10;
+        var isAnotherStoneNear = ! new DT.StaticStonesCollection().collection.every(function (coin) {
+                return coin.tObject.position.distanceTo(options.position) > near;
+            });
+
+        if (isAnotherStoneNear) {
+            return this;
+        }
+        for (var i = 0; i < options.number; i++) {
+            new this.constructor(options);
+        }
+        return this;
+    };
+
+    DT.$document.on('update', function (e, data) {
+        var t = DT.normalizeT(data.t + 0.08),
+            binormal = DT.getBinormalAt(t);
+
+        new DT.StaticStonesCollection()
+            .createObjects({
+                position: data.tube.vertices[DT.genRandomFloorBetween(0, data.tube.vertices.length)].multiplyScalar(DT.scale),
+                t: t,
+                sphere: DT.player.sphere,
+            })
+            .update({
+                dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t + 0.002)).multiplyScalar(DT.scale),
+                sphere: DT.player.sphere,
+                data: data
+            });
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        new DT.StaticStonesCollection().removeObjects();
     });
 
 

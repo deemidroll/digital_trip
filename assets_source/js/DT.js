@@ -3170,7 +3170,8 @@ var DT = (function () {
     //             return true;
     //         };
     // }
-    DT.gameOverTime = 3000;
+    DT.gameOverTime = 5000;
+    DT.scale = 3;
     DT.$document = $(document);
     DT.$window = $(window);
 
@@ -3221,6 +3222,20 @@ var DT = (function () {
         t = t % 1;
         t < 0 ? 1 - t : t;
         return t;
+    };
+    DT.getNormalAt = function (t, tube) {
+        tube = tube || DT.tube;
+        var normal = new THREE.Vector3(),
+            segments = tube.tangents.length,
+            pickt = t * segments,
+            pick = Math.floor( pickt ),
+            pickNext = ( pick + 1 ) % segments;
+
+        tube = tube || DT.tube;
+
+        normal.subVectors( tube.normals[ pickNext ], tube.normals[ pick ] );
+        normal.multiplyScalar( pickt - pick ).add( tube.normals[ pick ] );
+        return normal;
     };
     DT.getBinormalAt = function (t, tube) {
         tube = tube || DT.tube;
@@ -3327,7 +3342,6 @@ var DT = (function () {
     // PATH
     var parent = new THREE.Object3D();
     DT.scene.add(parent);
-    DT.scale = 3;
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
     // var extrudePath = new THREE.Curves.GrannyKnot();
@@ -3366,6 +3380,8 @@ var DT = (function () {
     DT.cam = 0;
 
     DT.$document.on('updatePath', function (e, data) {
+        if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
+        if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
         var time = data.timeElapsed,
             looptime = 60, // related to speed
             t = ( time % looptime ) / looptime,
@@ -3488,26 +3504,20 @@ var DT = (function () {
     
     var badTVPass = new THREE.ShaderPass( THREE.BadTVShader );
     badTVPass.on = false;
-    badTVPass.uniforms[ "distortion" ].value = badTVParams.distortion;
-    badTVPass.uniforms[ "distortion2" ].value = badTVParams.distortion2;
-    badTVPass.uniforms[ "speed" ].value = badTVParams.speed;
-    badTVPass.uniforms[ "rollSpeed" ].value = badTVParams.rollSpeed;
     badTVPass.renderToScreen = true;
     DT.effectComposer.addPass(badTVPass);
 
     DT.$document.on('update', function (e, data) {
-        if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
-        if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
         if (DT.effectComposer.on) {
+            badTVPass.uniforms[ "distortion" ].value = badTVParams.distortion;
+            badTVPass.uniforms[ "distortion2" ].value = badTVParams.distortion2;
+            badTVPass.uniforms[ "speed" ].value = badTVParams.speed;
+            badTVPass.uniforms[ "rollSpeed" ].value = badTVParams.rollSpeed;
             DT.effectComposer.render();
                 badTVParams.distortion+=0.1;
                 badTVParams.distortion2+=0.1;
                 badTVParams.speed+=0.1;
                 badTVParams.rollSpeed+=0.1;
-            badTVPass.uniforms[ "distortion" ].value = badTVParams.distortion;
-            badTVPass.uniforms[ "distortion2" ].value = badTVParams.distortion2;
-            badTVPass.uniforms[ "speed" ].value = badTVParams.speed;
-            badTVPass.uniforms[ "rollSpeed" ].value = badTVParams.rollSpeed;
         };
     });
     DT.$document.on('gameOver', function (e, data) {
@@ -3567,6 +3577,7 @@ var DT = (function () {
             name: 'bonusE',
             scale: {x: 0.025, y: 0.025, z: 0.025},
             rotation: {x: 0, y: 0, z: 0}
+            // rotation: {x: Math.PI/2, y: -Math.PI/8, z: Math.PI/2}
         }
     ];
     // LOADER
@@ -4146,7 +4157,7 @@ var DT = (function () {
         } 
         var dist = this.tObject.position.distanceTo(options.opacityCoord),
             far = 15;
-        if (dist < far) {
+        if (dist < far && this.dontMakeTransparent == undefined) {
             var opacity = dist / far;
             if (this.tObject.children.length > 0) {
                 this.tObject.children.forEach(function (el) {
@@ -4492,7 +4503,7 @@ var DT = (function () {
                 time: 10
             });
             DT.$document.trigger('blink', {color: 0xcfb53b, frames: 60});
-            DT.player.bump();
+            // DT.player.bump();
         }
         return this;
     };
@@ -4513,25 +4524,31 @@ var DT = (function () {
             collection: options.collection
         }]);
 
-        var t = options.t + 0.5;
-            t = t > 1 ? t - 1 : t;
-        var binormal = DT.getBinormalAt(t);
-
-        var pos = options.tube.path.getPointAt(t)
-            .multiplyScalar(DT.scale)
-            .add(binormal.clone().multiplyScalar(options.offset * DT.scale));
+        var t = DT.normalizeT(options.t + 0.5),
+            binormal = DT.getBinormalAt(t),
+            pos = options.tube.path.getPointAt(t)
+                .multiplyScalar(DT.scale)
+                .add(binormal.clone().multiplyScalar(options.offset * DT.scale));
 
         this.tObject.position = pos;
+
+        var tLook = DT.normalizeT(t - 0.002),
+            normalLook = DT.getNormalAt(tLook),
+            binormalLook = DT.getBinormalAt(tLook),
+            vectorLook = options.tube.path.getTangentAt(tLook).negate()
+                .multiplyScalar(DT.scale)
+                .add(this.tObject.position);
+
+        var m1 = new THREE.Matrix4().copy( this.tObject.matrix );
+        m1.lookAt( vectorLook, this.tObject.position, normalLook );  
+        this.tObject.rotation.setFromRotationMatrix( m1 );
+
+        this.dontMakeTransparent = true;
 
         this.setParam('scale', {
                 x: DT.listOfModels[this.type].scale.x || 1,
                 y: DT.listOfModels[this.type].scale.y || 1,
                 z: DT.listOfModels[this.type].scale.z || 1
-            })
-            .setParam('rotation', {
-                x: DT.listOfModels[this.type].rotation.x || 0,
-                y: DT.listOfModels[this.type].rotation.y || 0,
-                z: DT.listOfModels[this.type].rotation.z || 0
             })
             .createAndAdd();
         // TODO: сделать расширяемой возможность анимации
@@ -4556,11 +4573,19 @@ var DT = (function () {
         if (this.type === 2) {
             // this.updateParam('rotation', {z: 0.05});
         }
-        if (this.animation) {
-            this.animation.update(options.delta);
+        // if (this.animation) {
+        //     this.animation.update(options.delta);
+        // }
+
+        var dist = this.tObject.position.distanceTo(options.sphere.position);
+
+        if (dist < 30.0) {
+            if (this.animation) {
+                this.animation.update(options.delta);
+            }
         }
 
-        if (this.tObject.position.distanceTo(options.sphere.position) < 0.9) {
+        if (dist < 0.9) {
             this.removeFromScene();
             DT.$document.trigger('catchBonus', {type: self.type});
         }

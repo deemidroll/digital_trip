@@ -1,4 +1,4 @@
-var initPhoneController = function() {
+(function() {
     // Game config
     var server = window.location.origin,
         leftBreakThreshold = -3,
@@ -69,7 +69,7 @@ var initPhoneController = function() {
                     var a = event.alpha, // "direction"
                         b = event.beta,  // left/right 'tilt'
                         g = event.gamma; // forward/back 'tilt'
-                    var turn = g;
+                    var turn = b;
                     updateController(turn);
                     // $('body').trigger('touchstart');
                     socket.emit("turn", {'turn':turn, 'g':a});
@@ -79,7 +79,7 @@ var initPhoneController = function() {
                     var a = event.alpha, // "direction"
                         b = event.beta,  // left/right 'tilt'
                         g = event.gamma; // forward/back 'tilt'
-                    var turn = g;
+                    var turn = b;
                     updateController(turn);
                     socket.emit("turn", {'turn':turn, 'g':a});
                 }, false);
@@ -93,7 +93,7 @@ var initPhoneController = function() {
                     });
                 }
 
-                $(".button").show();
+                // $(".button").show();
                 $("#M").click(function () {
                     socket.emit("click", {"click":"mute"});
                 });
@@ -103,7 +103,7 @@ var initPhoneController = function() {
                 $("#restart").click(function () {
                     socket.emit("click", {"click":"restart"});
                     $("#gameover").hide();
-                    controller.show();
+                    // controller.show();
                 });
 
             });
@@ -145,4 +145,4 @@ var initPhoneController = function() {
             $('#stopLeft, #turnLeft, #stopRight, #turnRight').removeClass('active');
         }
     }
-};
+})();

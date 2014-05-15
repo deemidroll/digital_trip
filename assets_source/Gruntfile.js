@@ -52,7 +52,9 @@ module.exports = function(grunt) {
                         'js/vendor/Stats.js',
                         'js/vendor/threex.rendererstats.js',
                         'js/vendor/webaudio.js',
-                        'js/vendor/headtrackr.js',
+
+                        'js/vendor/headtrackr.min.js',
+
                         'js/vendor/THREEx.FullScreen.js',
                         'js/vendor/CopyShader.js',
                         'js/vendor/DotScreenShader.js',

@@ -1391,7 +1391,7 @@ var DT = (function () {
             collection: options.collection
         }]);
 
-        var t = DT.normalizeT(options.t + 0.5),
+        var t = DT.normalizeT(options.t + 0.25),
             binormal = DT.getBinormalAt(t),
             pos = options.tube.path.getPointAt(t)
                 .multiplyScalar(DT.scale)
@@ -2041,18 +2041,18 @@ var DT = (function () {
         socket.on('turn', function(turn) {
             if(turn < leftBreakThreshold) {
                 if(turn > leftTurnThreshold) {
-                    DT.handlers.center()
+                    DT.handlers.center();
                 } else {
                     DT.handlers.left();
                 }
             } else if (turn > rightBreakThreshold) {
                 if(turn < rightTurnThreshold) {
-                    DT.handlers.center()
+                    DT.handlers.center();
                 } else {
                     DT.handlers.right();
                 }
             } else {
-                DT.handlers.center()
+                DT.handlers.center();
             }
         });
         socket.on('click', function(click) {
@@ -2153,7 +2153,13 @@ var DT = (function () {
         
         // Установка отслеживания
         
-        var htracker = new headtrackr.Tracker({altVideo : {ogv : '', mp4 : ''}, calcAngles : true, ui : false, headPosition : false, debug : debugOverlay});
+        var htracker = new headtrackr.Tracker({
+            altVideo : {ogv : '', mp4 : ''},
+            calcAngles : true,
+            ui : false,
+            headPosition : false,
+            debug : debugOverlay
+        });
         htracker.init(videoInput, canvasInput);
         htracker.start();
         
@@ -2261,13 +2267,13 @@ var DT = (function () {
         DT.player.changeDestPoint(new THREE.Vector3(1, 0, 0));
     };
     DT.handlers.left = function () {
-        DT.player.destPoint.copy(new THREE.Vector3(-1, 0, 0));
+        DT.player.destPoint.x = -1;
     };
     DT.handlers.right = function () {
-        DT.player.destPoint.copy(new THREE.Vector3(1, 0, 0));
+        DT.player.destPoint.x = 1;
     };
     DT.handlers.center = function () {
-        DT.player.destPoint.copy(new THREE.Vector3(0, 0, 0));
+        DT.player.destPoint.x = 0;
     };
     DT.handlers.restart = function () {
         

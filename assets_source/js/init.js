@@ -51,6 +51,7 @@ var DT = (function () {
     //             return true;
     //         };
     // }
+    DT.gameOverTime = 3000;
     DT.$document = $(document);
     DT.$window = $(window);
 
@@ -148,7 +149,7 @@ var DT = (function () {
     DT.$document.on('gameOver', function (e, data) {
         setTimeout(function() {
             cancelAnimFrame(DT.animate.id);
-        }, 300);
+        }, DT.gameOverTime);
     });
 
 // ████████╗██╗  ██╗██████╗ ███████╗███████╗    ██╗    ██╗ ██████╗ ██████╗ ██╗     ██████╗ 
@@ -220,7 +221,7 @@ var DT = (function () {
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot4b();
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot5a();
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot5c();
-    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 16, true, true);
+    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 15, true, true);
 
     DT.tube = tube;
 
@@ -247,7 +248,7 @@ var DT = (function () {
 
     DT.$document.on('updatePath', function (e, data) {
         var time = data.timeElapsed,
-            looptime = 30, // related to speed
+            looptime = 60, // related to speed
             t = ( time % looptime ) / looptime,
             pos = tube.path.getPointAt( t );
         
@@ -380,13 +381,27 @@ var DT = (function () {
         if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
         if (DT.effectComposer.on) {
             DT.effectComposer.render();
+                badTVParams.distortion+=0.1;
+                badTVParams.distortion2+=0.1;
+                badTVParams.speed+=0.1;
+                badTVParams.rollSpeed+=0.1;
+            badTVPass.uniforms[ "distortion" ].value = badTVParams.distortion;
+            badTVPass.uniforms[ "distortion2" ].value = badTVParams.distortion2;
+            badTVPass.uniforms[ "speed" ].value = badTVParams.speed;
+            badTVPass.uniforms[ "rollSpeed" ].value = badTVParams.rollSpeed;
         };
     });
-    DT.$document.on('bump', function (e, data) {
+    DT.$document.on('gameOver', function (e, data) {
         DT.effectComposer.on = true;
         DT.effectComposer.timeOut = setTimeout(function () {
             DT.effectComposer.on = false;
-        }, 1000);
+            badTVParams = {
+                distortion: 3.0,
+                distortion2: 1.0,
+                speed: 0.3,
+                rollSpeed: 0.1
+            }
+        }, DT.gameOverTime);
     });
 
     // change IcosahedronGeometry prototype
@@ -629,7 +644,7 @@ var DT = (function () {
         this.light.position = this.position;
         this.light.color = this.sphere.material.color;
         this.scene.add(this.light);
-        this.scene.add(this.sphere);
+        // this.scene.add(this.sphere);
 
         this.firstMove = true;
         this.moveIterator = 0;
@@ -648,9 +663,9 @@ var DT = (function () {
             },
         };
 
-        this.emitter = Fireworks.createEmitter({nParticles : 10})
+        this.emitter = Fireworks.createEmitter({nParticles : 100})
         .effectsStackBuilder()
-            .spawnerSteadyRate(25)
+            .spawnerSteadyRate(30)
             .position(Fireworks.createShapePoint(0, 0, 0))
             .velocity(Fireworks.createShapePoint(0, 0, 0))
             .lifeTime(0.2, 0.7)
@@ -1112,7 +1127,7 @@ var DT = (function () {
         //     ));
         // }
         var N = tube.vertices.length;
-        for (var i = 0; i < N; i += 16) {
+        for (var i = 0; i < N; i += 10) {
             this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
         }
         // this.material.visible = false;
@@ -1125,7 +1140,7 @@ var DT = (function () {
         // }
         this.material.color = options.isFun ? options.color : 
         new THREE.Color().setRGB(
-            0,0,0
+            0,0,0 
             // options.valueAudio/1/1 || 70/255,
             // options.valueAudio/255/1 || 68/255,
             // options.valueAudio/255/1 || 81/255
@@ -1252,6 +1267,24 @@ var DT = (function () {
         return this;
     };
 
+    DT.StaticStone = function (options) {
+        DT.Stone.apply(this, [options]);
+    };
+    DT.StaticStone.prototype = Object.create(DT.Stone.prototype);
+    DT.StaticStone.prototype.constructor = DT.StaticStone;
+
+    DT.StaticStone.prototype.update = function (options) {
+        if (DT.player.isFun) {
+            this.tObject.material.emissive = new THREE.Color().setRGB(0,1,0);
+            this.tObject.material.wireframe = true;
+        } else {
+            this.tObject.material.emissive = new THREE.Color().setRGB(0,0,0);
+            this.tObject.material.wireframe = false;
+        }
+
+        this.updateParam('rotation', {x: 0.007, y: 0.007});
+        return this;
+    };
  // ██████╗ ██████╗ ██╗███╗   ██╗
 // ██╔════╝██╔═══██╗██║████╗  ██║
 // ██║     ██║   ██║██║██╔██╗ ██║
@@ -1494,7 +1527,7 @@ var DT = (function () {
             .createObjects({
                 position: data.tube.path.getPointAt(t)
                     .multiplyScalar(DT.scale)
-                    .add(binormal.multiplyScalar(DT.genRandomBetween(-5, 5))),
+                    .add(binormal.multiplyScalar(DT.scale * DT.genRandomFloorBetween(-1, 1))),
                 t: t,
                 sphere: DT.player.sphere,
             })
@@ -1516,7 +1549,7 @@ var DT = (function () {
             return DT.StaticStonesCollection.__instance;
         }
         DT.Collection.apply(this, [{
-            constructor: DT.Stone
+            constructor: DT.StaticStone
         }]);
     };
     DT.StaticStonesCollection.prototype = Object.create(DT.Collection.prototype);
@@ -1550,18 +1583,16 @@ var DT = (function () {
         var t = DT.normalizeT(data.t + 0.08),
             binormal = DT.getBinormalAt(t);
 
-        new DT.StaticStonesCollection()
-            .createObjects({
-                position: data.tube.vertices[DT.genRandomFloorBetween(0, data.tube.vertices.length)].multiplyScalar(DT.scale),
-                t: t,
-                sphere: DT.player.sphere,
-            })
-            .update({
-                dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),
-                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t + 0.002)).multiplyScalar(DT.scale),
-                sphere: DT.player.sphere,
-                data: data
-            });
+        new DT.StaticStonesCollection().update({});
+
+        if (data.timeElapsed < 30) {
+            new DT.StaticStonesCollection()
+                .createObjects({
+                    position: data.tube.vertices[DT.genRandomFloorBetween(0, data.tube.vertices.length)].multiplyScalar(DT.scale),
+                    t: t,
+                    sphere: DT.player.sphere,
+                });
+        }
     });
     DT.$document.on('resetGame', function (e, data) {
         new DT.StaticStonesCollection().removeObjects();
@@ -2501,7 +2532,7 @@ var DT = (function () {
     });
     DT.$document.on('gameOver', function (e, data) {
         $('.total_coins').text(DT.player.currentScore);
-        $('.game_over').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 1000);
+        $('.game_over').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, DT.gameOverTime);
         $('#one_more_time').click(function () {
             DT.$document.trigger('resetGame', {});
         });

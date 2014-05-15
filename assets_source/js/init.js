@@ -36,22 +36,8 @@ var DT = (function () {
                 }
             );
         }();
-    // if (!Array.prototype.every) {
-    //         console.log("polyfill every");
-    //         Array.prototype.every = function(fun /*, thisp */) {
-    //             "use strict";
-    //             if (this == null) throw new TypeError();
-    //             var t = Object(this);
-    //             var len = t.length >>> 0;
-    //             if (typeof fun != "function") throw new TypeError();
-    //             var thisp = arguments[1];
-    //             for (var i = 0; i < len; i++) {
-    //                 if (i in t && !fun.call(thisp, t[i], i, t)) return false;
-    //             }
-    //             return true;
-    //         };
-    // }
-    DT.gameOverTime = 5000;
+
+    DT.gameOverTime = 3000;
     DT.scale = 3;
     DT.$document = $(document);
     DT.$window = $(window);
@@ -225,7 +211,7 @@ var DT = (function () {
     DT.scene.add(parent);
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
-    // var extrudePath = new THREE.Curves.GrannyKnot();
+    // var extrudePath = new THREE.Curves.GrannyKnot(); 
     // var extrudePath = new THREE.Curves.HeartCurve();
     // var extrudePath = new THREE.Curves.KnotCurve();
     // var extrudePath = new THREE.Curves.TrefoilKnot();
@@ -235,7 +221,7 @@ var DT = (function () {
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot4b();
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot5a();
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot5c();
-    var tube = new THREE.TubeGeometry(extrudePath, 500, 3, 15, true, true);
+    var tube = new THREE.TubeGeometry(extrudePath, 100, 3, 8, true, true);
 
     DT.tube = tube;
 
@@ -316,7 +302,7 @@ var DT = (function () {
     // LIGHTS
     DT.lights = {
         light: new THREE.PointLight(0xffffff, 0.75, 100),
-        directionalLight: new THREE.DirectionalLight(0xffffff, 0.25)
+        directionalLight: new THREE.DirectionalLight(0xffffff, 0.5)
     };
     DT.scene.add(DT.lights.light);
     DT.scene.add(DT.lights.directionalLight);
@@ -1613,7 +1599,7 @@ var DT = (function () {
         if (data.timeElapsed < 30) {
             new DT.StaticStonesCollection()
                 .createObjects({
-                    position: data.tube.vertices[DT.genRandomFloorBetween(0, data.tube.vertices.length)].multiplyScalar(DT.scale),
+                    position: data.tube.vertices[DT.genRandomFloorBetween(0, data.tube.vertices.length-1)].clone().multiplyScalar(DT.scale),
                     t: t,
                     sphere: DT.player.sphere,
                 });

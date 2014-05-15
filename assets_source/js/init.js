@@ -1271,7 +1271,7 @@ var DT = (function () {
 
     DT.StaticStone.prototype.update = function (options) {
         if (DT.player.isFun) {
-            this.tObject.material.emissive = new THREE.Color().setRGB(0,1,0);
+            this.tObject.material.emissive = new THREE.Color().copy(DT.player.sphere.material.color).multiplyScalar(0.25)
             this.tObject.material.wireframe = true;
         } else {
             this.tObject.material.emissive = new THREE.Color().setRGB(0,0,0);

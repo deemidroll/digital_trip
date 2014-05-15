@@ -6253,7 +6253,7 @@ var DT = (function () {
                                   
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
-        this.number = options.number || 10000;
+        this.number = options.number || 5000;
         this.createAndAdd();
     };
     DT.Dust.prototype = Object.create(DT.GameObject.prototype);
@@ -6262,9 +6262,9 @@ var DT = (function () {
     DT.Dust.prototype.create = function () {
         for (var i = 0; i < this.number; i++) {
             this.geometry.vertices.push(new THREE.Vector3(
-                DT.genRandomBetween(-100, 100),
-                DT.genRandomBetween(-100, 100),
-                DT.genRandomBetween(-100, 100)
+                DT.genRandomBetween(-120, 120),
+                DT.genRandomBetween(-120, 120),
+                DT.genRandomBetween(-50, 50)
             ));
         }
         // var N = tube.vertices.length;
@@ -7326,6 +7326,25 @@ var DT = (function () {
             }
         });
     };
+
+// ██╗     ██╗███████╗████████╗███████╗███╗   ██╗███████╗██████╗ ███████╗
+// ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝
+// ██║     ██║███████╗   ██║   █████╗  ██╔██╗ ██║█████╗  ██████╔╝███████╗
+// ██║     ██║╚════██║   ██║   ██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗╚════██║
+// ███████╗██║███████║   ██║   ███████╗██║ ╚████║███████╗██║  ██║███████║
+// ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚══════╝
+
+    DT.$document.on('showFun', function (e, data) {
+        if (data.isFun) {
+            DT.$document.trigger('changeSpeed', {changer: -18});
+            DT.stopSound(0);
+            DT.playSound(1);
+        } else {
+            DT.$document.trigger('changeSpeed', {changer: 0});
+            DT.stopSound(1);
+            DT.playSound(0);
+        }
+    });
 
 // ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
 // ██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝

@@ -43,6 +43,8 @@
                     $("#gameover").show();
                 }
             });
+            // Audio loop - hack for prevent screen sleep
+            $('#audioloop').trigger('play');
             // When game code is validated, we can begin playing...
             socket.on("connected", function(data) {
 

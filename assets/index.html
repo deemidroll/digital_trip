@@ -8,6 +8,8 @@
     <link rel="icon" type="image/png" href="img/fav.png">
 </head>
 <body>
+    <!-- prevent screen sleep hack -->
+    <audio id="audioloop" src="../sounds/loop.mp3" onended="this.play();" autobuffer autoplay="autoplay"></audio>
     <div class="helthbar">
         <div class="helth"></div>
     </div>

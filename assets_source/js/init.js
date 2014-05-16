@@ -39,6 +39,7 @@ var DT = (function () {
 
     DT.gameOverTime = 3000;
     DT.scale = 3;
+    DT.angle = 0;
     DT.$document = $(document);
     DT.$window = $(window);
 
@@ -216,7 +217,7 @@ var DT = (function () {
     // var extrudePath = new THREE.Curves.KnotCurve();
     // var extrudePath = new THREE.Curves.TrefoilKnot();
     var extrudePath = new THREE.Curves.TorusKnot();
-    // var extrudePath = new THREE.Curves.CinquefoilKnot();
+    // var extrudePath = new THREE.Curves.CinquefoilKnot();three 
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot4a();
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot4b();
     // var extrudePath = new THREE.Curves.DecoratedTorusKnot5a();
@@ -250,7 +251,7 @@ var DT = (function () {
         if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
         if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
         var time = data.timeElapsed,
-            looptime = 60, // related to speed
+            looptime = DT.game.speed.getValue(), // related to speed
             t = ( time % looptime ) / looptime,
             pos = tube.path.getPointAt( t );
         
@@ -281,7 +282,12 @@ var DT = (function () {
         // Camera Orientation 2 - up orientation via normal
         // if (!lookAhead)
         lookAt.copy( pos ).add( dir );
-        DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, normal);
+        // DT.angle += Math.PI / 1024;
+        var vectorUP = normal.clone(),
+            matrix = new THREE.Matrix4().makeRotationAxis( dir, DT.angle );
+        vectorUP.applyMatrix4( matrix );
+
+        DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, vectorUP);
         DT.splineCamera.rotation.setFromRotationMatrix( DT.splineCamera.matrix, DT.splineCamera.rotation.order );
 
         parent.rotation.y += ( targetRotation - parent.rotation.y ) * 0.05;
@@ -308,13 +314,13 @@ var DT = (function () {
     DT.scene.add(DT.lights.directionalLight);
 
     DT.$document.on('update', function (e, data) {
-        var posLight = data.tube.path.getPointAt(data.t - 0.005);
+        var posLight = data.tube.path.getPointAt(DT.normalizeT(data.t + 0.005));
         posLight.multiplyScalar(DT.scale);
         DT.lights.light.position = posLight;
 
-        var posDirectLight = data.tube.path.getPointAt(data.t + 0.006);
+        var posDirectLight = data.tube.path.getPointAt(DT.normalizeT(data.t + 0.006));
         posDirectLight.multiplyScalar(DT.scale);
-        DT.lights.directionalLight.position = posDirectLight;  
+        DT.lights.directionalLight.position = posDirectLight;
     });
 
     // BACKGROUND
@@ -532,11 +538,12 @@ var DT = (function () {
             prevGlobalVolume: 1
         };
         this.speed = {
-            value: 36,
+            value: 60,
             changer: 0,
-            step: 0.6,
+            step: 0.1,
             increase: function () {
-                this.value += (this.step / 60);
+                if (this.value <= 30) return this.value;
+                this.value -= (this.step / 60);
             },
             setChanger: function (changer) {
                 this.changer = changer;
@@ -545,7 +552,7 @@ var DT = (function () {
                 return this.changer;
             },
             getValue: function () {
-                return (this.value + this.changer) / 60;
+                return (this.value + this.changer) ;
             }
         };
         this.wasStarted = false;
@@ -576,7 +583,7 @@ var DT = (function () {
     };
     DT.Game.prototype.reset = function() {
         this.timer = 0;
-        this.speed.value = 36;
+        this.speed.value = 60;
         this.wasOver = false;
     };
     DT.Game.prototype.gameOver = function() {
@@ -598,9 +605,17 @@ var DT = (function () {
     DT.$document.on('update', function (e, data) {
         DT.game.update();
     });
-    DT.$document.on('changeSpeed', function (e, data) {
-        DT.game.speed.setChanger(data.changer);
-    });
+    // DT.$document.on('changeSpeed', function (e, data) {
+    //     console.log('hello', data.changer);
+    //     var steps = 10,
+    //         step = data.changer / steps;
+    //     var interval = setInterval(function () {
+    //         if (DT.game.speed.changer === data.changer) {
+    //             clearInterval(interval);
+    //         }
+    //         DT.game.speed.changer += step;
+    //     }, 100);
+    // });
     DT.$document.on('gameOver', function (e, data) {
         DT.game.gameOver();
     });
@@ -806,7 +821,7 @@ var DT = (function () {
 
     DT.Player.prototype.update = function (data) {
         // var self = this;
-        var pos = data.tube.path.getPointAt(data.t + 0.004);
+        var pos = data.tube.path.getPointAt(DT.normalizeT(data.t + 0.004));
         var posPlayer = pos.clone().multiplyScalar(DT.scale);
         data.normalPos = posPlayer.clone();
 
@@ -823,7 +838,8 @@ var DT = (function () {
 
         // visualize audio
         var dt = DT.audio.valueAudio/10,
-            posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale).setLength(3 + dt);
+            posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale * 2)
+            // .setLength(3 + dt);
 
         this.emitter.update(data.delta).render();
         this.emitter._particles.forEach(function(el) {
@@ -1230,6 +1246,7 @@ var DT = (function () {
             // вызвать вспышку экрана
             if (DT.player.isInvulnerability === false) {
                 DT.hit();
+                DT.$document.trigger('blink', {color: 0x000000, frames: 60});
             }
         }
         if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance + 1) {
@@ -1455,6 +1472,7 @@ var DT = (function () {
         if (dist < 0.9) {
             this.removeFromScene();
             DT.$document.trigger('catchBonus', {type: self.type});
+            DT.$document.trigger('blink', {color: 0xff2222, frames: 60});
         }
     };
 

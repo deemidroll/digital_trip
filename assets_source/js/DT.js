@@ -3209,7 +3209,7 @@ var DT = (function () {
     };
     DT.normalizeT = function (t) {
         t = t % 1;
-        t < 0 ? 1 - t : t;
+        t < 0 ? 1 + t : t;
         return t;
     };
     DT.getNormalAt = function (t, tube) {
@@ -3435,7 +3435,7 @@ var DT = (function () {
     DT.scene.add(DT.lights.directionalLight);
 
     DT.$document.on('update', function (e, data) {
-        var posLight = data.tube.path.getPointAt(DT.normalizeT(data.t + 0.005));
+        var posLight = data.tube.path.getPointAt(DT.normalizeT(data.t - 0.005));
         posLight.multiplyScalar(DT.scale);
         DT.lights.light.position = posLight;
 

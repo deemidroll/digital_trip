@@ -1109,7 +1109,7 @@ var DT = (function () {
                                   
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
-        this.number = options.number || 5000;
+        this.number = options.number || 2000;
         this.createAndAdd();
     };
     DT.Dust.prototype = Object.create(DT.GameObject.prototype);
@@ -1270,13 +1270,13 @@ var DT = (function () {
     DT.StaticStone.prototype.constructor = DT.StaticStone;
 
     DT.StaticStone.prototype.update = function (options) {
-        if (DT.player.isFun) {
-            this.tObject.material.emissive = new THREE.Color().copy(DT.player.sphere.material.color).multiplyScalar(0.25)
-            this.tObject.material.wireframe = true;
-        } else {
-            this.tObject.material.emissive = new THREE.Color().setRGB(0,0,0);
-            this.tObject.material.wireframe = false;
-        }
+        // if (DT.player.isFun) {
+        //     this.tObject.material.emissive = new THREE.Color().copy(DT.player.sphere.material.color).multiplyScalar(0.25)
+        //     this.tObject.material.wireframe = true;
+        // } else {
+        //     this.tObject.material.emissive = new THREE.Color().setRGB(0,0,0);
+        //     this.tObject.material.wireframe = false;
+        // }
 
         this.updateParam('rotation', {x: 0.007, y: 0.007});
         return this;

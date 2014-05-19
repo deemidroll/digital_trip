@@ -27,7 +27,7 @@ yepnope([{
         "js/vendor/jquery.min.js",
         "js/vendor/three.min.js",
         "js/vendor/CurveExtras.js",
-        "js/DT.min.js",
+        "js/DT.js",
         "../socket.io/socket.io.js"
     ],
     callback: {

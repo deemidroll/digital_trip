@@ -3126,7 +3126,7 @@ THREE.BadTVShader = {
 // ██████╔╝██║╚██████╔╝██║   ██║   ██║  ██║███████╗       ██║   ██║  ██║██║██║     
 // ╚═════╝ ╚═╝ ╚═════╝ ╚═╝   ╚═╝   ╚═╝  ╚═╝╚══════╝       ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝     
 
-var DT = (function () {
+window.DT = (function (window, document, undefined) {
     'use strict';
     var DT = {},
         THREE = window.THREE,
@@ -3215,7 +3215,7 @@ var DT = (function () {
     DT.getNormalAt = function (t, tube) {
         tube = tube || DT.tube;
         var normal = new THREE.Vector3(),
-            segments = tube.tangents.length,
+            segments = tube.normals.length,
             pickt = t * segments,
             pick = Math.floor( pickt ),
             pickNext = ( pick + 1 ) % segments;
@@ -3229,7 +3229,7 @@ var DT = (function () {
     DT.getBinormalAt = function (t, tube) {
         tube = tube || DT.tube;
         var binormal = new THREE.Vector3(),
-            segments = tube.tangents.length,
+            segments = tube.binormals.length,
             pickt = t * segments,
             pick = Math.floor( pickt ),
             pickNext = ( pick + 1 ) % segments;
@@ -3372,14 +3372,21 @@ var DT = (function () {
         if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
         if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
         var time = data.timeElapsed,
-            looptime = DT.game.speed.getValue(), // related to speed
-            t = ( time % looptime ) / looptime,
-            pos = tube.path.getPointAt( t );
+            speedStart = DT.game.speed.speedStart,
+            acceleration = DT.game.speed.acceleration,
+            // looptime = DT.game.speed.getValue(), // related to speed
+            // t = ( time % looptime ) / looptime,
+            t,
+            pos;
         
+        DT.path = speedStart * time + acceleration * time * time / 2;
+        t = DT.path % 1;
+        pos = tube.path.getPointAt( t );
+
         pos.multiplyScalar(DT.scale);
 
         // interpolation
-        var segments = tube.tangents.length,
+        var segments = tube.binormals.length,
             pickt = t * segments,
             pick = Math.floor( pickt ),
             pickNext = ( pick + 1 ) % segments;
@@ -3435,7 +3442,7 @@ var DT = (function () {
     DT.scene.add(DT.lights.directionalLight);
 
     DT.$document.on('update', function (e, data) {
-        var posLight = data.tube.path.getPointAt(DT.normalizeT(data.t - 0.005));
+        var posLight = data.tube.path.getPointAt(DT.normalizeT(data.t));
         posLight.multiplyScalar(DT.scale);
         DT.lights.light.position = posLight;
 
@@ -3659,22 +3666,24 @@ var DT = (function () {
             prevGlobalVolume: 1
         };
         this.speed = {
-            value: 60,
-            changer: 0,
-            step: 0.1,
-            increase: function () {
-                if (this.value <= 30) return this.value;
-                this.value -= (this.step / 60);
-            },
-            setChanger: function (changer) {
-                this.changer = changer;
-            },
-            getChanger: function() {
-                return this.changer;
-            },
-            getValue: function () {
-                return (this.value + this.changer) ;
-            }
+            speedStart: 1/60,
+            acceleration: 1/10000,
+            // value: 60,
+            // changer: 0,
+            // step: 0.1,
+            // increase: function () {
+            //     if (this.value <= 30) return this.value;
+            //     this.value -= (this.step / 60);
+            // },
+            // setChanger: function (changer) {
+            //     this.changer = changer;
+            // },
+            // getChanger: function() {
+            //     return this.changer;
+            // },
+            // getValue: function () {
+            //     return (this.value + this.changer) ;
+            // }
         };
         this.wasStarted = false;
         this.wasPaused = false;
@@ -3700,11 +3709,11 @@ var DT = (function () {
     };
     DT.Game.prototype.update = function() {
         this.updateTimer();
-        this.speed.increase();
+        // this.speed.increase();
     };
     DT.Game.prototype.reset = function() {
         this.timer = 0;
-        this.speed.value = 60;
+        // this.speed.value = 60;
         this.wasOver = false;
     };
     DT.Game.prototype.gameOver = function() {
@@ -4888,7 +4897,10 @@ var DT = (function () {
             gameover: 'sounds/gameover.',
             pause: 'sounds/pause.',
             stoneDestroy: 'sounds/stoneDestroy.',
-            stoneMiss: 'sounds/stoneMiss.'
+            stoneMiss: 'sounds/stoneMiss.',
+            catchBonus: 'sounds/catchBonus.',
+            helth: 'sounds/helth.',
+            shield: 'sounds/shield.',
         },
         music: {
             0: 'sounds/theField_overTheIce.',
@@ -4914,7 +4926,7 @@ var DT = (function () {
         if (DT.game.param.prevGlobalVolume !== DT.game.param.globalVolume) {
             DT.gainNodes.forEach(function(el) {
                 if (el) {
-                    el.gain.value = DT.game.param.globalVolume;
+                    el.gain.value = DT.game.param.globalVolume * 0.5;
                 }
             });
             DT.game.param.prevGlobalVolume = DT.game.param.globalVolume;
@@ -4993,7 +5005,7 @@ var DT = (function () {
                 sources[index].buffer = buffers[index];
                 destination = context.destination;
                 gainNodes[index] = context.createGain();
-                gainNodes[index].gain.value = DT.game.param.globalVolume;
+                gainNodes[index].gain.value = DT.game.param.globalVolume * 0.5;
                 analysers[index] = context.createAnalyser();
                 analysers[index].fftSize = 2048;
                 analysers[index].minDecibels = -50;
@@ -5094,6 +5106,16 @@ var DT = (function () {
             // return it
             return source;
         };
+    });
+
+    DT.$document.on('showBonuses', function (e, data) {
+        DT.audio.sounds.catchBonus.play();
+    });
+    DT.$document.on('changeHelth', function (e, data) {
+        if (data.delta > 0) DT.audio.sounds.helth.play();
+    });
+    DT.$document.on('makeInvulner', function (e, data) {
+        DT.audio.sounds.shield.play();
     });
 
 // ██╗  ██╗███████╗██╗   ██╗██████╗  ██████╗  █████╗ ██████╗ ██████╗ 
@@ -5197,6 +5219,9 @@ var DT = (function () {
         socket.on('click', function(click) {
             DT.handlers[click]();
         });
+        socket.on('message', function(data) {
+            if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
+        });
     };
     DT.sendSocketMessage = function (options) {
         var data = {
@@ -5212,13 +5237,16 @@ var DT = (function () {
     };
 
     DT.$document.on('startGame', function (e, data) {
-        DT.sendSocketMessage('gamestarted');
+        DT.sendSocketMessage({type: 'gamestarted'});
     });
     DT.$document.on('resetGame', function (e, data) {
-        DT.sendSocketMessage('gamestarted');
+        DT.sendSocketMessage({type: 'gamestarted'});
     });
     DT.$document.on('gameOver', function (e, data) {
-        DT.sendSocketMessage('gameover');
+        DT.sendSocketMessage({type: 'gameover'});
+    });
+    DT.$document.on('checkUp', function (e, data) {
+        DT.sendSocketMessage({type: 'checkup'});
     });
 
 // ███╗   ███╗ ██████╗ ██████╗ ██╗██╗     ███████╗
@@ -5527,6 +5555,25 @@ var DT = (function () {
         $('.game_over').hide();
         $('#one_more_time').unbind('click');
     });
+    $('#wow').on('click', function () {
+        var inputDogeCoin = $('#dogecoin');
+        if (inputDogeCoin.val() === 'your dogecoin id') {
+            inputDogeCoin.css({
+                'border': '2px solid red'
+            });
+            $('#gameovermessage').html('type your dogecoin id');
+        } else {
+            inputDogeCoin.css({
+                'border': '2px solid green'
+            });
+            $('#gameovermessage').html('checking...');
+            DT.$document.trigger('checkUp', {});
+        }
+    });
+    DT.$document.on('paymentCheck', function (e, data) {
+        var text = data.checkup ? 'success' : 'fail';
+        $('#gameovermessage').html(text);
+    });
 
 // ███████╗████████╗ █████╗ ████████╗███████╗
 // ██╔════╝╚══██╔══╝██╔══██╗╚══██╔══╝██╔════╝
@@ -5576,6 +5623,6 @@ var DT = (function () {
    // ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═══╝╚═════╝ 
 
     return DT;
-}());
+}(this, this.document));
 
 //# sourceMappingURL=DT.js.map

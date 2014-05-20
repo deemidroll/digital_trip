@@ -58,7 +58,13 @@ a {
     background-size:auto 20%;
 }
 
-#gameover {
+#socket, #gameover, #preparetostart{
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: auto;
+    text-align: center;
 }
 
 .button {

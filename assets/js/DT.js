@@ -3374,8 +3374,6 @@ window.DT = (function (window, document, undefined) {
         var time = data.timeElapsed,
             speedStart = DT.game.speed.speedStart,
             acceleration = DT.game.speed.acceleration,
-            // looptime = DT.game.speed.getValue(), // related to speed
-            // t = ( time % looptime ) / looptime,
             t,
             pos;
         
@@ -5248,6 +5246,9 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('checkUp', function (e, data) {
         DT.sendSocketMessage({type: 'checkup'});
     });
+    DT.$document.on('resetGame', function (e, data) {
+        DT.sendSocketMessage({type: 'resetGame'});
+    });
 
 // ███╗   ███╗ ██████╗ ██████╗ ██╗██╗     ███████╗
 // ████╗ ████║██╔═══██╗██╔══██╗██║██║     ██╔════╝
@@ -5443,7 +5444,7 @@ window.DT = (function (window, document, undefined) {
         DT.player.destPoint.x = 0;
     };
     DT.handlers.restart = function () {
-        
+        DT.$document.trigger('resetGame', {});
     };
     DT.$document.on('resetGame', function (e, data) {
         DT.$document.bind('keyup', DT.handlers.pauseOnSpace);

@@ -14,7 +14,7 @@
 
     <div id="controller" style="display:none">
         <div id="socket">
-            <input autofocus type="text" name="socketId"/>
+            <input d="gameCodeInput" autofocus type="text" name="socketId"/>
             <input type="button" id="connect" value="Connect"/>
         </div>
         <div id="wheel" style="display:none">
@@ -27,11 +27,12 @@
     <div id="gameover" style="display:none">
         <input type="button" id="restart" value="on more time"/>
     </div>
+    <div id="preparetostart" style="display:none">
+        <input type="button" id="start" value="start"/>
+    </div>
     <div class="button" id="M">M</div>
     <div class="button" id="P">P</div>
 
-
-    
     <script src="../js/mobile.min.js"></script>
     <script src="../../socket.io/socket.io.js"></script>
 </body>

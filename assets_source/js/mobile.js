@@ -11,18 +11,18 @@
         status = $("#status"),
         turned = false;
 
-    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
+    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
         // Show the controller ui with gamecode input
         controller.show();
-        window.addEventListener('orientationchange', function(event) {
-            var rotate = 0 - window.orientation;
-            $("body").css({
-                "transform": "rotate("+rotate+"deg)",
-                "-ms-transform": "rotate("+rotate+"deg)",
-                "-webkit-transform": "rotate("+rotate+"deg)",
-                "-moz-transform": "rotate("+rotate+"deg)"
-            });
-        }, false );
+        // window.addEventListener('orientationchange', function(event) {
+        //     var rotate = 0 - window.orientation;
+        //     $("body").css({
+        //         "transform": "rotate("+rotate+"deg)",
+        //         "-ms-transform": "rotate("+rotate+"deg)",
+        //         "-webkit-transform": "rotate("+rotate+"deg)",
+        //         "-moz-transform": "rotate("+rotate+"deg)"
+        //     });
+        // }, false );
         // When connect is pushed, establish socket connection
         var connect = function() {
             var gameCode = $("#socket input").val(),
@@ -34,13 +34,18 @@
             });
             socket.on("message", function(data) {
                 if (data.type === "vibr") {
-                    console.log("vibtare", data.time);
+                    // console.log("vibtare", data.time);
                     navigator.vibrate(data.time);
                 }
                 if (data.type === "gameover") {
-                    console.log("gameover");
+                    // console.log("gameover");
                     controller.hide();
                     $("#gameover").show();
+                }
+                if (data.type === "resetGame") {
+                    // console.log("resetGame");
+                    $("#gameover").hide();
+                    controller.show();
                 }
             });
             // Audio loop - hack for prevent screen sleep
@@ -50,7 +55,6 @@
 
                 // Hide game code input, and show the vehicle wheel UI
                 $("#socket").hide();
-                wheel.show();
                 // If user touches the screen, accelerate
                 document.addEventListener("touchstart", function (event) {
                     socket.emit("accelerate", {'accelerate':true});
@@ -87,6 +91,7 @@
                 }, false);
 
                 if (!turned) {
+                    wheel.show();
                     $("#turnLeft").click(function () {
                         socket.emit("click", {"click":"left"});
                     });
@@ -95,7 +100,7 @@
                     });
                 }
 
-                // $(".button").show();
+                $(".button").show();
                 $("#M").click(function () {
                     socket.emit("click", {"click":"mute"});
                 });
@@ -105,7 +110,7 @@
                 $("#restart").click(function () {
                     socket.emit("click", {"click":"restart"});
                     $("#gameover").hide();
-                    // controller.show();
+                    controller.show();
                 });
 
             });

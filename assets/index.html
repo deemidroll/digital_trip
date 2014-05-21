@@ -39,12 +39,12 @@
             <span class="block message">choose controls</span>
             <br>
             <span class="block">
-                <span class="choose_wasd button">WASD</span>
+                <span class="choose_wasd button">Keyboard</span>
                 <span class="choose_mobile button">Mobile</span>
                 <span class="choose_webcam button">Webcam</span>
             </span>
             <br>
-            <span>Press 'f' to fullscreen, 'm' to mute and 'space' to pause</span>
+            <span>Press 'f' to fullscreen, 'm' to mute and 'space' to play/pause</span>
             <span id="gameConnect" style="display:none">
                 Please open up this page with your phone and enter code <span style="font-weight:bold" id="socketId"></span>
             </span>
@@ -62,7 +62,7 @@
                 <hr>
                 <p>change controls</p>
                 <span class="block">
-                    <span class="change_wasd button">WASD</span>
+                    <span class="change_wasd button">Keyboard</span>
                     <span class="change_mobile button">Mobile</span>
                     <span class="change_webcam button">Webcam</span>
                 </span>
@@ -97,6 +97,7 @@
         <div class="cont cam">
             <div class="center"></div>
             <canvas id="compare" width="320" height="240" style="display:none; z-index: 1; position: absolute; left:0px; top:0px;"></canvas>
+            <canvas id="chreckwebgl" width="320" height="240" style="display:none; z-index: 1; position: absolute; left:0px; top:0px;"></canvas>
             <video id="vid" autoplay loop width="320" height="240" style="display:none; z-index: 1; position: absolute; left:0px; top:0px;"></video>
             <canvas id="debug" width="320" height="240" style="position: absolute; left:50%; bottom:50px; margin-left: -160px;"></canvas>
         </div>

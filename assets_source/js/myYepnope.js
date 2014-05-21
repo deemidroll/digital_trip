@@ -5,7 +5,7 @@
         // Browser has no idea what WebGL is
         isWebGLSupported = false;
         text = 'get a new browser <a href="http://get.webgl.org">http://get.webgl.org</a>';
-    } else if (!document.getElementById('compare').getContext("webgl")) {
+    } else if (!document.getElementById('chreckwebgl').getContext("webgl")) {
         isWebGLSupported = false;
         text = 'update your drivers or get a new browser <a href="http://get.webgl.org/troubleshooting">http://get.webgl.org/troubleshooting</a>';
     } else {

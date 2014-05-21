@@ -40,8 +40,11 @@ window.DT = (function (window, document, undefined) {
     DT.gameOverTime = 3000;
     DT.scale = 3;
     DT.angle = 0;
+    DT.cam = 0;
     DT.$document = $(document);
     DT.$window = $(window);
+    DT.$gameTimer = $('.gameTimer');
+    DT.$title = $('title');
 
 // ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗    ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
 // ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝    ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
@@ -55,24 +58,6 @@ window.DT = (function (window, document, undefined) {
             new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)')
         );
         return matches ? decodeURIComponent(matches[1]) : undefined;
-    };
-    DT.getDistance = function (x1, y1, z1, x2, y2, z2) {
-        return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
-    };
-    DT.genCoord = function (delta) {
-        var offset = delta || DT.game.param.spacing,
-        x = Math.random() * offset * 2 - offset,
-        absX = Math.abs(x);
-        if (absX <= offset && absX >= offset * 0.33 ) {
-            if (x > 0) {
-                return offset;
-            }
-            if (x < 0) {
-                return offset * -1;
-            }
-        } else {
-            return 0;
-        }
     };
     DT.genRandomFloorBetween = function (min, max) {
         var rand = min - 0.5 + Math.random()*(max-min+1);
@@ -140,6 +125,7 @@ window.DT = (function (window, document, undefined) {
         DT.animate.id = requestAnimFrame(DT.animate);
     });
     DT.$document.on('resetGame', function (e, data) {
+        DT.animate.timeElapsed = 0;
         DT.animate.id = requestAnimFrame(DT.animate);
     });
     DT.$document.on('pauseGame', function () {
@@ -168,60 +154,23 @@ window.DT = (function (window, document, undefined) {
 
     DT.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
     DT.camera.position.set(0, 0.5, 200);
-    // DT.camera.position.z = DT.camera.z = 15;
-    // DT.camera.lens = DT.camera.lenz = 35;
-
     // when resize
     new THREEx.WindowResize(DT.renderer, DT.camera);
 
     DT.scene = new THREE.Scene();
-    // DT.$document.on('update', function (e, data) {
-    //     DT.renderer.render(DT.scene, DT.camera);
-    // });
-
-    // DT.$document.on('changeSpeed', function (e, data) {
-    //     DT.camera.lensDistortion = data.changer;
-    // });
-    // // TODO: refactor
-    // DT.$document.on('update', function (e, data) {
-    //     var camOffset = 6, camDelta = 0.1,
-    //         lenOffset = 18, lenDelta = 0.3;
-    //     if (DT.camera.lensDistortion > 0) {
-    //         DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z - camOffset);
-    //         DT.camera.lens = Math.max(DT.camera.lens -= lenDelta, DT.camera.lenz - lenOffset);
-    //     } else if (DT.camera.lensDistortion < 0) {
-    //         DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z + camOffset);
-    //         DT.camera.lens = Math.min(DT.camera.lens += lenDelta, DT.camera.lenz + lenOffset);
-    //     } else {
-    //         var delta = DT.camera.lenz - DT.camera.lens;
-    //         if (delta < 0) {
-    //             DT.camera.position.z = Math.max(DT.camera.position.z -= camDelta, DT.camera.z);
-    //             DT.camera.lens = Math.max(DT.camera.lens -= lenDelta, DT.camera.lenz);
-    //         } else {
-    //             DT.camera.position.z = Math.min(DT.camera.position.z += camDelta, DT.camera.z);
-    //             DT.camera.lens = Math.min(DT.camera.lens += lenDelta, DT.camera.lenz);
-    //         }
-    //     }
-    //     DT.camera.setLens(DT.camera.lens);
-    // });
-
-
 
     // PATH
     var parent = new THREE.Object3D();
     DT.scene.add(parent);
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
+
     // var extrudePath = new THREE.Curves.GrannyKnot(); 
-    // var extrudePath = new THREE.Curves.HeartCurve();
     // var extrudePath = new THREE.Curves.KnotCurve();
     // var extrudePath = new THREE.Curves.TrefoilKnot();
     var extrudePath = new THREE.Curves.TorusKnot();
-    // var extrudePath = new THREE.Curves.CinquefoilKnot();three 
-    // var extrudePath = new THREE.Curves.DecoratedTorusKnot4a();
-    // var extrudePath = new THREE.Curves.DecoratedTorusKnot4b();
-    // var extrudePath = new THREE.Curves.DecoratedTorusKnot5a();
-    // var extrudePath = new THREE.Curves.DecoratedTorusKnot5c();
+    // var extrudePath = new THREE.Curves.CinquefoilKnot();
+
     var tube = new THREE.TubeGeometry(extrudePath, 100, 3, 8, true, true);
 
     DT.tube = tube;
@@ -235,7 +184,7 @@ window.DT = (function (window, document, undefined) {
                 new THREE.MeshBasicMaterial({
                     // color: 0x000000,
                     opacity: 0,
-                    // wireframe: true,  
+                    // wireframe: true,
                     transparent: true
             })]);
     parent.add(tubeMesh);
@@ -245,19 +194,20 @@ window.DT = (function (window, document, undefined) {
     var normal = new THREE.Vector3();
     var targetRotation = 0;
 
-    DT.cam = 0;
-
     DT.$document.on('updatePath', function (e, data) {
         if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
         if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
         var time = data.timeElapsed,
-            speedStart = DT.game.speed.speedStart,
-            acceleration = DT.game.speed.acceleration,
-            t,
-            pos;
+            dtime = data.delta,
+            speed0 = DT.game.speed.getSpeed0(),
+            acceleration = DT.game.speed.getAcceleration(),
+            path, dpath, t, pos;
         
-        DT.path = speedStart * time + acceleration * time * time / 2;
-        t = DT.path % 1;
+        dpath = speed0 * dtime;
+        DT.game.path += dpath;
+        path = DT.game.path;
+        
+        t = path % 1;
         pos = tube.path.getPointAt( t );
 
         pos.multiplyScalar(DT.scale);
@@ -271,22 +221,15 @@ window.DT = (function (window, document, undefined) {
         binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
         binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
 
-        var dir = tube.path.getTangentAt( t ),
+        var dir = tube.path.getTangentAt( DT.normalizeT(t + 0.01) ),
             offset = 0;
 
         normal.copy( binormal ).cross( dir );
 
         DT.splineCamera.position = pos;
 
-        // Camera Orientation 1 - default look at
-        // DT.splineCamera.lookAt( lookAt );
+        var lookAt = new THREE.Vector3().copy( pos ).add( dir );
 
-        // Using arclength for stablization in look ahead.
-        var lookAt = tube.path.getPointAt( ( t + 30 / tube.path.getLength() ) % 1 ).multiplyScalar(DT.scale);
-
-        // Camera Orientation 2 - up orientation via normal
-        // if (!lookAhead)
-        lookAt.copy( pos ).add( dir );
         // DT.angle += Math.PI / 1024;
         var vectorUP = normal.clone(),
             matrix = new THREE.Matrix4().makeRotationAxis( dir, DT.angle );
@@ -308,7 +251,6 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('keyup', function (e, data) {
         if (e.which == 67) DT.cam = DT.cam > 0 ? 0 : DT.cam + 1;
     });
-
 
     // LIGHTS
     DT.lights = {
@@ -339,9 +281,6 @@ window.DT = (function (window, document, undefined) {
         })
     );
 
-    // DT.backgroundMesh.material.depthTest = false;  
-    // DT.backgroundMesh.material.depthWrite = false;
-    // DT.backgroundMesh.visible = false;
     DT.backgroundMesh.position.set(far, 0, 0);
     DT.backgroundMesh.rotation.set(0, -pi_2, pi_2);
     DT.scene.add(DT.backgroundMesh);
@@ -543,54 +482,57 @@ window.DT = (function (window, document, undefined) {
             prevGlobalVolume: 1
         };
         this.speed = {
-            speedStart: 1/60,
+            speed0: 1/60,
             acceleration: 1/10000,
-            // value: 60,
-            // changer: 0,
-            // step: 0.1,
-            // increase: function () {
-            //     if (this.value <= 30) return this.value;
-            //     this.value -= (this.step / 60);
-            // },
-            // setChanger: function (changer) {
-            //     this.changer = changer;
-            // },
-            // getChanger: function() {
-            //     return this.changer;
-            // },
-            // getValue: function () {
-            //     return (this.value + this.changer) ;
-            // }
+            changer: 0,
+            setChanger: function (changer) {
+                this.changer = changer;
+            },
+            increaseSpeed: function (dtime) {
+                this.speed0 += this.acceleration * dtime;
+            },
+            getChanger: function() {
+                return this.changer;
+            },
+            getSpeed0: function () {
+                return this.speed0 + this.changer;
+            },
+            getAcceleration: function () {
+                return this.acceleration;
+            }
         };
         this.wasStarted = false;
         this.wasPaused = false;
         this.wasOver = false;
         this.wasMuted = false;
         this.timer = 0;
+        this.path = 0;
     };
     DT.Game.prototype.startGame = function() {
         this.wasStarted = true;
     };
 
-    DT.Game.prototype.updateTimer = function () {
-        this.timer += 1;
-        if (this.timer % 60 === 0) {
-            var sec, min;
-            sec = this.timer / 60;
+    DT.Game.prototype.updateTimer = function (dtime) {
+        var sec, min;
+        this.timer += dtime;
+        sec = Math.floor(this.timer);
+        if (sec > Math.floor(this.timer - dtime) ) {
             min = Math.floor(sec / 60);
             sec = sec % 60;
             sec = sec < 10 ? '0' + sec.toString() : sec;
-            $('.gameTimer').html(min + ':' + sec);
-            $('title').html(min + ':' + sec + ' in digital trip');
+            DT.$gameTimer.html(min + ':' + sec);
+            DT.$title.html(min + ':' + sec + ' in digital trip');
         }
     };
-    DT.Game.prototype.update = function() {
-        this.updateTimer();
-        // this.speed.increase();
+    DT.Game.prototype.update = function(data) {
+        this.updateTimer(data.delta);
+        this.speed.increaseSpeed(data.delta);
     };
     DT.Game.prototype.reset = function() {
         this.timer = 0;
-        // this.speed.value = 60;
+        this.path = 0;
+        this.speed.changer = 0;
+        this.speed.speed0 = 1/60;
         this.wasOver = false;
     };
     DT.Game.prototype.gameOver = function() {
@@ -610,19 +552,11 @@ window.DT = (function (window, document, undefined) {
         DT.game.startGame();
     });
     DT.$document.on('update', function (e, data) {
-        DT.game.update();
+        DT.game.update(data);
     });
-    // DT.$document.on('changeSpeed', function (e, data) {
-    //     console.log('hello', data.changer);
-    //     var steps = 10,
-    //         step = data.changer / steps;
-    //     var interval = setInterval(function () {
-    //         if (DT.game.speed.changer === data.changer) {
-    //             clearInterval(interval);
-    //         }
-    //         DT.game.speed.changer += step;
-    //     }, 100);
-    // });
+    DT.$document.on('changeSpeed', function (e, data) {
+        DT.game.speed.setChanger(data.changer);
+    });
     DT.$document.on('gameOver', function (e, data) {
         DT.game.gameOver();
     });
@@ -656,7 +590,6 @@ window.DT = (function (window, document, undefined) {
         this.funTimer = null;
 
         this.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
-        // this.sphere.position.set(0, -2.5, 0);
         this.sphere.position = this.position;
 
         this.light = new THREE.PointLight(0xff0000, 1.75, 15);
@@ -955,7 +888,6 @@ window.DT = (function (window, document, undefined) {
         DT.player.blink.doBlink(data.color, data.frames);
     });
     DT.$document.on('gameOver', function (e, data) {
-        // clearTimeout(DT.player.isFun);
         DT.player.stopFun();
     });
     DT.$document.on('resetGame', function (e, data) {
@@ -988,7 +920,7 @@ window.DT = (function (window, document, undefined) {
     };
     DT.GameObject.prototype.create = function () {
         // empty method
-        console.log('try to call empty method');
+        console.warn('try to call empty method');
         return this;
     };
     DT.GameObject.prototype.createAndAdd = function () {
@@ -1001,12 +933,12 @@ window.DT = (function (window, document, undefined) {
     };
     DT.GameObject.prototype.updateGeometry = function (options) {
         // empty method
-        console.log('try to call empty method');
+        console.warn('try to call empty method');
         return this;
     };
     DT.GameObject.prototype.updateMaterial = function (options) {
         // empty method
-        console.log('try to call empty method');
+        console.warn('try to call empty method');
         return this;
     };
     DT.GameObject.prototype.updateParam = function (param, options) {
@@ -1115,7 +1047,6 @@ window.DT = (function (window, document, undefined) {
     });
 
     DT.$document.on('showInvulner', function (e, data) {
-        console.log('showInvulner');
         if (data.invulner) {
             DT.shield.addToScene();
         } else {
@@ -1464,9 +1395,6 @@ window.DT = (function (window, document, undefined) {
         if (this.type === 2) {
             // this.updateParam('rotation', {z: 0.05});
         }
-        // if (this.animation) {
-        //     this.animation.update(options.delta);
-        // }
 
         var dist = this.tObject.position.distanceTo(options.sphere.position);
 
@@ -1854,7 +1782,7 @@ window.DT = (function (window, document, undefined) {
             freqDomain = [];
         var audio = new Audio();
         var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs=\'vorbis\'') !== '';
-        console.log('canPlayOgg', canPlayOgg);
+        console.info('canPlayOgg', canPlayOgg);
         try {
             window.AudioContext = window.AudioContext || window.webkitAudioContext;
             context = new AudioContext();
@@ -1919,18 +1847,16 @@ window.DT = (function (window, document, undefined) {
         var initSound = function(arrayBuffer, bufferIndex) {
             context.decodeAudioData(arrayBuffer, function(decodedArrayBuffer) {
                 buffers[bufferIndex] = decodedArrayBuffer;
-                console.log('ready sound ' + bufferIndex);
+                console.info('ready sound ' + bufferIndex);
                 counter += 1;
                 yepnope.showLoading(counter);
             }, function(e) {
-                console.log('Error decoding file', e);
+                console.warn('Error decoding file', e);
             });
         };
         // SOUNDS
-        var ext = 'ogg';
-        if (!canPlayOgg) {
-            ext = 'mp3';
-        }
+        var ext = canPlayOgg ? 'ogg' : 'mp3';
+
         for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
             DT.audio.sounds[prop] = DT.audio.webaudio.createSound().load(DT.audio.sounds[prop] + ext);
         }
@@ -1943,9 +1869,9 @@ window.DT = (function (window, document, undefined) {
             };
             xhr.send();
         };
-        loadSoundFile(DT.audio.music, 0);
-        loadSoundFile(DT.audio.music, 1);
-        loadSoundFile(DT.audio.music, 2);
+        for (var i = 0; i < 3; i++) {
+            loadSoundFile(DT.audio.music, i);
+        }
         var visualize = function(index) {
             freqDomain[index] = new Uint8Array(analysers[index].frequencyBinCount);
             analysers[index].getByteFrequencyData(freqDomain[index]);
@@ -1963,10 +1889,10 @@ window.DT = (function (window, document, undefined) {
         WebAudio.Sound.prototype.play = function(time){
             this.volume(DT.game.param.globalVolume);
             // handle parameter polymorphism
-            if( time ===  undefined )   time    = 0;
+            if( time === undefined ) time = 0;
             // if not yet playable, ignore
             // - usefull when the sound download isnt yet completed
-            if( this.isPlayable() === false )   return;
+            if( this.isPlayable() === false ) return;
             // clone the bufferSource
             var clonedNode  = this._chain.cloneBufferSource();
             // set the noteOn
@@ -2004,33 +1930,37 @@ window.DT = (function (window, document, undefined) {
 
     DT.initKeyboardControl = function () {
         DT.$document.keydown(function(event) {
-            var k = event.keyCode;
-            // arrows control
-            if (k === 38) {
-                // DT.player.changeDestPoint(new THREE.Vector3(0, 1, 0));
-            }
-            if (k === 40) {
-                // DT.player.changeDestPoint(new THREE.Vector3( 0, -1,0));
-            }
-            if (k === 37) {
-                DT.handlers.toTheLeft();
-            }
-            if (k === 39) {
-                DT.handlers.toTheRight();
-            }
-            // speedUp
-            if (k === 16) { //shift
-                DT.$document.trigger('stopFun', {});
-                DT.$document.trigger('changeSpeed', {changer: 36});
-            }
-            if (k === 17) {
-                DT.$document.trigger('makeFun', {});
+            var k = event.keyCode
+            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+                    // arrows control
+                if (k === 38) { // up arrow
+                    //
+                }
+                if (k === 40) { // down arrow
+                    // 
+                }
+                if (k === 37) { // left arrow
+                    DT.handlers.toTheLeft();
+                }
+                if (k === 39) { // right arrow
+                    DT.handlers.toTheRight();
+                }
+                // speedUp
+                if (k === 16) { //shift
+                    DT.$document.trigger('stopFun', {});
+                    DT.$document.trigger('changeSpeed', {changer: DT.game.speed.getSpeed0()});
+                }
+                if (k === 17) {
+                    DT.$document.trigger('makeFun', {});
+                }
             }
         });
         DT.$document.keyup(function(event) {
             var k = event.keyCode;
-            if (k === 16) { //shift
-                DT.$document.trigger('changeSpeed', {changer: 0});
+            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+                if (k === 16) { //shift
+                    DT.$document.trigger('changeSpeed', {changer: 0});
+                }
             }
         });
         DT.$document.keyup(DT.handlers.pauseOnSpace);
@@ -2068,14 +1998,13 @@ window.DT = (function (window, document, undefined) {
         socket.on('initialize', function(gameCode) {
             socket.gameCode = gameCode;
         });
-        // When the user inputs the code into the phone client,
-        //  we become 'connected'.  Start the game.
+        // When the user inputs the code into the phone client, we become 'connected'. Start the game.
         socket.on('connected', function(data) {
             $('#gameConnect').hide();
             $('#status').hide();
             DT.startAfterChooseControl();
         });
-            // When the phone is turned, turn the vehicle
+        // When the phone is turned, change destPoint
         socket.on('turn', function(turn) {
             if(turn < leftBreakThreshold) {
                 if(turn > leftTurnThreshold) {
@@ -2169,7 +2098,7 @@ window.DT = (function (window, document, undefined) {
         debugOverlay.style.opacity = '0.1';
         debugOverlay.style.zIndex = '0';
         
-                // Определяем сообщения, выдаваемые библиотекой
+        // Определяем сообщения, выдаваемые библиотекой
         
         var statusMessages = {
             'whitebalance' : 'Проверка камеры или баланса белого',
@@ -2245,7 +2174,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.$document.on('showFun', function (e, data) {
         if (data.isFun) {
-            DT.$document.trigger('changeSpeed', {changer: -18});
+            DT.$document.trigger('changeSpeed', {changer: -DT.game.speed.getSpeed0()/2});
             DT.stopSound(0);
             DT.playSound(1);
         } else {

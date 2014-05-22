@@ -195,3 +195,16 @@ a:hover {
 
 #qrcode canvas {
   border: 5px solid white; }
+
+.logo {
+  margin-top: 200px;
+  margin-bottom: 10px;
+  height: 130px;
+  overflow: hidden;
+  z-index: 2;
+  width: 100%; }
+
+.logo img {
+  margin-top: -17%; }
+
+

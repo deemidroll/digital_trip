@@ -150,6 +150,10 @@ window.DT = (function (window, document, undefined) {
     DT.renderer = new THREE.WebGLRenderer({antialiasing: true});
     DT.renderer.setSize(window.innerWidth, window.innerHeight);
     DT.renderer.physicallyBasedShading = true;
+    DT.renderer.domElement.style.position = 'absolute';
+    DT.renderer.domElement.style.left = 0;
+    DT.renderer.domElement.style.top = 0;
+    DT.renderer.domElement.style.zIndex = -1;
     document.body.appendChild(DT.renderer.domElement);
 
     DT.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
@@ -281,6 +285,10 @@ window.DT = (function (window, document, undefined) {
         })
     );
 
+
+    // DT.backgroundMesh.material.depthTest = false;  
+    // DT.backgroundMesh.material.depthWrite = false;
+    DT.backgroundMesh.visible = false;
     DT.backgroundMesh.position.set(far, 0, 0);
     DT.backgroundMesh.rotation.set(0, -pi_2, pi_2);
     DT.scene.add(DT.backgroundMesh);
@@ -291,9 +299,17 @@ window.DT = (function (window, document, undefined) {
             map: THREE.ImageUtils.loadTexture('img/bg1.jpg')
         })
     );
+    DT.backgroundMesh1.visible = false;
     DT.backgroundMesh1.position.set(-100, 0, 0);
     DT.backgroundMesh1.rotation.set(0, pi_2, pi_2);
     DT.scene.add(DT.backgroundMesh1);
+
+     DT.$document.on('update', function (e, data) {
+        if (!DT.backgroundMesh.visible) {
+            DT.backgroundMesh.visible = true;
+            DT.backgroundMesh1.visible = true;
+        }
+     });
 
     // EFFECT
     DT.effectComposer = new THREE.EffectComposer( DT.renderer );
@@ -1081,14 +1097,14 @@ window.DT = (function (window, document, undefined) {
         // for (var i = 0; i < N; i += 10) {
         //     this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
         // }
-        // this.material.visible = false;
+        this.material.visible = false;
         return this;
     };
 
     DT.Dust.prototype.updateMaterial = function (options) {
-        // if (!this.material.visible) {
-        //     this.material.visible = true;
-        // }
+        if (!this.material.visible) {
+            this.material.visible = true;
+        }
         this.material.color = options.isFun ? options.color : 
         new THREE.Color().setRGB(
             options.valueAudio/1/1 || 70/255,
@@ -2067,7 +2083,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.initPhoneControl = function() {
         var address = DT.server + '/m/#' + DT.initSocket.socket.gameCode
-        $('.message').html('Please open <span style=\'color: red\'>' + address +'</span> with your phone or use QR code below');
+        $('.message').html('Please open <span style=\'color: red\'>' + address +'</span> with your phone or use <span style=\'color: red\'>QR code</span> below');
         $('#qrcode').qrcode(address);
     };
 
@@ -2276,17 +2292,21 @@ window.DT = (function (window, document, undefined) {
         }
         DT.playSound(2);
         $(function() {
-            $('.loader').fadeOut(250);
+            $('.loader').hide();
             $('.choose_control').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+            $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.keyup(DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
                 DT.startAfterChooseControl();
+                $('.choose_wasd').unbind('click');
             });
             $('.choose_mobile').click(function() {
                 DT.initPhoneControl();
+                $('.choose_mobile').unbind('click');
             });
             $('.choose_webcam').click(function() {
                 DT.enableWebcam();
+                $('.choose_webcam').unbind('click');
             });
         });
     };
@@ -2325,7 +2345,8 @@ window.DT = (function (window, document, undefined) {
     });
 
     DT.$document.on('startGame', function (e, data) {
-        $('.choose_control').fadeOut(250);
+        $('.choose_control').fadeOut(500);
+        $('.logo').fadeOut(2000);
     });
     DT.$document.on('pauseGame', function () {
         $('.menu_page').css({'display': 'table'});
@@ -2406,6 +2427,13 @@ window.DT = (function (window, document, undefined) {
         DT.stats2.domElement.style.left = '80px';
         DT.stats2.domElement.style.zIndex = 100;
         body.appendChild( DT.stats2.domElement );
+
+        DT.rendererStats  = new THREEx.RendererStats();
+        DT.rendererStats.domElement.style.position = 'absolute';
+        DT.rendererStats.domElement.style.left = '0px';
+        DT.rendererStats.domElement.style.top = '50px';
+        DT.rendererStats.domElement.style.zIndex = 100;
+        body.appendChild(DT.rendererStats.domElement);
     };
     DT.$document.on('startGame', function (e, data) {
         DT.setStats();
@@ -2413,17 +2441,8 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('update', function (e, data) {
         DT.stats.update();
         DT.stats2.update();
-    });
-
-    var rendererStats  = new THREEx.RendererStats();
-    rendererStats.domElement.style.position = 'absolute';
-    rendererStats.domElement.style.left = '0px';
-    rendererStats.domElement.style.top = '50px';
-    document.body.appendChild(rendererStats.domElement);
-
-    DT.$document.on('update', function (e, data) {
-        rendererStats.update(DT.renderer);
-    });
+        DT.rendererStats.update(DT.renderer);
+    }); 
 
 // ████████╗██╗  ██╗███████╗    ███████╗███╗   ██╗██████╗ 
 // ╚══██╔══╝██║  ██║██╔════╝    ██╔════╝████╗  ██║██╔══██╗

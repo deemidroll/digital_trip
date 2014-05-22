@@ -1105,9 +1105,8 @@ window.DT = (function (window, document, undefined) {
         if (!this.material.visible) {
             this.material.visible = true;
         }
-        this.material.color = options.isFun ? options.color : 
-        new THREE.Color().setRGB(
-            options.valueAudio/255/1 || 70/255,
+        this.material.color = options.isFun ? options.color : new THREE.Color().setRGB(
+            options.valueAudio/1/1 || 70/255,
             options.valueAudio/255/1 || 68/255,
             options.valueAudio/255/1 || 81/255
         );
@@ -1747,7 +1746,7 @@ window.DT = (function (window, document, undefined) {
         if (DT.game.param.prevGlobalVolume !== DT.game.param.globalVolume) {
             DT.gainNodes.forEach(function(el) {
                 if (el) {
-                    el.gain.value = DT.game.param.globalVolume * 0.5;
+                    el.gain.value = DT.game.param.globalVolume;
                 }
             });
             DT.game.param.prevGlobalVolume = DT.game.param.globalVolume;
@@ -1826,7 +1825,7 @@ window.DT = (function (window, document, undefined) {
                 sources[index].buffer = buffers[index];
                 destination = context.destination;
                 gainNodes[index] = context.createGain();
-                gainNodes[index].gain.value = DT.game.param.globalVolume * 0.5;
+                gainNodes[index].gain.value = DT.game.param.globalVolume;
                 analysers[index] = context.createAnalyser();
                 analysers[index].fftSize = 2048;
                 analysers[index].minDecibels = -50;

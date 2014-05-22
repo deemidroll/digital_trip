@@ -55,6 +55,13 @@ $(function() {
 
                 // Hide game code input, and show the vehicle wheel UI
                 $("#socket").hide();
+                $("#preparetostart").show();
+                $("#start").click(function () {
+                    socket.emit('start', {});
+                    $(this).unbind('click');
+                    $("#preparetostart").hide();
+                    wheel.show();
+                });
                 // If user touches the screen, accelerate
                 document.addEventListener("touchstart", function (event) {
                     socket.emit("accelerate", {'accelerate':true});
@@ -91,7 +98,6 @@ $(function() {
                 }, false);
 
                 if (!turned) {
-                    wheel.show();
                     $("#turnLeft").click(function () {
                         socket.emit("click", {"click":"left"});
                     });
@@ -101,12 +107,6 @@ $(function() {
                 }
 
                 $(".button").show();
-                $("#M").click(function () {
-                    socket.emit("click", {"click":"mute"});
-                });
-                $("#P").click(function () {
-                    socket.emit("click", {"click":"pause"});
-                });
                 $("#restart").click(function () {
                     socket.emit("click", {"click":"restart"});
                     $("#gameover").hide();

@@ -80,3 +80,8 @@ a {
 
 .red {
   color: #CE5839; }
+
+#start {
+  width: 100px;
+  height: 50px;
+  background-color: red; }

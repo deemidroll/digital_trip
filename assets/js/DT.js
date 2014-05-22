@@ -5165,9 +5165,6 @@ window.DT = (function (window, document, undefined) {
         });
         // When the user inputs the code into the phone client, we become 'connected'. Start the game.
         socket.on('connected', function(data) {
-            $('#gameConnect').hide();
-            $('#status').hide();
-            DT.startAfterChooseControl();
         });
         // When the phone is turned, change destPoint
         socket.on('turn', function(turn) {
@@ -5193,6 +5190,9 @@ window.DT = (function (window, document, undefined) {
         socket.on('message', function(data) {
             if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
         });
+        socket.on('start', function(data) {
+            DT.$document.trigger('startFromMobile', data);
+        });
     };
     DT.sendSocketMessage = function (options) {
         var data = {
@@ -5207,6 +5207,11 @@ window.DT = (function (window, document, undefined) {
         }
     };
 
+    DT.$document.on('startFromMobile', function (e, data) {
+        $('#gameConnect').hide();
+        $('#status').hide();
+        DT.startAfterChooseControl();
+    });
     DT.$document.on('startGame', function (e, data) {
         DT.sendSocketMessage({type: 'gamestarted'});
     });

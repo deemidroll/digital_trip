@@ -300,6 +300,12 @@ io.sockets.on('connection', function(socket) {
             socketCodes[socket.gameCode].emit('click', data.click);
         }
     });
+    // send start command to game client
+    socket.on('start', function(data) {
+        if(socket.gameCode && socket.gameCode in socketCodes) {
+            socketCodes[socket.gameCode].emit('start', data);
+        }
+    });
 });
 // When a client disconnects...
 io.sockets.on('disconnect', function(socket) {

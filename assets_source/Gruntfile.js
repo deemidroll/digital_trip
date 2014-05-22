@@ -47,6 +47,8 @@ module.exports = function(grunt) {
                 files: {
                     // '../assets_source/js/DT.js'
                     '../assets/js/DT.js': [
+                        'js/vendor/jquery.qrcode.min.js',
+
                         'js/vendor/fireworks-bundle.js',
                         'js/vendor/Detector.js',
                         'js/vendor/threex.windowresize.js',

@@ -192,3 +192,6 @@ a:hover {
 
 #dogecoin {
   border: 2px solid black; }
+
+#qrcode canvas {
+  border: 5px solid white; }

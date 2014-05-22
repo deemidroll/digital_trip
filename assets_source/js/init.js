@@ -2066,8 +2066,9 @@ window.DT = (function (window, document, undefined) {
 // ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚═╝╚══════╝╚══════╝
 
     DT.initPhoneControl = function() {
-        $('.message').html('Please open <span style=\'color: red\'>' + DT.server +'/m</span> with your phone and enter code <span style=\'font-weight:bold; color: red\' id=\'socketId\'></span>');
-        $('#socketId').html(DT.initSocket.socket.gameCode);
+        var address = DT.server + '/m/#' + DT.initSocket.socket.gameCode
+        $('.message').html('Please open <span style=\'color: red\'>' + address +'</span> with your phone or use QR code below');
+        $('#qrcode').qrcode(address);
     };
 
 // ██╗    ██╗███████╗██████╗  ██████╗ █████╗ ███╗   ███╗

@@ -304,12 +304,12 @@ window.DT = (function (window, document, undefined) {
     DT.backgroundMesh1.rotation.set(0, pi_2, pi_2);
     DT.scene.add(DT.backgroundMesh1);
 
-     DT.$document.on('update', function (e, data) {
+    DT.$document.on('update', function (e, data) {
         if (!DT.backgroundMesh.visible) {
             DT.backgroundMesh.visible = true;
             DT.backgroundMesh1.visible = true;
         }
-     });
+    });
 
     // EFFECT
     DT.effectComposer = new THREE.EffectComposer( DT.renderer );
@@ -2074,19 +2074,6 @@ window.DT = (function (window, document, undefined) {
         DT.sendSocketMessage({type: 'resetGame'});
     });
 
-// ███╗   ███╗ ██████╗ ██████╗ ██╗██╗     ███████╗
-// ████╗ ████║██╔═══██╗██╔══██╗██║██║     ██╔════╝
-// ██╔████╔██║██║   ██║██████╔╝██║██║     █████╗  
-// ██║╚██╔╝██║██║   ██║██╔══██╗██║██║     ██╔══╝  
-// ██║ ╚═╝ ██║╚██████╔╝██████╔╝██║███████╗███████╗
-// ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚═╝╚══════╝╚══════╝
-
-    DT.initPhoneControl = function() {
-        var address = DT.server + '/m/#' + DT.initSocket.socket.gameCode
-        $('.message').html('Please open <span style=\'color: red\'>' + address +'</span> with your phone or use <span style=\'color: red\'>QR code</span> below');
-        $('#qrcode').qrcode(address);
-    };
-
 // ██╗    ██╗███████╗██████╗  ██████╗ █████╗ ███╗   ███╗
 // ██║    ██║██╔════╝██╔══██╗██╔════╝██╔══██╗████╗ ████║
 // ██║ █╗ ██║█████╗  ██████╔╝██║     ███████║██╔████╔██║
@@ -2322,6 +2309,12 @@ window.DT = (function (window, document, undefined) {
             $('.hit').css({'display': 'table'}).fadeOut(250);
         });
     };
+    DT.initPhoneControl = function() {
+        var address = DT.server + '/m/#' + DT.initSocket.socket.gameCode,
+            $qrcode = $('#qrcode');
+        $('.message').html('Please open <span class="red">' + address +'</span> with your phone or use <span class="red">QR code</span> below');
+        $qrcode.qrcode(address).css({height: 0}).animate({height: 256}, 250);
+    };
 
     $('.menu_button').click(function() {
         DT.$document.trigger('pauseGame', {});
@@ -2345,8 +2338,8 @@ window.DT = (function (window, document, undefined) {
     });
 
     DT.$document.on('startGame', function (e, data) {
-        $('.choose_control').fadeOut(500);
-        $('.logo').fadeOut(2000);
+        $('.choose_control').fadeOut(250);
+        $('.logo').fadeOut(1000);
     });
     DT.$document.on('pauseGame', function () {
         $('.menu_page').css({'display': 'table'});

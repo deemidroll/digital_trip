@@ -246,13 +246,17 @@ a:hover {
     overflow: hidden;
     z-index: 2;
     width: 100%;
-}
-.logo img {
-    margin-top: -17%;
+    > img {
+        margin-top: -17%;
+    }
 }
 .loader {
     // margin-top: 200px;
 }
 .choose_control {
     // margin-top: 50px;
+}
+.red {
+    // color: #CE5839;
+    color: red;
 }

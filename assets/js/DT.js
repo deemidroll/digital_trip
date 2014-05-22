@@ -4257,7 +4257,7 @@ window.DT = (function (window, document, undefined) {
         }
         this.material.color = options.isFun ? options.color : 
         new THREE.Color().setRGB(
-            options.valueAudio/1/1 || 70/255,
+            options.valueAudio/255/1 || 70/255,
             options.valueAudio/255/1 || 68/255,
             options.valueAudio/255/1 || 81/255
         );

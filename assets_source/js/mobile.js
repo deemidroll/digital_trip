@@ -1,17 +1,18 @@
-(function() {
+$(function() {
     // Game config
     var server = window.location.origin,
+        hash = window.location.hash,
         leftBreakThreshold = -3,
         leftTurnThreshold = -20,
         rightBreakThreshold = 3,
         rightTurnThreshold = 20,
         controller = $("#controller"),
-        gameConnect = $("#gameConnect"),
+        $gameCodeInput = $("#gameCodeInput"),
         wheel = $("#wheel"),
         status = $("#status"),
         turned = false;
 
-    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
+    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
         // Show the controller ui with gamecode input
         controller.show();
         // window.addEventListener('orientationchange', function(event) {
@@ -24,8 +25,7 @@
         //     });
         // }, false );
         // When connect is pushed, establish socket connection
-        var connect = function() {
-            var gameCode = $("#socket input").val(),
+        var connect = function(gameCode) {
             socket = io.connect(server);
             // When server replies with initial welcome...
             socket.on('welcome', function(data) {
@@ -119,13 +119,18 @@
             });
             $(document).unbind("keyup", connnectOnEnter);
         };
+        if (hash) {
+            connect(hash.slice(1));
+        }
         var connnectOnEnter = function (event) {
             var k = event.keyCode;
             if (k === 13) {
-                connect();
+                connect($gameCodeInput.val());
             }
         };
-        $("#connect").click(connect);
+        $("#connect").click(function () {
+            connect($gameCodeInput.val());
+        });
         $(document).bind("keyup", connnectOnEnter);
     }
     // Helper function to update controller UI
@@ -152,4 +157,4 @@
             $('#stopLeft, #turnLeft, #stopRight, #turnRight').removeClass('active');
         }
     }
-})();
+});

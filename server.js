@@ -171,6 +171,7 @@ app.configure(function() {
 
     app.use('/', express.static('assets/'));
     app.use('/webhook', hookshot('refs/heads/master', 'git pull'));
+    app.use(/\/m\/#\d{6}/, express.static('assets/'));
 });
 
 

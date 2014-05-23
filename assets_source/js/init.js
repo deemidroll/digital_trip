@@ -2130,7 +2130,7 @@ window.DT = (function (window, document, undefined) {
                 console.log(statusMessages[event.status]);
                 $('.message').html(statusMessages[event.status])
             }
-            if (event.status === 'found' && !DT.game.wasStarted) {
+            if (event.status === 'found') {
                 DT.startAfterChooseControl();
             }
         }, true);

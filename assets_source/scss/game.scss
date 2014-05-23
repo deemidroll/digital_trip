@@ -240,6 +240,7 @@ a:hover {
     border: 5px solid white;
 }
 .logo {
+    // position: absolute;
     margin-top: 200px;
     margin-bottom: 10px;
     height: 130px;
@@ -251,12 +252,18 @@ a:hover {
     }
 }
 .loader {
-    // margin-top: 200px;
+    // margin-top: 350px;
 }
 .choose_control {
-    // margin-top: 50px;
+    // margin-top: 170px;
 }
 .red {
     // color: #CE5839;
     color: red;
+}
+.logoLoadControlContainer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
 }

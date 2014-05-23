@@ -5193,6 +5193,9 @@ window.DT = (function (window, document, undefined) {
         socket.on('start', function(data) {
             DT.$document.trigger('startFromMobile', data);
         });
+        socket.on('disconnectController', function(data) {
+            DT.$document.trigger('pauseGame', {});
+        });
     };
     DT.sendSocketMessage = function (options) {
         var data = {

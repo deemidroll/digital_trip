@@ -306,6 +306,12 @@ io.sockets.on('connection', function(socket) {
             socketCodes[socket.gameCode].emit('start', data);
         }
     });
+    // send disconnect command to game client
+    socket.on('disconnect', function(data) {
+        if(socket.gameCode && socket.gameCode in socketCodes) {
+            socketCodes[socket.gameCode].emit('disconnectController', data);
+        }
+    });
 });
 // When a client disconnects...
 io.sockets.on('disconnect', function(socket) {

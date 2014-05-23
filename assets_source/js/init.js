@@ -2287,6 +2287,7 @@ window.DT = (function (window, document, undefined) {
         $(function() {
             $('.loader').hide();
             $('.choose_control').css({'display': 'table', 'opacity': '1'});
+            $('.buttons').show();
             $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.keyup(DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {

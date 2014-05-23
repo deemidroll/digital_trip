@@ -39,7 +39,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.gameOverTime = 3000;
     DT.scale = 3;
-    DT.angle = 0;
+    DT.camAngle = 0;
     DT.cam = 0;
     DT.$document = $(document);
     DT.$window = $(window);
@@ -112,20 +112,20 @@ window.DT = (function (window, document, undefined) {
         DT.animate.id = requestAnimFrame(DT.animate);
         // change last time
         DT.animate.lastTimeMsec = nowMsec;
-        DT.animate.timeElapsed = DT.animate.timeElapsed || 0;
-        DT.animate.timeElapsed += deltaMsec;
+        // DT.animate.timeElapsed = DT.animate.timeElapsed || 0;
+        // DT.animate.timeElapsed += deltaMsec;
         // call each update function
         DT.$document.trigger('updatePath', {
             delta: deltaMsec / 1000,
             now: nowMsec / 1000,
-            timeElapsed: DT.animate.timeElapsed / 1000
+            // timeElapsed: DT.animate.timeElapsed / 1000
         });
     };
     DT.$document.on('startGame', function (e, data) {
         DT.animate.id = requestAnimFrame(DT.animate);
     });
     DT.$document.on('resetGame', function (e, data) {
-        DT.animate.timeElapsed = 0;
+        // DT.animate.timeElapsed = 0;
         DT.animate.id = requestAnimFrame(DT.animate);
     });
     DT.$document.on('pauseGame', function () {
@@ -201,8 +201,7 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('updatePath', function (e, data) {
         if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
         if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
-        var time = data.timeElapsed,
-            dtime = data.delta,
+        var dtime = data.delta,
             speed0 = DT.game.speed.getSpeed0(),
             acceleration = DT.game.speed.getAcceleration(),
             path, dpath, t, pos;
@@ -234,9 +233,9 @@ window.DT = (function (window, document, undefined) {
 
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
 
-        // DT.angle += Math.PI / 1024;
+        // DT.camAngle += Math.PI / 1024;
         var vectorUP = normal.clone(),
-            matrix = new THREE.Matrix4().makeRotationAxis( dir, DT.angle );
+            matrix = new THREE.Matrix4().makeRotationAxis( dir, DT.camAngle );
         vectorUP.applyMatrix4( matrix );
 
         DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, vectorUP);
@@ -1564,7 +1563,7 @@ window.DT = (function (window, document, undefined) {
 
         new DT.StaticStonesCollection().update({});
 
-        if (data.timeElapsed < 30) {
+        if (DT.game.timer < 30) {
             new DT.StaticStonesCollection()
                 .createObjects({
                     position: data.tube.vertices[DT.genRandomFloorBetween(0, data.tube.vertices.length-1)].clone().multiplyScalar(DT.scale),
@@ -2287,7 +2286,7 @@ window.DT = (function (window, document, undefined) {
         DT.playSound(2);
         $(function() {
             $('.loader').hide();
-            $('.choose_control').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+            $('.choose_control').css({'display': 'table', 'opacity': '1'});
             $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.keyup(DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {

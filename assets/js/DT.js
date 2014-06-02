@@ -3879,7 +3879,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.listOfModels = [{
             name: 'bonusH',
-            scale: 0.02,
+            scale: 1,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0xff0000,
         }, {
@@ -3905,12 +3905,12 @@ window.DT = (function (window, document, undefined) {
         console.log(item, loaded, total);
     };
     
-    var loader = new THREE.OBJLoader(manager),
+    var loaderObj = new THREE.OBJLoader(manager),
+        loaderJSON = new THREE.JSONLoader(true),
         loadModel;
 
     DT.listOfModels.forEach(function (el, i, a) {
-        loader.load('objects/' + el.name + '.obj', function ( object ) {
-            if (i === 1) console.log(object);
+        if (i !== 0) loaderObj.load('objects/' + el.name + '.obj', function ( object ) {
             object.traverse( function ( child ) {
                 var color = el[child.name] || el.color;
 
@@ -3926,6 +3926,14 @@ window.DT = (function (window, document, undefined) {
             } else {
                 a[i].object = object.children[0];
             }
+        });
+        if (i === 0) loaderJSON.load('objects/' + el.name + '.js', function (geometry, materials) {
+            // create a new material
+            el.material = new THREE.MeshLambertMaterial({ color: 0x606060, morphTargets: true });
+            el.material.emissive.copy(el.material.color);
+            el.material.emissive.multiplyScalar(0.5);
+            
+            a[i].object = new THREE.Mesh(el.geometry, el.material);
         });
     });
 
@@ -4845,7 +4853,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-        // this.type = 1;
+        this.type = 0;
         DT.GameCollectionObject.apply(this, [{
             geometry: DT.listOfModels[this.type].object.geometry,
             material: DT.listOfModels[this.type].object.material,

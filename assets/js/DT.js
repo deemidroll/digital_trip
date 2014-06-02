@@ -3902,7 +3902,7 @@ window.DT = (function (window, document, undefined) {
     var manager = new THREE.LoadingManager();
 
     manager.onProgress = function (item, loaded, total) {
-        console.log(item, loaded, total);
+        console.info('loaded item', loaded, 'of', total, '('+item+')');
     };
     
     var loader = new THREE.OBJLoader(manager),
@@ -3910,10 +3910,8 @@ window.DT = (function (window, document, undefined) {
 
     DT.listOfModels.forEach(function (el, i, a) {
         loader.load('objects/' + el.name + '.obj', function ( object ) {
-            if (i === 1) console.log(object);
             object.traverse( function ( child ) {
-                var color = el[child.name] || el.color;
-
+                var color = el[child.name] || el.color; 
                 child.material = new THREE.MeshPhongMaterial({
                     color: color,
                     shading: THREE.SmoothShading,
@@ -4878,10 +4876,10 @@ window.DT = (function (window, document, undefined) {
         this.tObject.scale.multiplyScalar(DT.listOfModels[this.type].scale);
         this.createAndAdd();
         // TODO: сделать расширяемой возможность анимации
-        if (this.type === 0) {
-            this.animation = new THREE.MorphAnimation(this.tObject);
-            this.animation.play();
-        }
+        // if (this.type === 0) {
+        //     this.animation = new THREE.MorphAnimation(this.tObject);
+        //     this.animation.play();
+        // }
         this.blink = {
             defColor: new THREE.Color('red'),
             color: new THREE.Color('white'),

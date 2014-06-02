@@ -8,19 +8,22 @@
     <link rel="icon" type="image/png" href="img/fav.png">
 </head>
 <body>
-    <!-- prevent screen sleep hack -->
-    <audio id="audioloop" src="../sounds/loop.mp3" onended="this.play();" autobuffer autoplay="autoplay"></audio>
+    <!-- game inrterface -->
     <div class="helthbar">
         <div class="helth"></div>
     </div>
-    <div class="gameTimer" style="display: none;">0:00</div>
+    <div class="score"><span class="current_coins">0</span> D</div>
+    <div class="bonus"></div>
     <div class="buttons">
         <div class="fs_button">F</div>
         <div class="music_button">M</div>
         <div class="menu_button">P</div>
     </div>
-    <div class="score"><span class="current_coins">0</span> D</div>
-    <div class="bonus"></div>
+
+    <!-- additional info -->
+    <div class="gameTimer" style="display: none;">0:00</div>
+
+    <!-- loading -->
     <div class="logoLoadControlContainer">
         <div class="logo" id="logo1">
             <img src="img/logo.svg" alt="">
@@ -51,24 +54,15 @@
             <span>Press <span class="red">F</span> to fullscreen, <span class="red">M</span> to mute and <span class="red">Space</span> to play/pause
             </span>
             <div id="status"></div>
-            <!-- divs for tests -->
-<!--             <div id="qunit"></div>
-            <div id="qunit-fixture"></div> -->
-            <!-- end divs for tests -->
         </div>
     </div>
+
+    <!-- pause menu -->
     <div class="menu_page">
         <div class="cont">
             <div class="menu">
                 <span class="block resume button">resume</span>
                 <hr>
-<!--                 <p>change controls</p>
-                <span class="block">
-                    <span class="change_wasd button">Keyboard</span>
-                    <span class="change_mobile button">Mobile</span>
-                    <span class="change_webcam button">Webcam</span>
-                </span>
-                <hr> -->
                 <span class="block">source on <a href="http://github.com/deemidroll/digital_trip">github</a></span>
                 <hr>
                 <span class="block"><a href="">web technologies used here</a></span>
@@ -79,11 +73,15 @@
             </div>
         </div>
     </div>
+
+    <!-- hit action -->
     <div class="hit">
         <div class="cont">
             <span class="error"></span>
         </div>
     </div>
+
+    <!-- game over -->
     <div class="game_over">
         <div class="cont">
             <div class="coins">
@@ -95,25 +93,23 @@
             <div id="one_more_time">one more time</div>
         </div>
     </div>
+
+    <!-- webcam control -->
     <div class="webcamcontrol">
         <div class="cont cam">
             <div class="center"></div>
             <canvas id="compare" width="320" height="240" style="display:none; z-index: 1; position: absolute; left:0px; top:0px;"></canvas>
-            <canvas id="chreckwebgl" width="320" height="240" style="display:none; z-index: 1; position: absolute; left:0px; top:0px;"></canvas>
             <video id="vid" autoplay loop width="320" height="240" style="display:none; z-index: 1; position: absolute; left:0px; top:0px;"></video>
             <canvas id="debug" width="320" height="240" style="position: absolute; left:50%; bottom:50px; margin-left: -160px;"></canvas>
         </div>
     </div>
 
+    <!-- webgl check -->
+    <canvas id="chreckwebgl" style="display:none;"></canvas>
+
     <!-- download manager -->
     <script src="js/vendor/yepnope.1.5.4-min.js"></script>
     <script src="js/myYepnope.min.js"></script>
-    <!-- end of download manager -->
-
-    <!-- scripts for tests -->
-    <!-- // <script src="js/tests/qunit-1.14.0.js"></script> -->
-    <!-- // <script src="js/tests/tests.js"></script> -->
-    <!-- end of scripts for tests -->
 
 </body>
 </html>

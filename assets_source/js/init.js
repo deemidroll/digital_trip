@@ -39,8 +39,8 @@ window.DT = (function (window, document, undefined) {
 
     DT.gameOverTime = 3000;
     DT.scale = 3;
-    DT.camAngle = 0;
-    DT.cam = 0;
+    // DT.camAngle = 0;
+    // DT.cam = 0;
     DT.$document = $(document);
     DT.$window = $(window);
     DT.$gameTimer = $('.gameTimer');
@@ -112,20 +112,16 @@ window.DT = (function (window, document, undefined) {
         DT.animate.id = requestAnimFrame(DT.animate);
         // change last time
         DT.animate.lastTimeMsec = nowMsec;
-        // DT.animate.timeElapsed = DT.animate.timeElapsed || 0;
-        // DT.animate.timeElapsed += deltaMsec;
         // call each update function
         DT.$document.trigger('updatePath', {
             delta: deltaMsec / 1000,
             now: nowMsec / 1000,
-            // timeElapsed: DT.animate.timeElapsed / 1000
         });
     };
     DT.$document.on('startGame', function (e, data) {
         DT.animate.id = requestAnimFrame(DT.animate);
     });
     DT.$document.on('resetGame', function (e, data) {
-        // DT.animate.timeElapsed = 0;
         DT.animate.id = requestAnimFrame(DT.animate);
     });
     DT.$document.on('pauseGame', function () {
@@ -199,8 +195,10 @@ window.DT = (function (window, document, undefined) {
     var targetRotation = 0;
 
     DT.$document.on('updatePath', function (e, data) {
-        if (DT.cam === 0) DT.renderer.render(DT.scene, DT.splineCamera);
-        if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
+        // console.time("Execution time took");
+        // if (DT.cam === 0) 
+        DT.renderer.render(DT.scene, DT.splineCamera);
+        // if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
         var dtime = data.delta,
             speed0 = DT.game.speed.getSpeed0(),
             acceleration = DT.game.speed.getAcceleration(),
@@ -234,11 +232,11 @@ window.DT = (function (window, document, undefined) {
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
 
         // DT.camAngle += Math.PI / 1024;
-        var vectorUP = normal.clone(),
-            matrix = new THREE.Matrix4().makeRotationAxis( dir, DT.camAngle );
-        vectorUP.applyMatrix4( matrix );
+        // var vectorUP = normal.clone();
+        //     matrix = new THREE.Matrix4().makeRotationAxis( dir, DT.camAngle );
+        // vectorUP.applyMatrix4( matrix );
 
-        DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, vectorUP);
+        DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, normal);
         DT.splineCamera.rotation.setFromRotationMatrix( DT.splineCamera.matrix, DT.splineCamera.rotation.order );
 
         parent.rotation.y += ( targetRotation - parent.rotation.y ) * 0.05;
@@ -247,13 +245,13 @@ window.DT = (function (window, document, undefined) {
         data.t = t;
         data.normal = normal;
         data.binormal = binormal;
-        
+        // console.timeEnd("Execution time took");
         DT.$document.trigger('update', data);
     });
 
-    DT.$document.on('keyup', function (e, data) {
-        if (e.which == 67) DT.cam = DT.cam > 0 ? 0 : DT.cam + 1;
-    });
+    // DT.$document.on('keyup', function (e, data) {
+    //     if (e.which == 67) DT.cam = DT.cam > 0 ? 0 : DT.cam + 1;
+    // });
 
     // LIGHTS
     DT.lights = {
@@ -399,43 +397,44 @@ window.DT = (function (window, document, undefined) {
 
     DT.listOfModels = [{
             name: 'bonusH',
-            scale: {x: 0.02, y: 0.02, z: 0.02},
-            rotation: {x: Math.PI / 1.3, y: -Math.PI / 1.3, z: -Math.PI / 1.3}
+            scale: 0.02,
+            rotaion: new THREE.Vector3(0, 0, 0),
+            color: 0xff0000,
         }, {
             name: 'bonusI',
-            scale: {x: 0.5, y: 0.5, z: 0.5},
-            rotation: {x: Math.PI / 1.3, y: -Math.PI / 1.3, z: -Math.PI / 1.3}
+            scale: 0.02,
+            rotaion: new THREE.Vector3(0, 0, 0),
+            color: 0x606060,
         }, {
             name: 'bonusE',
-            scale: {x: 0.025, y: 0.025, z: 0.025},
-            rotation: {x: 0, y: 0, z: 0}
-            // rotation: {x: Math.PI/2, y: -Math.PI/8, z: Math.PI/2}
+            scale: 0.02,
+            rotaion: new THREE.Vector3(0, 0, 0),
+            color: 0x606060,
         }
     ];
     // LOADER
-    var loader = new THREE.JSONLoader(true), // init the loader util
-        loadModel;
-    
-        // init loading
-    loadModel = function(modelObj) {
-        loader.load('js/models/' + modelObj.name + '.js', function (geometry, materials) {
-            // create a new material
-            if (modelObj.name === 'bonusE') {
-                modelObj.material = new THREE.MeshLambertMaterial({ color: 0x606060, morphTargets: true });
-                modelObj.material.emissive.copy(modelObj.material.color);
-                modelObj.material.emissive.multiplyScalar(0.5);
-            } else {
-                modelObj.material = new THREE.MeshFaceMaterial(materials);
-                modelObj.material.materials.forEach(function (el) {
-                    el.emissive.copy(el.color);
-                    el.emissive.multiplyScalar(0.5);
-                });
-            }
-            modelObj.geometry = geometry;
-        });
-        return modelObj;
+    var manager = new THREE.LoadingManager();
+
+    manager.onProgress = function (item, loaded, total) {
+        console.log(item, loaded, total);
     };
-    DT.listOfModels.map(loadModel);
+    
+    var loader = new THREE.OBJLoader(manager),
+        loadModel;
+
+    DT.listOfModels.forEach(function (el, i, a) {
+        loader.load('objects/' + el.name + '.obj', function ( object ) {
+            object.traverse( function ( child ) {
+                child.material = new THREE.MeshPhongMaterial({
+                    color: el.color,
+                    shading: THREE.SmoothShading,
+                    emissive: new THREE.Color(0x606060).multiplyScalar(0.5),
+                    shininess: 100,
+                });
+            });
+            a[i].object = object.children[0];
+        });
+    });
 
 // ███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗
 // ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
@@ -1354,13 +1353,13 @@ window.DT = (function (window, document, undefined) {
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
         DT.GameCollectionObject.apply(this, [{
-            geometry: DT.listOfModels[this.type].geometry,
-            material: DT.listOfModels[this.type].material,
+            geometry: DT.listOfModels[this.type].object.geometry,
+            material: DT.listOfModels[this.type].object.material,
             THREEConstructor: THREE.Mesh,
             collection: options.collection
         }]);
-
-        var t = DT.normalizeT(options.t + 0.25),
+        // вернуть 0,25
+        var t = DT.normalizeT(options.t + 0.05),
             binormal = DT.getBinormalAt(t),
             pos = options.tube.path.getPointAt(t)
                 .multiplyScalar(DT.scale)
@@ -1371,24 +1370,20 @@ window.DT = (function (window, document, undefined) {
         var tLook = DT.normalizeT(t - 0.002),
             normalLook = DT.getNormalAt(tLook),
             binormalLook = DT.getBinormalAt(tLook),
-            vectorLook = options.tube.path.getTangentAt(tLook).negate()
+            vectorLook = options.tube.path.getTangentAt(tLook)
                 .multiplyScalar(DT.scale)
                 .add(this.tObject.position);
 
         var m1 = new THREE.Matrix4().copy( this.tObject.matrix );
-        m1.lookAt( vectorLook, this.tObject.position, normalLook );  
+        m1.lookAt( vectorLook, this.tObject.position, normalLook );
         this.tObject.rotation.setFromRotationMatrix( m1 );
 
         this.dontMakeTransparent = true;
 
-        this.setParam('scale', {
-                x: DT.listOfModels[this.type].scale.x || 1,
-                y: DT.listOfModels[this.type].scale.y || 1,
-                z: DT.listOfModels[this.type].scale.z || 1
-            })
-            .createAndAdd();
+        this.tObject.scale.multiplyScalar(DT.listOfModels[this.type].scale);
+        this.createAndAdd();
         // TODO: сделать расширяемой возможность анимации
-        if (this.type === 2) {
+        if (this.type === 0) {
             this.animation = new THREE.MorphAnimation(this.tObject);
             this.animation.play();
         }
@@ -1401,10 +1396,16 @@ window.DT = (function (window, document, undefined) {
         var self = this;
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
         if (this.type === 0) {
-            this.updateParam('rotation', {z: 0.05});
+            // this.updateParam('rotation', {z: 0.05});
         }
         if (this.type === 1) {
-            this.updateParam('rotation', {z: 0.05});
+            // this.updateParam('rotation', {z: 0.05});
+        //     var color = new THREE.Color().setRGB(
+        //             DT.genRandomFloorBetween(0, 3),
+        //             DT.genRandomFloorBetween(0, 3),
+        //             DT.genRandomFloorBetween(0, 3)
+        //         );
+        //     DT.Player.prototype.blink.doBlink.call(thiscolor, 10);
         }
         if (this.type === 2) {
             // this.updateParam('rotation', {z: 0.05});

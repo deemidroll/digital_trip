@@ -57,6 +57,8 @@ module.exports = function(grunt) {
                         'js/vendor/webaudio.js',
 
                         'js/vendor/headtrackr.min.js',
+                        
+                        'js/vendor/OBJLoader.js',
 
                         'js/vendor/THREEx.FullScreen.js',
                         'js/vendor/CopyShader.js',

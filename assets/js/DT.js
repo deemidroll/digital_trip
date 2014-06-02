@@ -4407,7 +4407,7 @@ window.DT = (function (window, document, undefined) {
  // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝ ╚═════╝  ╚════╝ ╚══════╝ ╚═════╝   ╚═╝   
                                                                                           
     DT.GameObject = function (options) {
-        this.tObject = new options.THREEConstructor(
+        this.tObject = options.tObject || new options.THREEConstructor(
             options.geometry,
             options.material
         );
@@ -4845,12 +4845,9 @@ window.DT = (function (window, document, undefined) {
         this.type = DT.genRandomFloorBetween(0, 2);
 
         DT.GameCollectionObject.apply(this, [{
-            geometry: DT.listOfModels[this.type].object.geometry,
-            material: DT.listOfModels[this.type].object.material,
-            THREEConstructor: THREE.Mesh,
+            tObject: DT.listOfModels[this.type].object.clone(),
             collection: options.collection
         }]);
-        this.tObject = DT.listOfModels[this.type].object.clone();
 
         var t = DT.normalizeT(options.t + 0.25),
             binormal = DT.getBinormalAt(t),

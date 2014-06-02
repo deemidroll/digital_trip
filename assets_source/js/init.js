@@ -402,7 +402,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.listOfModels = [{
             name: 'bonusH',
-            scale: 1,
+            scale: 0.02,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0xff0000,
         }, {
@@ -428,12 +428,12 @@ window.DT = (function (window, document, undefined) {
         console.log(item, loaded, total);
     };
     
-    var loaderObj = new THREE.OBJLoader(manager),
-        loaderJSON = new THREE.JSONLoader(true),
+    var loader = new THREE.OBJLoader(manager),
         loadModel;
 
     DT.listOfModels.forEach(function (el, i, a) {
-        if (i !== 0) loaderObj.load('objects/' + el.name + '.obj', function ( object ) {
+        loader.load('objects/' + el.name + '.obj', function ( object ) {
+            if (i === 1) console.log(object);
             object.traverse( function ( child ) {
                 var color = el[child.name] || el.color;
 
@@ -449,14 +449,6 @@ window.DT = (function (window, document, undefined) {
             } else {
                 a[i].object = object.children[0];
             }
-        });
-        if (i === 0) loaderJSON.load('objects/' + el.name + '.js', function (geometry, materials) {
-            // create a new material
-            el.material = new THREE.MeshLambertMaterial({ color: 0x606060, morphTargets: true });
-            el.material.emissive.copy(el.material.color);
-            el.material.emissive.multiplyScalar(0.5);
-            
-            a[i].object = new THREE.Mesh(el.geometry, el.material);
         });
     });
 
@@ -1376,7 +1368,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-        this.type = 0;
+
         DT.GameCollectionObject.apply(this, [{
             geometry: DT.listOfModels[this.type].object.geometry,
             material: DT.listOfModels[this.type].object.material,
@@ -1384,8 +1376,8 @@ window.DT = (function (window, document, undefined) {
             collection: options.collection
         }]);
         this.tObject = DT.listOfModels[this.type].object.clone();
-        // вернуть 0,25
-        var t = DT.normalizeT(options.t + 0.05),
+
+        var t = DT.normalizeT(options.t + 0.25),
             binormal = DT.getBinormalAt(t),
             pos = options.tube.path.getPointAt(t)
                 .multiplyScalar(DT.scale)

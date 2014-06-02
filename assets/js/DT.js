@@ -5244,7 +5244,7 @@ window.DT = (function (window, document, undefined) {
             shield: 'sounds/shield.',
         },
         music: {
-            0: 'sounds/theField_overTheIce.',
+            0: 'sounds/$O$.',
             1: 'sounds/heart.',
             2: 'sounds/space_ambient2.',
             started: [],

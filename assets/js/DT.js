@@ -3523,6 +3523,11 @@ window.DT = (function (window, document, undefined) {
     DT.$gameTimer = $('.gameTimer');
     DT.$title = $('title');
 
+    DT.frameCounter = 0;
+    DT.$document.on('update', function (e, data) {
+        DT.frameCounter++;
+    });
+
 // ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗    ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
 // ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝    ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
 // ███████╗█████╗  ██████╔╝██║   ██║██║██║     █████╗      █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║
@@ -3882,6 +3887,10 @@ window.DT = (function (window, document, undefined) {
             scale: 0.02,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0x606060,
+            '5': 0xffffff,
+            'html': 0xffffff,
+            'orange': 0xD0671F,
+            'shield': 0xC35020,
         }, {
             name: 'bonusE',
             scale: 0.02,
@@ -3901,15 +3910,22 @@ window.DT = (function (window, document, undefined) {
 
     DT.listOfModels.forEach(function (el, i, a) {
         loader.load('objects/' + el.name + '.obj', function ( object ) {
+            if (i === 1) console.log(object);
             object.traverse( function ( child ) {
+                var color = el[child.name] || el.color;
+
                 child.material = new THREE.MeshPhongMaterial({
-                    color: el.color,
+                    color: color,
                     shading: THREE.SmoothShading,
-                    emissive: new THREE.Color(0x606060).multiplyScalar(0.5),
+                    emissive: new THREE.Color(color).multiplyScalar(0.5),
                     shininess: 100,
                 });
             });
-            a[i].object = object.children[0];
+            if (i === 1) {
+                a[i].object = object
+            } else {
+                a[i].object = object.children[0];
+            }
         });
     });
 
@@ -4829,12 +4845,14 @@ window.DT = (function (window, document, undefined) {
 
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
+        // this.type = 1;
         DT.GameCollectionObject.apply(this, [{
             geometry: DT.listOfModels[this.type].object.geometry,
             material: DT.listOfModels[this.type].object.material,
             THREEConstructor: THREE.Mesh,
             collection: options.collection
         }]);
+        this.tObject = DT.listOfModels[this.type].object.clone();
         // вернуть 0,25
         var t = DT.normalizeT(options.t + 0.05),
             binormal = DT.getBinormalAt(t),
@@ -4864,37 +4882,65 @@ window.DT = (function (window, document, undefined) {
             this.animation = new THREE.MorphAnimation(this.tObject);
             this.animation.play();
         }
+        this.blink = {
+            defColor: new THREE.Color('red'),
+            color: new THREE.Color('white'),
+            bColor: new THREE.Color(0, 0, 0),
+            frames: 0,
+            framesLeft: 0,
+            doBlink: function (color, frames) {
+                var tempColor = new THREE.Color(color).multiplyScalar(-1);
+                this.color = new THREE.Color(color);
+                this.framesLeft = this.frames = frames;
+                this.bColor.addColors(this.defColor, tempColor).multiplyScalar(1/frames);
+            },
+        };
     };
 
     DT.Bonus.prototype = Object.create(DT.GameCollectionObject.prototype);
     DT.Bonus.prototype.constructor = DT.Bonus;
 
+    DT.Bonus.prototype.updateBlink = function () {
+        // TODO: refactor
+        if (this.blink.framesLeft === 0) {
+            return this;
+        }
+        if (this.blink.framesLeft === 1) {
+            this.tObject.material.color.copy(this.blink.defColor);
+        }
+        if (this.blink.framesLeft === this.blink.frames) {
+            this.tObject.material.color.copy(this.blink.color);
+        }
+        if (this.blink.framesLeft < this.blink.frames) {
+            this.tObject.material.color.add(this.blink.bColor);
+        }
+        this.blink.framesLeft -= 1;
+        return this;
+    };
+
     DT.Bonus.prototype.update = function (options) {
         var self = this;
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
-        if (this.type === 0) {
-            // this.updateParam('rotation', {z: 0.05});
-        }
-        if (this.type === 1) {
-            // this.updateParam('rotation', {z: 0.05});
-        //     var color = new THREE.Color().setRGB(
-        //             DT.genRandomFloorBetween(0, 3),
-        //             DT.genRandomFloorBetween(0, 3),
-        //             DT.genRandomFloorBetween(0, 3)
-        //         );
-        //     DT.Player.prototype.blink.doBlink.call(thiscolor, 10);
-        }
+
         if (this.type === 2) {
-            // this.updateParam('rotation', {z: 0.05});
+            if (DT.frameCounter % 6 === 0) {
+                var color = new THREE.Color().setRGB(
+                    DT.genRandomBetween(0, 3),
+                    DT.genRandomBetween(0, 3),
+                    DT.genRandomBetween(0, 3)
+                );
+                this.blink.doBlink(color, 10);
+            }
+            this.updateBlink();
         }
 
         var dist = this.tObject.position.distanceTo(options.sphere.position);
 
-        if (dist < 30.0) {
-            if (this.animation) {
-                this.animation.update(options.delta);
-            }
-        }
+        // if (dist < 30.0) {
+        //     if (this.animation) {
+        //         this.animation.update(options.delta);
+        //     }
+        // }
 
         if (dist < 0.9) {
             this.removeFromScene();

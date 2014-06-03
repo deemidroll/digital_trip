@@ -1,5 +1,19 @@
+@font-face {
+  font-family: 'plumbcregular';
+  src: url('../fonts/plm55__c-webfont.eot');
+  src: url('../fonts/plm55__c-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/plm55__c-webfont.woff') format('woff'), url('../fonts/plm55__c-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal; }
+
+@font-face {
+  font-family: 'plumbmediumcmediumc';
+  src: url('../fonts/plm65__c-webfont.eot');
+  src: url('../fonts/plm65__c-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/plm65__c-webfont.woff') format('woff'), url('../fonts/plm65__c-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal; }
+
 body {
-  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-family: "plumbmediumcmediumc", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   font-weight: 300;
   margin: 0px;
   background-color: #000000;
@@ -61,7 +75,7 @@ body {
 
 .loader {
   display: table;
-  background-color: #000;
+  background-color: #ffae9b;
   z-index: 3; }
 
 .nogame {

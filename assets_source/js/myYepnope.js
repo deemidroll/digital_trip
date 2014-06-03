@@ -18,14 +18,11 @@
         yepnope.showLoading = function (n) {
             yepnope.percent += 100/7;
             yepnope.loadCounter += 1;
-            // $(function () {
+            $(function () {
                 if (yepnope.loadCounter < 7) {
                     var count = yepnope.loadCounter;
-                    $(".loading img")
-                        .fadeOut(100, function () {
-                            $(this).attr('src', 'img/loadImg'+count+'.jpg');
-                        })
-                        .fadeIn(100);
+                    $(".loading img").eq(count-1).fadeOut(200);
+                    $(".loading img").eq(count).fadeIn(200);
                 }
                 $(".loading").animate({minWidth: Math.round(yepnope.percent) + "px"}, {
                     duration: 200,
@@ -42,7 +39,7 @@
                         }
                     }
                 });
-            // });
+            });
         };
         yepnope([{
             load: [

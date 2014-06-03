@@ -16,14 +16,21 @@
         yepnope.loadCounter = 0;
         yepnope.percent = 0;
         yepnope.showLoading = function (n) {
-            yepnope.percent += 20;
+            yepnope.percent += 100/7;
             yepnope.loadCounter += 1;
-            $(function () {
-                $(".loading").animate({minWidth: yepnope.percent+"px"}, {
-                    duration: 100,
+            // $(function () {
+                if (yepnope.loadCounter < 7) {
+                    var count = yepnope.loadCounter;
+                    $(".loading img")
+                        .fadeOut(100, function () {
+                            $(this).attr('src', 'img/loadImg'+count+'.jpg');
+                        })
+                        .fadeIn(100);
+                }
+                $(".loading").animate({minWidth: Math.round(yepnope.percent) + "px"}, {
+                    duration: 200,
                     progress: function () {
                         var current = parseInt($(".loading").css("minWidth"), 10);
-                        $(".startGame").html(Math.floor(current));
                         $("title").html(Math.floor(current) + "% " + "digital trip");
                         if (current === 100) {
                             $("title").html("digital trip");
@@ -35,7 +42,7 @@
                         }
                     }
                 });
-            });
+            // });
         };
         yepnope([{
             load: [
@@ -50,6 +57,12 @@
                     yepnope.showLoading();
                 },
                 "three.min.js": function () {
+                    yepnope.showLoading();
+                },
+                "js/vendor/CurveExtras.js": function () {
+                    yepnope.showLoading();
+                },
+                "js/DT.js": function () {
                     yepnope.showLoading();
                 }
             }

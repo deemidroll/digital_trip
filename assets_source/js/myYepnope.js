@@ -12,6 +12,7 @@
         isWebGLSupported = true;
     }
     if (isWebGLSupported) {
+        document.getElementById('loader').style.display = 'table';
         yepnope.loadCounter = 0;
         yepnope.percent = 0;
         yepnope.showLoading = function (n) {
@@ -54,6 +55,6 @@
             }
         }]);
     } else {
-        document.getElementById('loading').innerHTML = 'sorry, webgl does not supported <br/> :( <br/>' + text;
+        document.getElementById('nogame').style.display = 'table';
     }
 })();

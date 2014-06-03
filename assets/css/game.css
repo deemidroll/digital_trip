@@ -1,7 +1,7 @@
 @font-face {
-  font-family: 'plumbcregular';
-  src: url('../fonts/plm55__c-webfont.eot');
-  src: url('../fonts/plm55__c-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/plm55__c-webfont.woff') format('woff'), url('../fonts/plm55__c-webfont.ttf') format('truetype');
+  font-family: 'plumbcbold';
+  src: url('../fonts/plm75__c-webfont.eot');
+  src: url('../fonts/plm75__c-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/plm75__c-webfont.woff') format('woff'), url('../fonts/plm75__c-webfont.ttf') format('truetype');
   font-weight: normal;
   font-style: normal; }
 
@@ -19,13 +19,15 @@ body {
   background-color: #000000;
   overflow: hidden;
   color: #eee;
-  text-align: center; }
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; }
 
 .helthbar, .menu_button, .music_button, .fs_button, .score, .bonus {
   position: absolute;
   opacity: 0.5; }
 
-.hit, .game_over, .menu_page, .loader, .choose_control, .nogame {
+.hit, .game_over, .menu_page, .loader, .choose_control, #nogame {
   width: 100%;
   height: 100%;
   display: none;
@@ -73,15 +75,40 @@ body {
   font-size: 32px;
   z-index: 4; }
 
-.loader {
-  display: table;
+#loader {
+  display: none;
   background-color: #ffae9b;
   z-index: 3; }
 
-.nogame {
+#nogame {
   display: none;
-  background-color: #000;
-  z-index: 4; }
+  z-index: 4;
+  background-color: #fafafa; }
+  #nogame > .cont {
+    text-transform: uppercase; }
+    #nogame > .cont > img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-left: -300px;
+      margin-top: -390px;
+      height: 783px;
+      width: 593px;
+      z-index: -1; }
+    #nogame > .cont > .nogame1 {
+      color: #fd5439;
+      font-size: 60px;
+      letter-spacing: 0.08em; }
+    #nogame > .cont > .nogame2 {
+      padding-top: 200px;
+      color: #2f2f2f;
+      font-size: 18px;
+      letter-spacing: 0.1em; }
+      #nogame > .cont > .nogame2 > a {
+        color: #fd5439;
+        text-decoration: none; }
+        #nogame > .cont > .nogame2 > a:hover {
+          text-decoration: underline; }
 
 
 .loader span {
@@ -193,6 +220,8 @@ a:hover {
   cursor: pointer;
   color: red; }
 
+#loader {
+  display: none; }
 
 /*video {
           transform: scaleX(-1);

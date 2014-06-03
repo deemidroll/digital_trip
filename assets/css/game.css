@@ -83,12 +83,16 @@ body {
 #nogame {
   display: none;
   z-index: 4;
-  background-color: #fafafa; }
+  background-color: #fafafa;
+  overflow: hidden; }
   #nogame > .cont {
     text-transform: uppercase; }
     #nogame > .cont > img {
       position: absolute;
-      height: inherit;
+      top: 50%;
+      left: 50%;
+      margin-left: -765px;
+      margin-top: -498px;
       z-index: -1; }
     #nogame > .cont > .nogame1 {
       color: #fd5439;

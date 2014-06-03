@@ -103,16 +103,17 @@ body {
     display: none;
     z-index: 4;
     background-color: #fafafa;
+    overflow: hidden;
     >.cont {
         text-transform: uppercase;
         >img {
         position: absolute;
-        // top: 50%;
-        // left: 50%;
-        // margin-left: -765px;
-        // margin-top: -498px;
+        top: 50%;
+        left: 50%;
+        margin-left: -765px;
+        margin-top: -498px;
         // width: 100%;
-        height: inherit;
+        // height: inherit;
         z-index: -1;
         }
         >.nogame1 {

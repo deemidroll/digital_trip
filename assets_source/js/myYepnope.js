@@ -1,70 +1,58 @@
-;(function () {
-    var isWebGLSupported,
-        text;
+$(function () {
+    var isWebGLSupported;
     if (!window.WebGLRenderingContext) {
         // Browser has no idea what WebGL is
         isWebGLSupported = false;
-        text = 'get a new browser <a href="http://get.webgl.org">http://get.webgl.org</a>';
     } else if (!document.getElementById('chreckwebgl').getContext("webgl")) {
+        // Can't get context
         isWebGLSupported = false;
-        text = 'update your drivers or get a new browser <a href="http://get.webgl.org/troubleshooting">http://get.webgl.org/troubleshooting</a>';
     } else {
         isWebGLSupported = true;
     }
     if (isWebGLSupported) {
-        document.getElementById('loader').style.display = 'table';
+        $('#loader').css({display: 'table'});
         yepnope.loadCounter = 0;
         yepnope.percent = 0;
         yepnope.showLoading = function (n) {
-            yepnope.percent += 100/7;
+            yepnope.percent += 100/3;
             yepnope.loadCounter += 1;
-            $(function () {
-                if (yepnope.loadCounter < 7) {
-                    var count = yepnope.loadCounter;
-                    $(".loading img").eq(count-1).fadeOut(200);
-                    $(".loading img").eq(count).fadeIn(200);
-                }
-                $(".loading").animate({minWidth: Math.round(yepnope.percent) + "px"}, {
-                    duration: 200,
-                    progress: function () {
-                        var current = parseInt($(".loading").css("minWidth"), 10);
-                        $("title").html(Math.floor(current) + "% " + "digital trip");
-                        if (current === 100) {
-                            $("title").html("digital trip");
-                        }
-                    },
-                    complete: function () {
-                        if (n === 3) {
-                            DT.runApp();
-                        }
+            $(".loading").animate({minWidth: Math.round(yepnope.percent) + "px"}, {
+                duration: 100,
+                progress: function () {
+                    var current = parseInt($(".loading").css("minWidth"), 10);
+                    $("title").html(Math.floor(current) + "% " + "digital trip");
+                    if (current === 100) {
+                        $("title").html("digital trip");
                     }
-                });
+                }
             });
         };
+        var count = 0,
+            loadInterval = setInterval(function () {
+                if (count < 6) {
+                    $(".loading img").eq(count).fadeOut(100);
+                    $(".loading img").eq(count+1).delay(50).fadeIn({
+                        duration: 100,
+                        complete: function () {
+                            count++
+                        }
+                    });
+                }
+                if (count === 6 && yepnope.loadCounter === 3) {
+                    DT.runApp();
+                    clearInterval(loadInterval);
+                }
+            }, 300);
         yepnope([{
             load: [
-                "js/vendor/jquery.min.js",
                 "js/vendor/three.min.js",
                 "js/vendor/CurveExtras.js",
                 "js/DT.js",
                 "../socket.io/socket.io.js"
             ],
-            callback: {
-                "jquery.min.js": function () {
-                    yepnope.showLoading();
-                },
-                "three.min.js": function () {
-                    yepnope.showLoading();
-                },
-                "js/vendor/CurveExtras.js": function () {
-                    yepnope.showLoading();
-                },
-                "js/DT.js": function () {
-                    yepnope.showLoading();
-                }
-            }
+            callback: {}
         }]);
     } else {
-        document.getElementById('nogame').style.display = 'table';
+        $('#nogame').css({display: 'table'});
     }
-})();
+});

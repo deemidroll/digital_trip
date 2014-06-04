@@ -36,7 +36,7 @@ window.DT = (function (window, document, undefined) {
                 }
             );
         }();
-
+    DT.choosenControl = null;
     DT.gameOverTime = 3000;
     DT.scale = 3;
     // DT.camAngle = 0;
@@ -1987,7 +1987,7 @@ window.DT = (function (window, document, undefined) {
     DT.initKeyboardControl = function () {
         DT.$document.keydown(function(event) {
             var k = event.keyCode
-            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.choosenControl === 'keyboard') {
                     // arrows control
                 if (k === 38) { // up arrow
                     //
@@ -2053,6 +2053,7 @@ window.DT = (function (window, document, undefined) {
         // We receive our game code to show the user
         socket.on('initialize', function(gameCode) {
             socket.gameCode = gameCode;
+            DT.$document.trigger('socketInitialized', gameCode);
         });
         // When the user inputs the code into the phone client, we become 'connected'. Start the game.
         socket.on('connected', function(data) {
@@ -2076,7 +2077,7 @@ window.DT = (function (window, document, undefined) {
             }
         });
         socket.on('click', function(click) {
-            DT.handlers[click]();
+            if (DT.choosenControl === 'mobile') DT.handlers[click]();
         });
         socket.on('message', function(data) {
             if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
@@ -2102,8 +2103,6 @@ window.DT = (function (window, document, undefined) {
     };
 
     DT.$document.on('startFromMobile', function (e, data) {
-        $('#gameConnect').hide();
-        $('#status').hide();
         DT.startAfterChooseControl();
     });
     DT.$document.on('startGame', function (e, data) {
@@ -2130,6 +2129,7 @@ window.DT = (function (window, document, undefined) {
  // ╚══╝╚══╝ ╚══════╝╚═════╝  ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝
     // headtracker realization
     DT.enableWebcam = function () {
+        DT.enableWebcam.satus = 'init';
         // Game config
         var leftBreakThreshold = -5;
         var leftTurnThreshold = -10;
@@ -2153,28 +2153,29 @@ window.DT = (function (window, document, undefined) {
         // Определяем сообщения, выдаваемые библиотекой
         
         var statusMessages = {
-            'whitebalance' : 'Проверка камеры или баланса белого',
-            'detecting' : 'Обнаружено лицо',
-            'hints' : 'Что-то не так, обнаружение затянулось. Попробуйте сместиться относительно камеры',
-            'redetecting' : 'Лицо потеряно, поиск..',
-            'lost' : 'Лицо потеряно',
-            'found' : 'Слежение за лицом'
+            'whitebalance' : 'Checking cam and white balance',
+            'detecting' : 'Head detected',
+            'hints' : 'Something wrong. Try move your head',
+            'redetecting' : 'Head lost, search',
+            'lost' : 'Head lost',
+            'found' : 'Now turn to start'
         };
         
         var supportMessages = {
-            'no getUserMedia' : 'Браузер не поддерживает getUserMedia',
-            'no camera' : 'Не обнаружена камера.'
+            'no getUserMedia' : 'Browser not allowed getUserMedia',
+            'no camera' : 'Camera not found'
         };
         
         document.addEventListener('headtrackrStatus', function(event) {
             if (event.status in supportMessages) {
                 console.log(supportMessages[event.status]);
-                $('.message').html(supportMessages[event.status])
+                $('.turn_to_start span').html(supportMessages[event.status])
             } else if (event.status in statusMessages) {
                 console.log(statusMessages[event.status]);
-                $('.message').html(statusMessages[event.status])
+                $('.turn_to_start span').html(statusMessages[event.status])
             }
             if (event.status === 'found') {
+                DT.enableWebcam.satus = 'enable';
                 DT.startAfterChooseControl();
             }
         }, true);
@@ -2195,7 +2196,7 @@ window.DT = (function (window, document, undefined) {
         
         document.addEventListener('facetrackingEvent', function( event ) {
             // once we have stable tracking, draw rectangle
-            if (event.detection == 'CS') {
+            if (event.detection == 'CS' && DT.choosenControl === 'webcam') {
                 var angle = Number(event.angle *(180/ Math.PI)-90);
                 // console.log(angle);
                 if(angle < leftBreakThreshold) {
@@ -2247,7 +2248,12 @@ window.DT = (function (window, document, undefined) {
     DT.handlers.startOnSpace = function(event) {
         var k = event.keyCode;
         if (k === 32) {
-            DT.startAfterChooseControl();
+            if (DT.choosenControl === null) {
+                DT.startAfterChooseControl();
+            } else {
+                DT.$document.trigger('resumeGame', {});
+            }
+            DT.choosenControl = 'keyboard';
         }
     };
     DT.handlers.pauseOnSpace = function(event) {
@@ -2318,6 +2324,7 @@ window.DT = (function (window, document, undefined) {
 // ██║██║ ╚████║   ██║   ███████╗██║  ██║██║     ██║  ██║╚██████╗███████╗
 // ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝
 
+    var $chooseControl = $('.choose_control');
     DT.runApp = function () {
         DT.initSocket();
         if (!document.hasFocus()) {
@@ -2326,31 +2333,47 @@ window.DT = (function (window, document, undefined) {
             DT.setVolume(1);
         }
         DT.playSound(2);
+
         $(function() {
             $('.loader').hide();
-            $('.choose_control').css({'display': 'table', 'opacity': '1'});
+            $chooseControl.css({'display': 'table', 'opacity': '1'});
             $('.buttons').show();
             $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.keyup(DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
+                DT.choosenControl = 'keyboard';
                 DT.startAfterChooseControl();
-                $('.choose_wasd').unbind('click');
             });
             $('.choose_mobile').click(function() {
-                DT.initPhoneControl();
-                $('.choose_mobile').unbind('click');
+                DT.choosenControl = 'mobile';
+                if (!DT.game.wasStarted) {
+                    $chooseControl.fadeOut(250);
+                    $('.mobile_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+                } else {
+                    DT.$document.trigger('resumeGame', {});
+                }
             });
             $('.choose_webcam').click(function() {
-                DT.enableWebcam();
-                $('.choose_webcam').unbind('click');
+                DT.choosenControl = 'webcam';
+                if (!DT.enableWebcam.satus) {
+                    $chooseControl.fadeOut(250);
+                    $('.webcam_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+                    DT.enableWebcam();
+                } else if (DT.enableWebcam.satus = 'init') {
+                    $('.webcam_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+                } else {
+                    DT.$document.trigger('resumeGame', {});
+                }
             });
         });
     };
     DT.startAfterChooseControl = function () {
         if (!DT.game.wasStarted) {
             DT.$document.trigger('startGame', {});
+            DT.$document.unbind('keyup', DT.handlers.startOnSpace);
+        } else {
+            DT.$document.trigger('resumeGame', {});
         }
-        DT.$document.unbind('keyup',DT.handlers.startOnSpace);
     };
     DT.hit = function() {
         $(function(){
@@ -2358,12 +2381,11 @@ window.DT = (function (window, document, undefined) {
             $('.hit').css({'display': 'table'}).fadeOut(250);
         });
     };
-    DT.initPhoneControl = function() {
-        var address = DT.server + '/m/#' + DT.initSocket.socket.gameCode,
-            $qrcode = $('#qrcode');
-        $('.message').html('Please open <span class="red">' + address +'</span> with your phone or use <span class="red">QR code</span> below');
-        $qrcode.qrcode(address).css({height: 0}).animate({height: 256}, 250);
-    };
+
+    $('.change_controls').click(function () {
+        $('.concealable').fadeOut(250);
+        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+    });
 
     $('.menu_button').click(function() {
         DT.$document.trigger('pauseGame', {});
@@ -2387,14 +2409,18 @@ window.DT = (function (window, document, undefined) {
     });
 
     DT.$document.on('startGame', function (e, data) {
-        $('.choose_control').fadeOut(250);
-        $('.logo').fadeOut(1000);
+        $('.concealable').fadeOut(250);
+    });
+    DT.$document.on('socketInitialized', function (e, gameCode) {
+        var address = DT.server + '/m/#' + gameCode;
+        $('.mobile_message span').html(address);
+        $('#qrcode').qrcode(address);
     });
     DT.$document.on('pauseGame', function () {
         $('.menu_page').css({'display': 'table'});
     });
     DT.$document.on('resumeGame', function (e, data) {
-        $('.menu_page').css({'display': 'none'});
+        $('.concealable').css({'display': 'none'});
     });
     DT.$document.on('startGame', function (e, data) {
         $('.gameTimer').css({'display': 'block'});
@@ -2470,12 +2496,12 @@ window.DT = (function (window, document, undefined) {
         DT.stats2.domElement.style.zIndex = 100;
         body.appendChild( DT.stats2.domElement );
 
-        DT.rendererStats  = new THREEx.RendererStats();
-        DT.rendererStats.domElement.style.position = 'absolute';
-        DT.rendererStats.domElement.style.left = '0px';
-        DT.rendererStats.domElement.style.top = '50px';
-        DT.rendererStats.domElement.style.zIndex = 100;
-        body.appendChild(DT.rendererStats.domElement);
+        // DT.rendererStats  = new THREEx.RendererStats();
+        // DT.rendererStats.domElement.style.position = 'absolute';
+        // DT.rendererStats.domElement.style.left = '0px';
+        // DT.rendererStats.domElement.style.top = '50px';
+        // DT.rendererStats.domElement.style.zIndex = 100;
+        // body.appendChild(DT.rendererStats.domElement);
     };
     DT.$document.on('startGame', function (e, data) {
         DT.setStats();
@@ -2483,7 +2509,7 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('update', function (e, data) {
         DT.stats.update();
         DT.stats2.update();
-        DT.rendererStats.update(DT.renderer);
+        // DT.rendererStats.update(DT.renderer);
     }); 
 
 // ████████╗██╗  ██╗███████╗    ███████╗███╗   ██╗██████╗ 

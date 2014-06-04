@@ -40,20 +40,40 @@
     </div>
 
     <!-- control -->
-    <div class="choose_control">
+    <div class="choose_control concealable">
         <div class="logo" id="logo1">
             <img src="img/logo.svg" alt="">
         </div>
         <div class="byhotdot">by hot dot</div>
         <div class="message">choose controls</div>
-        <div id="qrcode"></div>
-        <br>
         <div class="controls">
             <div class="choose_wasd button"><span>Keyboard</span></div>
             <div class="choose_mobile button"><span>Mobile</span></div>
             <div class="choose_webcam button"><span>Webcam</span></div>
         </div>
-        <div id="status"></div>
+    </div>
+
+    <!-- mobile_choosen -->
+    <div class="mobile_choosen concealable">
+        <div class="cont">
+            <div class="mobile_message">Please open<br><span class="red"></span><br>with your phone or use qr code below</div>
+            <div id="qrcode"></div>
+            <div class="change_controls">change controls</div>
+        </div>
+    </div>
+
+    <!-- webcam_choosen -->
+    <div class="webcam_choosen concealable">
+        <div class="cont">
+            <div class="webcam_message">Please allow access<br>to your webcam</div>
+            <div class="turn_to_start">
+                <img id="head" src="img/head.png" height="104" width="145" alt="">
+                <img id="left_v_check" src="img/vcheck.png" height="81" width="108" alt="">
+                <img id="right_v_check" src="img/vcheck.png" height="81" width="108" alt="">
+                <span>now turn to start</span>
+            </div>
+            <div class="change_controls">change controls</div>
+        </div>
     </div>
 
     <!-- footer -->
@@ -64,19 +84,10 @@
     </div>
 
     <!-- pause menu -->
-    <div class="menu_page">
+    <div class="menu_page concealable">
         <div class="cont">
-            <div class="menu">
-                <span class="block resume button">resume</span>
-                <hr>
-                <span class="block">source on <a href="http://github.com/deemidroll/digital_trip">github</a></span>
-                <hr>
-                <span class="block"><a href="">web technologies used here</a></span>
-                <hr>
-                <span class="block">share F T g</span>
-                <hr>
-                <span class="block">it's a <a href="http://hotdot.pro/">Hot Dot</a> project</span>
-            </div>
+            <div class="resume">resume</div>
+            <div class="change_controls invertcolor">change controls</div>
         </div>
     </div>
 

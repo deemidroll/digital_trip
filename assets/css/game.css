@@ -15,6 +15,7 @@
 body {
   font-family: "plumbmediumcmediumc", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   font-weight: 300;
+  text-transform: uppercase;
   margin: 0px;
   background-color: #000000;
   overflow: hidden;
@@ -27,7 +28,7 @@ body {
   position: absolute;
   opacity: 0.5; }
 
-.hit, .game_over, .menu_page, .loader, .choose_control, #nogame {
+.hit, .game_over, .menu_page, .loader, .choose_control, #nogame, .mobile_choosen, .webcam_choosen {
   width: 100%;
   height: 100%;
   display: none;
@@ -37,7 +38,7 @@ body {
 .webcamcontrol {
   width: 100%;
   height: 100%;
-  display: table;
+  display: none;
   position: absolute;
   text-align: center; }
 
@@ -57,6 +58,38 @@ body {
   /*display: table;*/
   background-color: #000;
   z-index: 1; }
+
+.change_controls {
+  width: 250px;
+  height: 36px;
+  background-color: #fd5439;
+  position: relative;
+  left: 50%;
+  margin-left: -125px;
+  padding-top: 15px;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  z-index: 10; }
+
+.invertcolor {
+  background-color: #222;
+  color: #fff; }
+
+.resume {
+  width: 250px;
+  height: 36px;
+  background-color: #fd5439;
+  color: #000000;
+  position: relative;
+  left: 50%;
+  margin-left: -125px;
+  padding-top: 15px;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  z-index: 10;
+  margin-bottom: 7px; }
 
 .bigfont {
   font-size: 3em; }
@@ -82,29 +115,27 @@ body {
   z-index: 4;
   background-color: #fafafa;
   overflow: hidden; }
-  #nogame > .cont {
-    text-transform: uppercase; }
-    #nogame > .cont > img {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      margin-left: -765px;
-      margin-top: -498px;
-      z-index: -1; }
-    #nogame > .cont > .nogame1 {
+  #nogame > .cont > img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -765px;
+    margin-top: -498px;
+    z-index: -1; }
+  #nogame > .cont > .nogame1 {
+    color: #fd5439;
+    font-size: 60px;
+    letter-spacing: 0.08em; }
+  #nogame > .cont > .nogame2 {
+    padding-top: 200px;
+    color: #2f2f2f;
+    font-size: 18px;
+    letter-spacing: 0.1em; }
+    #nogame > .cont > .nogame2 > a {
       color: #fd5439;
-      font-size: 60px;
-      letter-spacing: 0.08em; }
-    #nogame > .cont > .nogame2 {
-      padding-top: 200px;
-      color: #2f2f2f;
-      font-size: 18px;
-      letter-spacing: 0.1em; }
-      #nogame > .cont > .nogame2 > a {
-        color: #fd5439;
-        text-decoration: none; }
-        #nogame > .cont > .nogame2 > a:hover {
-          text-decoration: underline; }
+      text-decoration: none; }
+      #nogame > .cont > .nogame2 > a:hover {
+        text-decoration: underline; }
 
 
 .loader span {
@@ -123,8 +154,7 @@ body {
   #footer > span {
     font-size: 12px;
     font-family: 'plumbcbold';
-    text-transform: uppercase;
-    padding-top: 33px;
+    padding-top: 35px;
     padding-left: 35px;
     padding-right: 9px; }
 
@@ -265,6 +295,10 @@ a:hover {
 #qrcode canvas {
   border: 5px solid white; }
 
+#qrcode {
+  margin-top: 40px;
+  margin-bottom: 40px; }
+
 .logo {
   margin-top: 200px;
   margin-bottom: 10px;
@@ -278,19 +312,56 @@ a:hover {
 .byhotdot {
   margin-top: -17px;
   font-size: 12px;
-  text-transform: uppercase;
   letter-spacing: 0.15em; }
 
 .message {
   color: #fd5439;
-  text-transform: uppercase;
   font-size: 30px;
   letter-spacing: 0.15em;
   margin-top: 153px; }
 
+.mobile_message {
+  font-size: 30px;
+  line-height: 1.5em;
+  letter-spacing: 0.1em; }
+
+.webcam_message {
+  font-size: 40px;
+  line-height: 1.5em;
+  letter-spacing: 0.1em; }
+
+.turn_to_start {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  font-size: 40px; }
+  .turn_to_start > span {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    width: 100%; }
+
+#head {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  margin-left: -72px; }
+
+#left_v_check {
+  position: absolute;
+  bottom: 50px;
+  left: 0; }
+
+#right_v_check {
+  position: absolute;
+  bottom: 50px;
+  right: 0; }
+
+.mobile_message span {
+  text-transform: lowercase; }
+
 .controls {
   font-size: 16px;
-  text-transform: uppercase;
   letter-spacing: 0.2em;
   margin-top: -10px; }
   .controls > .choose_wasd {

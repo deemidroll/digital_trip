@@ -102,12 +102,13 @@
     <div class="game_over">
         <div class="cont">
             <div class="coins">
-                <span>such <span class="total_coins"></span> D</span>
-                <input id="dogecoin" type="text" value="your dogecoin id">
-                <input id="wow" type="button" value="WOW">
+                <div class="gameover_message">Welcome back to the reality<br>and take this <span class="total_coins"></span>D as souvenir!</div>
+                <input id="dogecoin" type="text" value="YOUR DOGECOIN ID">
+                <button id="wow">wow</button>
             </div>
-            <div id="gameovermessage" >press space to restart</div>
-            <div id="one_more_time">one more time</div>
+            <div class="change_controls gameovercolor">change controls</div>
+            <div id="one_more_time">restart</div>
+            <img class="gameover_bg" src="img/gameover_bg.jpg" height="996" width="1530" alt="">
         </div>
     </div>
 
@@ -124,8 +125,8 @@
     <!-- webgl check -->
     <canvas id="chreckwebgl" style="display:none;"></canvas>
 
-    <!-- download manager -->
     <script src="js/vendor/jquery.min.js"></script>
+    <!-- download manager -->
     <script src="js/vendor/yepnope.1.5.4-min.js"></script>
     <script src="js/myYepnope.min.js"></script>
 

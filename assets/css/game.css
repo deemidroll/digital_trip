@@ -48,7 +48,7 @@ body {
 
 .game_over {
   /*display: table;*/
-  background-color: #444;
+  background-color: #fafafa;
   z-index: 3; }
 
 .game_over div {
@@ -76,6 +76,9 @@ body {
   background-color: #222;
   color: #fff; }
 
+.gameovercolor {
+  background-color: #959595; }
+
 .resume {
   width: 250px;
   height: 36px;
@@ -90,6 +93,16 @@ body {
   cursor: pointer;
   z-index: 10;
   margin-bottom: 7px; }
+
+#one_more_time {
+  width: 190px;
+  height: 36px;
+  background-color: #959595;
+  padding-top: 15px;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  z-index: 10; }
 
 .bigfont {
   font-size: 3em; }
@@ -165,6 +178,19 @@ body {
   margin-left: -530px;
   margin-top: -350px; }
 
+.gameover_bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -765px;
+  margin-top: -498px;
+  z-index: -1; }
+
+.gamover_message {
+  font-size: 40px;
+  color: #000;
+  letter-spacing: 0.1em; }
+
 .left {
   float: left;
   letter-spacing: 0.29em; }
@@ -208,13 +234,6 @@ body {
 
 .error {
   font-size: 5em; }
-
-#one_more_time {
-  display: inline-block;
-  border: 2px #eee solid;
-  padding: 5px;
-  border-radius: 5px;
-  cursor: pointer; }
 
 .helthbar, .score, .bonus {
   bottom: 30px; }
@@ -290,7 +309,10 @@ a:hover {
   z-index: 5; }
 
 #dogecoin {
-  border: 2px solid black; }
+  border: 2px solid #6d6d6d;
+  width: 250px;
+  height: 47px;
+  background-color: transparent; }
 
 #qrcode canvas {
   border: 5px solid white; }
@@ -394,3 +416,12 @@ a:hover {
 
 .buttons {
   display: none; }
+
+#wow {
+  background-color: #1affbb;
+  border: none;
+  color: #fff;
+  height: 52px;
+  font-size: 16px;
+  width: 94px;
+  letter-spacing: 0.2em; }

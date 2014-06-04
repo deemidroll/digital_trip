@@ -5933,7 +5933,7 @@ window.DT = (function (window, document, undefined) {
     });
     $('#wow').on('click', function () {
         var inputDogeCoin = $('#dogecoin');
-        if (inputDogeCoin.val() === 'your dogecoin id') {
+        if (inputDogeCoin.val() === 'YOUR DOGECOIN ID') {
             inputDogeCoin.css({
                 'border': '2px solid red'
             });

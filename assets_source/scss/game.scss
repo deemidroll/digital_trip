@@ -72,10 +72,6 @@ body {
     z-index: 1;
 }
 
-.choose_control span {
-    margin-bottom: 40px;
-}
-
 .bigfont {
     font-size: 3em;
 }
@@ -162,6 +158,14 @@ body {
         padding-left: 35px;
         padding-right: 9px;
     }
+}
+
+.loadImg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -530px; 
+    margin-top: -350px;
 }
 
 .left {
@@ -331,10 +335,50 @@ a:hover {
     z-index: 2;
     width: 100%;
     > img {
-        margin-top: -220px;
+        height: 110px;
     }
 }
 
+.byhotdot {
+    margin-top: -17px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+.message {
+    color: #fd5439;
+    text-transform: uppercase;
+    font-size: 30px;
+    letter-spacing: 0.15em;
+    margin-top: 153px;
+}
+.controls {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-top: -10px;
+    >.choose_wasd {
+        background: url(../img/keyboard.png) 50% 50% no-repeat;
+    }
+    >.choose_mobile {
+        background: url(../img/mobile.png) 50% 50% no-repeat;
+    }
+    >.choose_webcam {
+        background: url(../img/webcam.png) 50% 50% no-repeat;
+    }
+    >div {
+        display: inline-block;
+        position: relative;
+        width: 125px;
+        height: 150px;
+        >span{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+    }
+}
 .red {
     color: #fd5439;
 }

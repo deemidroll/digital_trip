@@ -3516,8 +3516,7 @@ window.DT = (function (window, document, undefined) {
     DT.choosenControl = null;
     DT.gameOverTime = 3000;
     DT.scale = 3;
-    // DT.camAngle = 0;
-    // DT.cam = 0;
+
     DT.$document = $(document);
     DT.$window = $(window);
     DT.$gameTimer = $('.gameTimer');
@@ -3634,11 +3633,6 @@ window.DT = (function (window, document, undefined) {
     DT.renderer.domElement.style.zIndex = -1;
     document.body.appendChild(DT.renderer.domElement);
 
-    DT.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
-    DT.camera.position.set(0, 0.5, 200);
-    // when resize
-    new THREEx.WindowResize(DT.renderer, DT.camera);
-
     DT.scene = new THREE.Scene();
 
     // PATH
@@ -3646,6 +3640,9 @@ window.DT = (function (window, document, undefined) {
     DT.scene.add(parent);
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
+
+    // when resize
+    new THREEx.WindowResize(DT.renderer, DT.splineCamera);
 
     // var extrudePath = new THREE.Curves.GrannyKnot(); 
     // var extrudePath = new THREE.Curves.KnotCurve();
@@ -3680,7 +3677,6 @@ window.DT = (function (window, document, undefined) {
         // console.time("Execution time took");
         // if (DT.cam === 0) 
         DT.renderer.render(DT.scene, DT.splineCamera);
-        // if (DT.cam === 1) DT.renderer.render(DT.scene, DT.camera)
         var dtime = data.delta,
             speed0 = DT.game.speed.getSpeed0(),
             acceleration = DT.game.speed.getAcceleration(),

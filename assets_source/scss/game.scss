@@ -63,10 +63,6 @@ body {
     z-index: 3;
 }
 
-.game_over div {
-    margin: 50px 0 0 0;
-}
-
 .choose_control {
     /*display: table;*/
     background-color: #000;
@@ -93,6 +89,11 @@ body {
 }
 .gameovercolor {
     background-color: #959595;
+    display: inline-block;
+    position: static;
+    margin-right: 4px;
+    margin-top: 50px;
+    margin-left: 0;
 }
 .resume {
     width: 250px;
@@ -108,10 +109,11 @@ body {
     cursor: pointer;
     z-index: 10;
     margin-bottom: 7px;
+    margin-top: 50px;
 }
 
 #one_more_time {
-    width: 190px;
+    width: 188px;
     height: 36px;
     background-color: #959595;
     padding-top: 15px;
@@ -119,6 +121,7 @@ body {
     letter-spacing: 0.1em;
     cursor: pointer;
     z-index: 10;
+    display: inline-block;
 }
 
 .bigfont {
@@ -224,10 +227,12 @@ body {
     margin-top: -498px;
     z-index: -1;
 }
-.gamover_message {
-    font-size: 40px;
+.gameover_message {
     color: #000;
+    font-size: 40px;
     letter-spacing: 0.1em;
+    line-height: 53px;
+    margin-bottom: 94px;
 }
 .left {
     float: left;
@@ -372,13 +377,6 @@ a:hover {
     z-index: 5;
 }
 
-#dogecoin {
-    border: 2px solid #6d6d6d;
-    width: 250px;
-    height: 47px;
-    background-color: transparent;
-}
-
 #qrcode canvas {
     border: 5px solid white;
 }
@@ -493,12 +491,27 @@ a:hover {
 .buttons {
     display: none;
 }
+#dogecoin {
+    border: 2px solid #6d6d6d;
+    width: 226px;
+    margin-right: 5px;
+    height: 47px;
+    background-color: transparent;
+    font-size: 19px;
+    font-family: 'plumbmediumcmediumc';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding-left: 18px;
+    letter-spacing: 0.05em;
+}
 #wow {
     background-color: #1affbb;
     border: none;
     color: #fff;
     height: 52px;
-    font-size: 16px;
+    font-size: 24px;
     width: 94px;
-    letter-spacing: 0.2em;
+    font-family: 'plumbmediumcmediumc';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }

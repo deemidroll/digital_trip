@@ -36,13 +36,11 @@ window.DT = (function (window, document, undefined) {
                 }
             );
         }();
-    DT.choosenControl = null;
     DT.gameOverTime = 3000;
     DT.scale = 3;
 
     DT.$document = $(document);
     DT.$window = $(window);
-    DT.$gameTimer = $('.gameTimer');
     DT.$title = $('title');
 
     DT.frameCounter = 0;
@@ -90,7 +88,7 @@ window.DT = (function (window, document, undefined) {
             pickNext = ( pick + 1 ) % segments;
 
         tube = tube || DT.tube;
-
+        if (!tube[normals][ pickNext ] || !tube[normals][ pick ]) console.log(pickNext, pick);
         normal.subVectors( tube[normals][ pickNext ], tube[normals][ pick ] );
         normal.multiplyScalar( pickt - pick ).add( tube[normals][ pick ] );
         return normal;
@@ -115,9 +113,9 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('startGame', function (e, data) {
         DT.animate.id = requestAnimFrame(DT.animate);
     });
-    DT.$document.on('resetGame', function (e, data) {
-        DT.animate.id = requestAnimFrame(DT.animate);
-    });
+    // DT.$document.on('resetGame', function (e, data) {
+    //     DT.animate.id = requestAnimFrame(DT.animate);
+    // });
     DT.$document.on('pauseGame', function () {
         cancelAnimFrame(DT.animate.id);
     });
@@ -125,9 +123,13 @@ window.DT = (function (window, document, undefined) {
         DT.animate.id = requestAnimFrame(DT.animate);
     });
     DT.$document.on('gameOver', function (e, data) {
-        setTimeout(function() {
+        if (data.cause === 'death') {
+            setTimeout(function() {
+                cancelAnimFrame(DT.animate.id);
+            }, DT.gameOverTime);
+        } else {
             cancelAnimFrame(DT.animate.id);
-        }, DT.gameOverTime);
+        }
     });
 
 // ████████╗██╗  ██╗██████╗ ███████╗███████╗    ██╗    ██╗ ██████╗ ██████╗ ██╗     ██████╗ 
@@ -490,7 +492,6 @@ window.DT = (function (window, document, undefined) {
             min = Math.floor(sec / 60);
             sec = sec % 60;
             sec = sec < 10 ? '0' + sec.toString() : sec;
-            DT.$gameTimer.html(min + ':' + sec);
             DT.$title.html(min + ':' + sec + ' in digital trip');
         }
     };
@@ -504,6 +505,7 @@ window.DT = (function (window, document, undefined) {
         this.speed.changer = 0;
         this.speed.speed0 = 1/60;
         this.wasOver = false;
+        this.wasPaused = false; // ?
     };
     DT.Game.prototype.gameOver = function() {
         this.wasOver = true;
@@ -519,7 +521,6 @@ window.DT = (function (window, document, undefined) {
     });
     DT.$document.on('resumeGame', function (e, data) {
         DT.game.wasPaused = false;
-        DT.game.startGame();
     });
     DT.$document.on('update', function (e, data) {
         DT.game.update(data);
@@ -532,7 +533,6 @@ window.DT = (function (window, document, undefined) {
     });
     DT.$document.on('resetGame', function (e, data) {
         DT.game.reset();
-        DT.game.startGame();
     });
 
 // ██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗ 
@@ -651,7 +651,7 @@ window.DT = (function (window, document, undefined) {
                 helth += delta;
                 if (helth < 0) {
                     helth = 0;
-                    DT.$document.trigger('gameOver', {});
+                    DT.$document.trigger('gameOver', {cause: 'death'});
                 }
                 if (helth > 100) {
                     helth = 100;
@@ -883,6 +883,14 @@ window.DT = (function (window, document, undefined) {
     };
     DT.GameObject.prototype.removeFromScene = function () {
         this.scene.remove(this.tObject);
+        // this.tObject.children.forEach(function (el) {
+        //     if (el.geometry && el.geometry.dispose ) el.geometry.dispose();
+        //     if (el.material && el.material.dispose ) el.material.dispose();
+        //     if (el.texture && el.texture.dispose ) el.texture.dispose();
+        // });
+        // if (this.tObject.geometry && this.tObject.geometry.dispose ) this.tObject.geometry.dispose();
+        // if (this.tObject.material && this.tObject.material.dispose ) this.tObject.material.dispose();
+        // if (this.tObject.texture && this.tObject.texture.dispose ) this.tObject.texture.dispose();
         return this;
     };
     DT.GameObject.prototype.create = function () {
@@ -1138,7 +1146,6 @@ window.DT = (function (window, document, undefined) {
         if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance + 1) {
             DT.audio.sounds.stoneMiss.play();
         }
-
         var binormal = DT.getBinormalAt(this.t),
             estimatedPlayerPosition = options.data.tube.path.getPointAt(this.t)
                 .multiplyScalar(DT.scale)
@@ -1730,8 +1737,6 @@ window.DT = (function (window, document, undefined) {
     });
     DT.$document.on('resetGame', function (e, data) {
         DT.audio.reset();
-        DT.stopSound(2);
-        DT.playSound(0);
     });
     DT.$document.on('pauseGame', function () {
         DT.stopSoundBeforPause();
@@ -1744,9 +1749,12 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('gameOver', function (e, data) {
         DT.stopSound(0);
         DT.stopSound(1);
+        DT.playSound(2);
     });
     DT.$document.on('gameOver', function (e, data) {
-        DT.audio.sounds.gameover.play();
+        if (data.cause === 'death') {
+            DT.audio.sounds.gameover.play();
+        }
     });
 
     $(function(){
@@ -1906,7 +1914,7 @@ window.DT = (function (window, document, undefined) {
     DT.initKeyboardControl = function () {
         DT.$document.keydown(function(event) {
             var k = event.keyCode
-            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.choosenControl === 'keyboard') {
+            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
                     // arrows control
                 if (k === 38) { // up arrow
                     //
@@ -1938,15 +1946,14 @@ window.DT = (function (window, document, undefined) {
                 }
             }
         });
-        DT.$document.keyup(DT.handlers.pauseOnSpace);
     };
+    DT.initKeyboardControl();
     
     DT.$document.on('startGame', function (e, data) {
-        DT.initKeyboardControl();
+        DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
     });
     DT.$document.on('gameOver', function (e, data) {
         DT.$document.unbind('keyup', DT.handlers.pauseOnSpace);
-        DT.$document.bind('keyup', DT.handlers.restartOnSpace);
     });
 
 // ███████╗ ██████╗  ██████╗██╗  ██╗███████╗████████╗
@@ -1996,7 +2003,7 @@ window.DT = (function (window, document, undefined) {
             }
         });
         socket.on('click', function(click) {
-            if (DT.choosenControl === 'mobile') DT.handlers[click]();
+            DT.handlers[click]();
         });
         socket.on('message', function(data) {
             if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
@@ -2022,14 +2029,14 @@ window.DT = (function (window, document, undefined) {
     };
 
     DT.$document.on('startFromMobile', function (e, data) {
-        DT.startAfterChooseControl();
+        DT.$document.trigger('startGame', {});
     });
     DT.$document.on('startGame', function (e, data) {
         DT.sendSocketMessage({type: 'gamestarted'});
     });
-    DT.$document.on('resetGame', function (e, data) {
-        DT.sendSocketMessage({type: 'gamestarted'});
-    });
+    // DT.$document.on('resetGame', function (e, data) {
+    //     DT.sendSocketMessage({type: 'gamestarted'});
+    // });
     DT.$document.on('gameOver', function (e, data) {
         DT.sendSocketMessage({type: 'gameover'});
     });
@@ -2095,7 +2102,7 @@ window.DT = (function (window, document, undefined) {
             }
             if (event.status === 'found') {
                 DT.enableWebcam.satus = 'enable';
-                DT.startAfterChooseControl();
+                DT.$document.trigger('startGame', {});
             }
         }, true);
         
@@ -2115,7 +2122,7 @@ window.DT = (function (window, document, undefined) {
         
         document.addEventListener('facetrackingEvent', function( event ) {
             // once we have stable tracking, draw rectangle
-            if (event.detection == 'CS' && DT.choosenControl === 'webcam') {
+            if (event.detection == 'CS') {
                 var angle = Number(event.angle *(180/ Math.PI)-90);
                 // console.log(angle);
                 if(angle < leftBreakThreshold) {
@@ -2167,12 +2174,7 @@ window.DT = (function (window, document, undefined) {
     DT.handlers.startOnSpace = function(event) {
         var k = event.keyCode;
         if (k === 32) {
-            if (DT.choosenControl === null) {
-                DT.startAfterChooseControl();
-            } else {
-                DT.$document.trigger('resumeGame', {});
-            }
-            DT.choosenControl = 'keyboard';
+            DT.$document.trigger('startGame', {});
         }
     };
     DT.handlers.pauseOnSpace = function(event) {
@@ -2181,12 +2183,12 @@ window.DT = (function (window, document, undefined) {
             DT.handlers.pause();
         }
     };
-    DT.handlers.restartOnSpace = function(event) {
-        var k = event.keyCode;
-        if (k === 32) {
-            DT.$document.trigger('resetGame', {});
-        }
-    };
+    // DT.handlers.restartOnSpace = function(event) {
+    //     var k = event.keyCode;
+    //     if (k === 32) {
+    //         DT.$document.trigger('resetGame', {});
+    //     }
+    // };
     DT.handlers.fullscreen = function () {
         var isActivated = THREEx.FullScreen.activated();
         if (isActivated) {
@@ -2231,10 +2233,10 @@ window.DT = (function (window, document, undefined) {
     DT.handlers.restart = function () {
         DT.$document.trigger('resetGame', {});
     };
-    DT.$document.on('resetGame', function (e, data) {
-        DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
-        DT.$document.unbind('keyup', DT.handlers.restartOnSpace);
-    });
+    // DT.$document.on('resetGame', function (e, data) {
+    //     // DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
+    //     // DT.$document.unbind('keyup', DT.handlers.restartOnSpace);
+    // });
 
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
 // ██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝
@@ -2257,50 +2259,62 @@ window.DT = (function (window, document, undefined) {
             $('.loader').hide();
             $chooseControl.css({'display': 'table', 'opacity': '1'});
             $('.logo').animate({'margin-top': '50px'}, 250);
-            DT.$document.keyup(DT.handlers.startOnSpace);
+            DT.$document.bind('keyup', DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
-                DT.choosenControl = 'keyboard';
-                DT.startAfterChooseControl();
+                DT.$document.trigger('startGame', {});
             });
             $('.choose_mobile').click(function() {
-                DT.choosenControl = 'mobile';
-                if (!DT.game.wasStarted) {
-                    $chooseControl.fadeOut(250);
-                    $('.mobile_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
-                } else {
-                    DT.$document.trigger('resumeGame', {});
-                }
+                $chooseControl.fadeOut(250);
+                DT.$document.unbind('keyup', DT.handlers.startOnSpace);
+                $('.mobile_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
             });
             $('.choose_webcam').click(function() {
-                DT.choosenControl = 'webcam';
+                $chooseControl.fadeOut(250);
+                DT.$document.unbind('keyup', DT.handlers.startOnSpace);
                 if (!DT.enableWebcam.satus) {
-                    $chooseControl.fadeOut(250);
                     $('.webcam_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
                     DT.enableWebcam();
                 } else if (DT.enableWebcam.satus = 'init') {
                     $('.webcam_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
-                } else {
-                    DT.$document.trigger('resumeGame', {});
                 }
             });
         });
     };
-    DT.startAfterChooseControl = function () {
-        if (!DT.game.wasStarted) {
-            DT.$document.trigger('startGame', {});
-            DT.$document.unbind('keyup', DT.handlers.startOnSpace);
-        } else {
-            DT.$document.trigger('resumeGame', {});
-        }
-    };
-
-    $('.change_controls').click(function () {
-        $('.concealable').fadeOut(250);
-        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
-    });
 
     $('.resume').click(function() {
         DT.$document.trigger('resumeGame', {});
+    });
+
+    $('.restart').click(function() {
+        DT.$document.trigger('resetGame', {});
+        DT.$document.trigger('startGame', {});
+    });
+
+    $('.change_controls.pause_control').click(function() {
+        DT.$document.trigger('gameOver', {cause: 'reset'});
+        DT.$document.trigger('resetGame', {});
+        $('.pause').fadeOut(250);
+        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+        DT.$document.bind('keyup', DT.handlers.startOnSpace); 
+    });
+
+    $('.change_controls.webcam_control').click(function() {
+        $('.webcam_choosen').fadeOut(250);
+        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+        DT.$document.bind('keyup', DT.handlers.startOnSpace);
+    });
+
+    $('.change_controls.mobile_control').click(function() {
+        $('.mobile_choosen').fadeOut(250);
+        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+        DT.$document.bind('keyup', DT.handlers.startOnSpace);
+    });
+
+    $('.change_controls.gameove_control').click(function() {
+        DT.$document.trigger('resetGame', {});
+        $('.game_over').fadeOut(250);
+        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+        DT.$document.bind('keyup', DT.handlers.startOnSpace); 
     });
 
     $('#wow').on('click', function () {
@@ -2317,6 +2331,10 @@ window.DT = (function (window, document, undefined) {
             $('#gameovermessage').html('checking...');
             DT.$document.trigger('checkUp', {});
         }
+    });
+
+    $('.restart').click(function () {
+        DT.$document.trigger('resetGame', {});
     });
 
     DT.$document.keyup(function(event) {
@@ -2336,7 +2354,8 @@ window.DT = (function (window, document, undefined) {
         $('.hit').css({'display': 'table'}).fadeOut(250);
     });
     DT.$document.on('startGame', function (e, data) {
-        $('.concealable').fadeOut(250);
+        $chooseControl.fadeOut(250);
+        DT.$document.unbind('keyup', DT.handlers.startOnSpace);
     });
     DT.$document.on('socketInitialized', function (e, gameCode) {
         var address = DT.server + '/m/#' + gameCode;
@@ -2344,14 +2363,14 @@ window.DT = (function (window, document, undefined) {
         $('#qrcode').qrcode(address);
     });
     DT.$document.on('pauseGame', function () {
-        $('.menu_page').css({'display': 'table'});
+        $('.pause').css({'display': 'table'});
     });
     DT.$document.on('resumeGame', function (e, data) {
-        $('.concealable').css({'display': 'none'});
+        $('.pause').css({'display': 'none'});
     });
-    DT.$document.on('startGame', function (e, data) {
-        $('.gameTimer').css({'display': 'block'});
-    });
+    // DT.$document.on('startGame', function (e, data) {
+    //     $('.gameTimer').css({'display': 'block'});
+    // });
     DT.$document.on('showScore', function (e, data) {
         $('.current_coins').text(data.score);
     });
@@ -2367,25 +2386,21 @@ window.DT = (function (window, document, undefined) {
         }
     });
     DT.$document.on('gameOver', function (e, data) {
-        $('.total_coins').text(DT.player.currentScore);
-        $('.game_over').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, DT.gameOverTime);
-        $('#one_more_time').click(function () {
-            DT.$document.trigger('resetGame', {});
-        });
+        if (data.cause === 'death') {
+            $('.total_coins').text(DT.player.currentScore);
+            $('.game_over').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, DT.gameOverTime);
+        }
     });
     DT.$document.on('resetGame', function (e, data) {
         $('.current_coins').html('0');
         $('.bonus').html('');
-        $('.gameTimer').html('0:00');
+        DT.$title.html('digital trip');
         $('.helth').css({width: '100%'});
-        $('.game_over').hide();
-        $('#one_more_time').unbind('click');
     });
     DT.$document.on('paymentCheck', function (e, data) {
         var text = data.checkup ? 'success' : 'fail';
-        $('#gameovermessage').html(text);
+        $('.gameover_message').html(text);
     });
-
 // ███████╗████████╗ █████╗ ████████╗███████╗
 // ██╔════╝╚══██╔══╝██╔══██╗╚══██╔══╝██╔════╝
 // ███████╗   ██║   ███████║   ██║   ███████╗
@@ -2416,9 +2431,7 @@ window.DT = (function (window, document, undefined) {
         DT.rendererStats.domElement.style.width = '90px';
         body.appendChild(DT.rendererStats.domElement);
     };
-    DT.$document.on('startGame', function (e, data) {
-        DT.setStats();
-    });
+    DT.setStats();
     DT.$document.on('update', function (e, data) {
         DT.stats.update();
         DT.stats2.update();

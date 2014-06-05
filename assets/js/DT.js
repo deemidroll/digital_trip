@@ -3557,33 +3557,23 @@ window.DT = (function (window, document, undefined) {
         t < 0 ? 1 + t : t;
         return t;
     };
-    DT.getNormalAt = function (t, tube) {
+    DT.getNormalAt = function (t, tube, normals) {
         tube = tube || DT.tube;
+        normals = normals || 'normals';
         var normal = new THREE.Vector3(),
-            segments = tube.normals.length,
+            segments = tube[normals].length,
             pickt = t * segments,
             pick = Math.floor( pickt ),
             pickNext = ( pick + 1 ) % segments;
 
         tube = tube || DT.tube;
 
-        normal.subVectors( tube.normals[ pickNext ], tube.normals[ pick ] );
-        normal.multiplyScalar( pickt - pick ).add( tube.normals[ pick ] );
+        normal.subVectors( tube[normals][ pickNext ], tube[normals][ pick ] );
+        normal.multiplyScalar( pickt - pick ).add( tube[normals][ pick ] );
         return normal;
     };
     DT.getBinormalAt = function (t, tube) {
-        tube = tube || DT.tube;
-        var binormal = new THREE.Vector3(),
-            segments = tube.binormals.length,
-            pickt = t * segments,
-            pick = Math.floor( pickt ),
-            pickNext = ( pick + 1 ) % segments;
-
-        tube = tube || DT.tube;
-
-        binormal.subVectors( tube.binormals[ pickNext ], tube.binormals[ pick ] );
-        binormal.multiplyScalar( pickt - pick ).add( tube.binormals[ pick ] );
-        return binormal;
+        return DT.getNormalAt(t, tube, 'binormals');
     };
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
@@ -3656,14 +3646,11 @@ window.DT = (function (window, document, undefined) {
 
     var tubeMesh = THREE.SceneUtils.createMultiMaterialObject( tube, [
                 new THREE.MeshLambertMaterial({
-                    // color: 0xffffff,
                     opacity: 0,
                     transparent: true
                 }),
                 new THREE.MeshBasicMaterial({
-                    // color: 0x000000,
                     opacity: 0,
-                    // wireframe: true,
                     transparent: true
             })]);
     parent.add(tubeMesh);
@@ -3671,11 +3658,8 @@ window.DT = (function (window, document, undefined) {
 
     var binormal = new THREE.Vector3();
     var normal = new THREE.Vector3();
-    var targetRotation = 0;
 
     DT.$document.on('updatePath', function (e, data) {
-        // console.time("Execution time took");
-        // if (DT.cam === 0) 
         DT.renderer.render(DT.scene, DT.splineCamera);
         var dtime = data.delta,
             speed0 = DT.game.speed.getSpeed0(),
@@ -3709,27 +3693,17 @@ window.DT = (function (window, document, undefined) {
 
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
 
-        // DT.camAngle += Math.PI / 1024;
-        // var vectorUP = normal.clone();
-        //     matrix = new THREE.Matrix4().makeRotationAxis( dir, DT.camAngle );
-        // vectorUP.applyMatrix4( matrix );
-
         DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, normal);
         DT.splineCamera.rotation.setFromRotationMatrix( DT.splineCamera.matrix, DT.splineCamera.rotation.order );
 
-        parent.rotation.y += ( targetRotation - parent.rotation.y ) * 0.05;
+        parent.rotation.y += ( -parent.rotation.y ) * 0.05;
 
         data.tube = tube;
         data.t = t;
         data.normal = normal;
         data.binormal = binormal;
-        // console.timeEnd("Execution time took");
         DT.$document.trigger('update', data);
     });
-
-    // DT.$document.on('keyup', function (e, data) {
-    //     if (e.which == 67) DT.cam = DT.cam > 0 ? 0 : DT.cam + 1;
-    // });
 
     // LIGHTS
     DT.lights = {
@@ -3750,39 +3724,22 @@ window.DT = (function (window, document, undefined) {
     });
 
     // BACKGROUND
-    var mult = 40,
-        far = 500,
-        pi_2 = Math.PI/2;
+    var pi_2 = Math.PI/2;
+
     DT.backgroundMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(44 * mult / 5, 22 * mult / 5, 0),
-        new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture('img/bg3.jpg')
-        })
-    );
-
-
-    // DT.backgroundMesh.material.depthTest = false;  
-    // DT.backgroundMesh.material.depthWrite = false;
-    DT.backgroundMesh.visible = false;
-    DT.backgroundMesh.position.set(far, 0, 0);
-    DT.backgroundMesh.rotation.set(0, -pi_2, pi_2);
-    DT.scene.add(DT.backgroundMesh);
-
-    DT.backgroundMesh1 = new THREE.Mesh(
         new THREE.PlaneGeometry(1366, 768, 0),
         new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture('img/bg1.jpg')
         })
     );
-    DT.backgroundMesh1.visible = false;
-    DT.backgroundMesh1.position.set(-100, 0, 0);
-    DT.backgroundMesh1.rotation.set(0, pi_2, pi_2);
-    DT.scene.add(DT.backgroundMesh1);
+    DT.backgroundMesh.visible = false;
+    DT.backgroundMesh.position.set(-100, 0, 0);
+    DT.backgroundMesh.rotation.set(0, pi_2, pi_2);
+    DT.scene.add(DT.backgroundMesh);
 
     DT.$document.on('update', function (e, data) {
         if (!DT.backgroundMesh.visible) {
             DT.backgroundMesh.visible = true;
-            DT.backgroundMesh1.visible = true;
         }
     });
 
@@ -3790,16 +3747,6 @@ window.DT = (function (window, document, undefined) {
     DT.effectComposer = new THREE.EffectComposer( DT.renderer );
     DT.effectComposer.addPass( new THREE.RenderPass( DT.scene, DT.splineCamera ) );
     DT.effectComposer.on = false;
-
-    // var effectRBGShifter = new THREE.ShaderPass( THREE.RGBShiftShader );
-    // effectRBGShifter.uniforms[ 'amount' ].value = 0.005;
-    // effectRBGShifter.renderToScreen = true;
-    // DT.effectComposer.addPass( effectRBGShifter );
-
-    // var effectDotScreenShader = new THREE.ShaderPass( THREE.DotScreenShader );
-    // effectDotScreenShader.uniforms[ 'scale' ].value = 4;
-    // effectDotScreenShader.renderToScreen = true;
-    // DT.effectComposer.addPass( effectDotScreenShader );
 
     var badTVParams = {
         mute:true,
@@ -3830,15 +3777,15 @@ window.DT = (function (window, document, undefined) {
     });
     DT.$document.on('gameOver', function (e, data) {
         DT.effectComposer.on = true;
-        DT.effectComposer.timeOut = setTimeout(function () {
-            DT.effectComposer.on = false;
-            badTVParams = {
-                distortion: 3.0,
-                distortion2: 1.0,
-                speed: 0.3,
-                rollSpeed: 0.1
-            }
-        }, DT.gameOverTime);
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        DT.effectComposer.on = false;
+        badTVParams = {
+            distortion: 3.0,
+            distortion2: 1.0,
+            speed: 0.3,
+            rollSpeed: 0.1
+        }
     });
 
     // change IcosahedronGeometry prototype
@@ -3875,7 +3822,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.listOfModels = [{
             name: 'bonusH',
-            scale: 0.02,
+            scale: 0.01,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0xff0000,
         }, {
@@ -3901,8 +3848,7 @@ window.DT = (function (window, document, undefined) {
         console.info('loaded item', loaded, 'of', total, '('+item+')');
     };
     
-    var loader = new THREE.OBJLoader(manager),
-        loadModel;
+    var loader = new THREE.OBJLoader(manager);
 
     DT.listOfModels.forEach(function (el, i, a) {
         loader.load('objects/' + el.name + '.obj', function ( object ) {
@@ -4072,7 +4018,7 @@ window.DT = (function (window, document, undefined) {
 // ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██╔══╝  ██╔══██╗
 // ██║     ███████╗██║  ██║   ██║   ███████╗██║  ██║
 // ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
-                                                 
+
     DT.Player = function (options) {
         if (!DT.Player.__instance) {
             DT.Player.__instance = this;
@@ -4097,7 +4043,6 @@ window.DT = (function (window, document, undefined) {
         this.light.position = this.position;
         this.light.color = this.sphere.material.color;
         this.scene.add(this.light);
-        // this.scene.add(this.sphere);
 
         this.firstMove = true;
         this.moveIterator = 0;
@@ -4151,7 +4096,6 @@ window.DT = (function (window, document, undefined) {
                     }
                     
                     parent.add(particleSystem);
-                    // particleSystem.position = self.position;
                     self.particleSystem = particleSystem;
                     return particleSystem;
                 }
@@ -4278,8 +4222,8 @@ window.DT = (function (window, document, undefined) {
         this.particleSystem.position.copy(this.position);
 
         // visualize audio
-        var dt = DT.audio.valueAudio/10,
-            posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale * 2)
+        // var dt = DT.audio.valueAudio/10;
+        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale * 2)
             // .setLength(3 + dt);
 
         this.emitter.update(data.delta).render();
@@ -4362,7 +4306,6 @@ window.DT = (function (window, document, undefined) {
         destPoint: new THREE.Vector3(0, 0, 0),
         isInvulnerability: false,
         isFun: false,
-        // scene: parent
     });
     DT.$document.on('update', function (e, data) {
         DT.player.update(data);
@@ -4401,7 +4344,7 @@ window.DT = (function (window, document, undefined) {
 // ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      ██║   ██║██╔══██╗██   ██║██╔══╝  ██║        ██║   
 // ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    ╚██████╔╝██████╔╝╚█████╔╝███████╗╚██████╗   ██║   
  // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝ ╚═════╝  ╚════╝ ╚══════╝ ╚═════╝   ╚═╝   
-                                                                                          
+
     DT.GameObject = function (options) {
         this.tObject = options.tObject || new options.THREEConstructor(
             options.geometry,
@@ -4461,7 +4404,7 @@ window.DT = (function (window, document, undefined) {
 // ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      ██║     ██║   ██║██║     ██║         ██║   ██║██╔══██╗██   ██║
 // ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    ╚██████╗╚██████╔╝███████╗███████╗    ╚██████╔╝██████╔╝╚█████╔╝
  // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚══════╝╚══════╝     ╚═════╝ ╚═════╝  ╚════╝ 
-                                                                                                      
+
     DT.GameCollectionObject = function (options) {
         DT.GameObject.apply(this, arguments);
         this.collection = options.collection;
@@ -4513,7 +4456,7 @@ window.DT = (function (window, document, undefined) {
 // ╚════██║██╔══██║██║██╔══╝  ██║     ██║  ██║
 // ███████║██║  ██║██║███████╗███████╗██████╔╝
 // ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═════╝ 
-                                           
+
     DT.Shield = function (options) {
         if (!DT.Shield.__instance) {
             DT.Shield.__instance = this;
@@ -4561,7 +4504,7 @@ window.DT = (function (window, document, undefined) {
 // ██║  ██║██║   ██║╚════██║   ██║   
 // ██████╔╝╚██████╔╝███████║   ██║   
 // ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   
-                                  
+
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
         this.number = options.number || 2000;
@@ -4578,10 +4521,6 @@ window.DT = (function (window, document, undefined) {
                 DT.genRandomBetween(-50, 50)
             ));
         }
-        // var N = tube.vertices.length;
-        // for (var i = 0; i < N; i += 10) {
-        //     this.geometry.vertices.push(tube.vertices[i].clone().multiplyScalar(DT.scale));
-        // }
         this.material.visible = false;
         return this;
     };
@@ -4598,18 +4537,6 @@ window.DT = (function (window, document, undefined) {
         return this;
     };
 
-    DT.Dust.prototype.updateGeometry = function (options) {
-        // this.geometry.vertices.forEach(function (el) {
-        //     el.z += options.speed;
-        //     if (el.z > 10) {
-        //         el.x = DT.genRandomBetween(-10, 10);
-        //         el.y = DT.genRandomBetween(-10, 10);
-        //         el.z = -100;
-        //     }
-        // });
-        // this.geometry.verticesNeedUpdate = true;
-        return this;
-    };
     // Dust object 
     DT.dust = new DT.Dust({
         geometry: new THREE.Geometry({}),
@@ -4617,12 +4544,10 @@ window.DT = (function (window, document, undefined) {
         THREEConstructor: THREE.ParticleSystem
     });
     DT.$document.on('update', function (e, data) {
-        DT.dust.update({
-            material: {
-                isFun: DT.player.isFun,
-                valueAudio: DT.audio.valueAudio,
-                color: DT.player.sphere.material.color
-            }
+        DT.dust.updateMaterial({
+            isFun: DT.player.isFun,
+            valueAudio: DT.audio.valueAudio,
+            color: DT.player.sphere.material.color
         });
     });
 
@@ -4683,8 +4608,8 @@ window.DT = (function (window, document, undefined) {
             DT.$document.trigger('bump', {});
             // вызвать вспышку экрана
             if (DT.player.isInvulnerability === false) {
-                DT.hit();
                 DT.$document.trigger('blink', {color: 0x000000, frames: 60});
+                DT.$document.trigger('hit', {});
             }
         }
         if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance + 1) {
@@ -4825,7 +4750,6 @@ window.DT = (function (window, document, undefined) {
                 time: 10
             });
             DT.$document.trigger('blink', {color: 0xcfb53b, frames: 60});
-            // DT.player.bump();
         }
         return this;
     };
@@ -4972,6 +4896,14 @@ window.DT = (function (window, document, undefined) {
         return this;
     };
 
+    DT.Collection.prototype.reset = function () {
+        this.collection.forEach(function (el) {
+            el.scene.remove(el.tObject);
+        });
+        this.collection.length = 0;
+        return this;
+    };
+
     DT.StonesCollection = function () {
         if (!DT.StonesCollection.__instance) {
             DT.StonesCollection.__instance = this;
@@ -5032,7 +4964,7 @@ window.DT = (function (window, document, undefined) {
             });
     });
     DT.$document.on('resetGame', function (e, data) {
-        new DT.StonesCollection().removeObjects();
+        new DT.StonesCollection().reset();
     });
 
     DT.StaticStonesCollection = function () {
@@ -5072,25 +5004,14 @@ window.DT = (function (window, document, undefined) {
         return this;
     };
 
-    DT.$document.on('update', function (e, data) {
-        var t = DT.normalizeT(data.t + 0.08),
-            binormal = DT.getBinormalAt(t);
-
-        new DT.StaticStonesCollection().update({});
-
-        if (DT.game.timer < 30) {
-            new DT.StaticStonesCollection()
-                .createObjects({
-                    position: data.tube.vertices[DT.genRandomFloorBetween(0, data.tube.vertices.length-1)].clone().multiplyScalar(DT.scale),
-                    t: t,
-                    sphere: DT.player.sphere,
-                });
-        }
-    });
-    DT.$document.on('resetGame', function (e, data) {
-        new DT.StaticStonesCollection().removeObjects();
-    });
-
+    for (var i = 500; i > 0; i--) {
+        new DT.StaticStonesCollection()
+            .createObjects({
+                position: DT.tube.vertices[DT.genRandomFloorBetween(0, DT.tube.vertices.length-1)].clone().multiplyScalar(DT.scale),
+                // t: t,
+                sphere: DT.player.sphere,
+            });
+    }
 
     DT.CoinsCollection = function () {
         if (!DT.CoinsCollection.__instance) {
@@ -5133,7 +5054,7 @@ window.DT = (function (window, document, undefined) {
             });
     });
     DT.$document.on('resetGame', function (e, data) {
-        new DT.CoinsCollection().removeObjects()
+        new DT.CoinsCollection().reset()
     });
 
     DT.BonusesCollection = function (options) {
@@ -5188,7 +5109,9 @@ window.DT = (function (window, document, undefined) {
         return this;
     };
     DT.BonusesCollection.prototype.reset = function () {
+        DT.Collection.prototype.reset.apply(this, arguments);
         this.caughtBonuses.length = 0;
+        return this;
     };
     DT.$document.on('update', function (e, data) {
         new DT.BonusesCollection()
@@ -5208,7 +5131,7 @@ window.DT = (function (window, document, undefined) {
         new DT.BonusesCollection().catchBonus(data.type);
     });
     DT.$document.on('resetGame', function (e, data) {
-        new DT.BonusesCollection().removeObjects().reset(); 
+        new DT.BonusesCollection().reset(); 
     });
 
  // █████╗ ██╗   ██╗██████╗ ██╗ ██████╗ 
@@ -5796,7 +5719,7 @@ window.DT = (function (window, document, undefined) {
 // ██║██║╚██╗██║   ██║   ██╔══╝  ██╔══██╗██╔══╝  ██╔══██║██║     ██╔══╝  
 // ██║██║ ╚████║   ██║   ███████╗██║  ██║██║     ██║  ██║╚██████╗███████╗
 // ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝
-
+// interface module
     var $chooseControl = $('.choose_control');
     DT.runApp = function () {
         DT.initSocket();
@@ -5810,7 +5733,6 @@ window.DT = (function (window, document, undefined) {
         $(function() {
             $('.loader').hide();
             $chooseControl.css({'display': 'table', 'opacity': '1'});
-            $('.buttons').show();
             $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.keyup(DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
@@ -5848,26 +5770,32 @@ window.DT = (function (window, document, undefined) {
             DT.$document.trigger('resumeGame', {});
         }
     };
-    DT.hit = function() {
-        $(function(){
-            $('.error').html('ERROR ' + DT.genRandomFloorBetween(500, 511));
-            $('.hit').css({'display': 'table'}).fadeOut(250);
-        });
-    };
 
     $('.change_controls').click(function () {
         $('.concealable').fadeOut(250);
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
     });
 
-    $('.menu_button').click(function() {
-        DT.$document.trigger('pauseGame', {});
-    });
     $('.resume').click(function() {
         DT.$document.trigger('resumeGame', {});
     });
-    $('.music_button').click(DT.handlers.mute);
-    $('.fs_button').click(DT.handlers.fullscreen);
+
+    $('#wow').on('click', function () {
+        var inputDogeCoin = $('#dogecoin');
+        if (inputDogeCoin.val() === 'YOUR DOGECOIN ID') {
+            inputDogeCoin.css({
+                'border': '2px solid red'
+            });
+            $('#gameovermessage').html('type your dogecoin id');
+        } else {
+            inputDogeCoin.css({
+                'border': '2px solid green'
+            });
+            $('#gameovermessage').html('checking...');
+            DT.$document.trigger('checkUp', {});
+        }
+    });
+
     DT.$document.keyup(function(event) {
         var k = event.keyCode;
         if (k === 77) {
@@ -5880,7 +5808,10 @@ window.DT = (function (window, document, undefined) {
             DT.handlers.fullscreen();
         }
     });
-
+    DT.$document.on('hit', function (e, data) {
+        $('.error').html('ERROR ' + DT.genRandomFloorBetween(500, 511));
+        $('.hit').css({'display': 'table'}).fadeOut(250);
+    });
     DT.$document.on('startGame', function (e, data) {
         $('.concealable').fadeOut(250);
     });
@@ -5927,21 +5858,6 @@ window.DT = (function (window, document, undefined) {
         $('.game_over').hide();
         $('#one_more_time').unbind('click');
     });
-    $('#wow').on('click', function () {
-        var inputDogeCoin = $('#dogecoin');
-        if (inputDogeCoin.val() === 'YOUR DOGECOIN ID') {
-            inputDogeCoin.css({
-                'border': '2px solid red'
-            });
-            $('#gameovermessage').html('type your dogecoin id');
-        } else {
-            inputDogeCoin.css({
-                'border': '2px solid green'
-            });
-            $('#gameovermessage').html('checking...');
-            DT.$document.trigger('checkUp', {});
-        }
-    });
     DT.$document.on('paymentCheck', function (e, data) {
         var text = data.checkup ? 'success' : 'fail';
         $('#gameovermessage').html(text);
@@ -5969,12 +5885,13 @@ window.DT = (function (window, document, undefined) {
         DT.stats2.domElement.style.zIndex = 100;
         body.appendChild( DT.stats2.domElement );
 
-        // DT.rendererStats  = new THREEx.RendererStats();
-        // DT.rendererStats.domElement.style.position = 'absolute';
-        // DT.rendererStats.domElement.style.left = '0px';
-        // DT.rendererStats.domElement.style.top = '50px';
-        // DT.rendererStats.domElement.style.zIndex = 100;
-        // body.appendChild(DT.rendererStats.domElement);
+        DT.rendererStats  = new THREEx.RendererStats();
+        DT.rendererStats.domElement.style.position = 'absolute';
+        DT.rendererStats.domElement.style.left = '0px';
+        DT.rendererStats.domElement.style.top = '50px';
+        DT.rendererStats.domElement.style.zIndex = 100;
+        DT.rendererStats.domElement.style.width = '90px';
+        body.appendChild(DT.rendererStats.domElement);
     };
     DT.$document.on('startGame', function (e, data) {
         DT.setStats();
@@ -5982,7 +5899,7 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('update', function (e, data) {
         DT.stats.update();
         DT.stats2.update();
-        // DT.rendererStats.update(DT.renderer);
+        DT.rendererStats.update(DT.renderer);
     }); 
 
 // ████████╗██╗  ██╗███████╗    ███████╗███╗   ██╗██████╗ 

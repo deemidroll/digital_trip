@@ -1911,8 +1911,8 @@ window.DT = (function (window, document, undefined) {
 // ██║  ██╗███████╗   ██║   ██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝
 // ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ 
 
-    DT.initKeyboardControl = function () {
-        DT.$document.keydown(function(event) {
+    (function () {
+        var keydownArrows = function(event) {
             var k = event.keyCode
             if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
                     // arrows control
@@ -1928,6 +1928,29 @@ window.DT = (function (window, document, undefined) {
                 if (k === 39) { // right arrow
                     DT.handlers.toTheRight();
                 }
+            }
+        };
+        var keyupHandler = function(event) {
+            var k = event.keyCode;
+            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+                if (k === 16) { //shift
+                    DT.$document.trigger('changeSpeed', {changer: 0});
+                }
+            }
+        };
+        DT.$document.on('startGame', function (e, data) {
+            if (data.control === 'keyboard') {
+                DT.$document.bind('keydown', keydownArrows);
+            }
+        });
+        DT.$document.on('resetGame', function (e, data) {
+            if (data.cause === 'chooseControl') {
+                DT.$document.unbind('keydown', keydownArrows);
+            }
+        });
+        DT.$document.bind('keydown', function(event) {
+            var k = event.keyCode
+            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
                 // speedUp
                 if (k === 16) { //shift
                     DT.$document.trigger('stopFun', {});
@@ -1938,23 +1961,14 @@ window.DT = (function (window, document, undefined) {
                 }
             }
         });
-        DT.$document.keyup(function(event) {
-            var k = event.keyCode;
-            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
-                if (k === 16) { //shift
-                    DT.$document.trigger('changeSpeed', {changer: 0});
-                }
-            }
+        DT.$document.bind('keyup', keyupHandler);
+        DT.$document.on('startGame', function (e, data) {
+            DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
         });
-    };
-    DT.initKeyboardControl();
-    
-    DT.$document.on('startGame', function (e, data) {
-        DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
-    });
-    DT.$document.on('gameOver', function (e, data) {
-        DT.$document.unbind('keyup', DT.handlers.pauseOnSpace);
-    });
+        DT.$document.on('gameOver', function (e, data) {
+            DT.$document.unbind('keyup', DT.handlers.pauseOnSpace);
+        });
+    })();
 
 // ███████╗ ██████╗  ██████╗██╗  ██╗███████╗████████╗
 // ██╔════╝██╔═══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝
@@ -2054,94 +2068,104 @@ window.DT = (function (window, document, undefined) {
 // ╚███╔███╔╝███████╗██████╔╝╚██████╗██║  ██║██║ ╚═╝ ██║
  // ╚══╝╚══╝ ╚══════╝╚═════╝  ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝
     // headtracker realization
+    // Получаем элементы video и canvas
+    var videoInput = document.getElementById('vid');
+    var canvasInput = document.getElementById('compare');
+    var debugOverlay = document.getElementById('debug');
+    
+    var canvasContext = canvasInput.getContext('2d');
+    // переворачиваем canvas зеркально по горизонтали
+    canvasContext.translate(canvasInput.width, 0);
+    canvasContext.scale(-1, 1);
+    
+    // debugOverlay.style.height = '100%';
+    debugOverlay.style.opacity = '0.1';
+    debugOverlay.style.zIndex = '0';
+
     DT.enableWebcam = function () {
-        DT.enableWebcam.satus = 'init';
-        // Game config
-        var leftBreakThreshold = -5;
-        var leftTurnThreshold = -10;
-        var rightBreakThreshold = 5;
-        var rightTurnThreshold = 10;
-        // Получаем элементы video и canvas
-        
-        var videoInput = document.getElementById('vid');
-        var canvasInput = document.getElementById('compare');
-        var debugOverlay = document.getElementById('debug');
-    
-        var canvasContext = canvasInput.getContext('2d');
-        // переворачиваем canvas зеркально по горизонтали
-        canvasContext.translate(canvasInput.width, 0);
-        canvasContext.scale(-1, 1);
-    
-        // debugOverlay.style.height = '100%';
-        debugOverlay.style.opacity = '0.1';
-        debugOverlay.style.zIndex = '0';
-        
-        // Определяем сообщения, выдаваемые библиотекой
-        
-        var statusMessages = {
-            'whitebalance' : 'Checking cam and white balance',
-            'detecting' : 'Head detected',
-            'hints' : 'Something wrong. Try move your head',
-            'redetecting' : 'Head lost, search',
-            'lost' : 'Head lost',
-            'found' : 'Now turn to start'
-        };
-        
-        var supportMessages = {
-            'no getUserMedia' : 'Browser not allowed getUserMedia',
-            'no camera' : 'Camera not found'
-        };
-        
-        document.addEventListener('headtrackrStatus', function(event) {
-            if (event.status in supportMessages) {
-                console.log(supportMessages[event.status]);
-                $('.turn_to_start span').html(supportMessages[event.status])
-            } else if (event.status in statusMessages) {
-                console.log(statusMessages[event.status]);
-                $('.turn_to_start span').html(statusMessages[event.status])
-            }
-            if (event.status === 'found') {
-                DT.enableWebcam.satus = 'enable';
-                DT.$document.trigger('startGame', {});
-            }
-        }, true);
-        
-        // Установка отслеживания
-        
-        var htracker = new headtrackr.Tracker({
-            altVideo : {ogv : '', mp4 : ''},
-            calcAngles : true,
-            ui : false,
-            headPosition : false,
-            debug : debugOverlay
-        });
-        htracker.init(videoInput, canvasInput);
-        htracker.start();
-        
-        // Рисуем прямоугольник вокруг «пойманного» лица
-        
-        document.addEventListener('facetrackingEvent', function( event ) {
-            // once we have stable tracking, draw rectangle
-            if (event.detection == 'CS') {
-                var angle = Number(event.angle *(180/ Math.PI)-90);
-                // console.log(angle);
-                if(angle < leftBreakThreshold) {
-                    if(angle > leftTurnThreshold) {
-                        DT.handlers.center();
+        if (DT.enableWebcam.satus === undefined) {
+            DT.enableWebcam.satus = 'init';
+            // Game config
+            var leftBreakThreshold = -5;
+            var leftTurnThreshold = -10;
+            var rightBreakThreshold = 5;
+            var rightTurnThreshold = 10;
+            
+            // Определяем сообщения, выдаваемые библиотекой
+            var statusMessages = {
+                'whitebalance' : 'Checking cam and white balance',
+                'detecting' : 'Head detected',
+                'hints' : 'Something wrong. Try move your head',
+                'redetecting' : 'Head lost, search',
+                'lost' : 'Head lost',
+                'found' : 'Now turn to start'
+            };
+            
+            var supportMessages = {
+                'no getUserMedia' : 'Browser not allowed getUserMedia',
+                'no camera' : 'Camera not found'
+            };
+
+            var headtrackrStatusHandler = function(event) {
+                if (event.status in supportMessages) {
+                    console.log(supportMessages[event.status]);
+                    $('.turn_to_start span').html(supportMessages[event.status])
+                } else if (event.status in statusMessages) {
+                    console.log(statusMessages[event.status]);
+                    $('.turn_to_start span').html(statusMessages[event.status])
+                }
+                if (event.status === 'found' && !DT.gameWasStarted) {
+                    DT.enableWebcam.satus = 'enabled';
+                    DT.$document.trigger('startGame', {});
+                }
+            };
+
+            var facetrackingEventHandler = function( event ) {
+                // once we have stable tracking, draw rectangle
+                if (event.detection == 'CS' && DT.enableWebcam.satus === 'enabled') {
+                    var angle = Number(event.angle *(180/ Math.PI)-90);
+                    // console.log(angle);
+                    if(angle < leftBreakThreshold) {
+                        if(angle > leftTurnThreshold) {
+                            DT.handlers.center();
+                        } else {
+                            DT.handlers.left();
+                        }
+                    } else if (angle > rightBreakThreshold) {
+                        if(angle < rightTurnThreshold) {
+                            DT.handlers.center();
+                        } else {
+                            DT.handlers.right();
+                        }
                     } else {
-                        DT.handlers.left();
-                    }
-                } else if (angle > rightBreakThreshold) {
-                    if(angle < rightTurnThreshold) {
                         DT.handlers.center();
-                    } else {
-                        DT.handlers.right();
                     }
-                } else {
-                    DT.handlers.center();
                 }
             }
-        });
+            
+            document.addEventListener('headtrackrStatus', headtrackrStatusHandler, true);
+            
+            // Установка отслеживания
+            DT.htracker = DT.htracker || new headtrackr.Tracker({
+                altVideo : {ogv : '', mp4 : ''},
+                calcAngles : true,
+                ui : false,
+                headPosition : false,
+                debug : debugOverlay
+            });
+            DT.htracker.init(videoInput, canvasInput);
+            DT.htracker.start();
+            console.log(DT.htracker);
+            // Рисуем прямоугольник вокруг «пойманного» лица
+            
+            document.addEventListener('facetrackingEvent', facetrackingEventHandler);
+            DT.$document.on('resetGame', function (e, data) {
+                if (data.cause === 'chooseControl') DT.enableWebcam.satus = 'disabled';
+            });
+        } else if (DT.enableWebcam.satus = 'disabled') {
+            DT.$document.trigger('startGame', {});
+            DT.enableWebcam.satus = 'enabled';
+        }
     };
 
 // ██╗     ██╗███████╗████████╗███████╗███╗   ██╗███████╗██████╗ ███████╗
@@ -2174,7 +2198,7 @@ window.DT = (function (window, document, undefined) {
     DT.handlers.startOnSpace = function(event) {
         var k = event.keyCode;
         if (k === 32) {
-            DT.$document.trigger('startGame', {});
+            DT.$document.trigger('startGame', {control: 'keyboard'});
         }
     };
     DT.handlers.pauseOnSpace = function(event) {
@@ -2261,7 +2285,7 @@ window.DT = (function (window, document, undefined) {
             $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.bind('keyup', DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
-                DT.$document.trigger('startGame', {});
+                DT.$document.trigger('startGame', {control: 'keyboard'});
             });
             $('.choose_mobile').click(function() {
                 $chooseControl.fadeOut(250);
@@ -2271,12 +2295,8 @@ window.DT = (function (window, document, undefined) {
             $('.choose_webcam').click(function() {
                 $chooseControl.fadeOut(250);
                 DT.$document.unbind('keyup', DT.handlers.startOnSpace);
-                if (!DT.enableWebcam.satus) {
-                    $('.webcam_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
-                    DT.enableWebcam();
-                } else if (DT.enableWebcam.satus = 'init') {
-                    $('.webcam_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
-                }
+                $('.webcam_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+                DT.enableWebcam();
             });
         });
     };
@@ -2292,7 +2312,7 @@ window.DT = (function (window, document, undefined) {
 
     $('.change_controls.pause_control').click(function() {
         DT.$document.trigger('gameOver', {cause: 'reset'});
-        DT.$document.trigger('resetGame', {});
+        DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.pause').fadeOut(250);
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace); 
@@ -2311,7 +2331,7 @@ window.DT = (function (window, document, undefined) {
     });
 
     $('.change_controls.gameove_control').click(function() {
-        DT.$document.trigger('resetGame', {});
+        DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.game_over').fadeOut(250);
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace); 
@@ -2355,6 +2375,8 @@ window.DT = (function (window, document, undefined) {
     });
     DT.$document.on('startGame', function (e, data) {
         $chooseControl.fadeOut(250);
+        $('.mobile_choosen').fadeOut(250);
+        $('.webcam_choosen').fadeOut(250);
         DT.$document.unbind('keyup', DT.handlers.startOnSpace);
     });
     DT.$document.on('socketInitialized', function (e, gameCode) {

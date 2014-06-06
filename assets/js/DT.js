@@ -3983,6 +3983,7 @@ window.DT = (function (window, document, undefined) {
         this.speed.speed0 = 1/60;
         this.wasOver = false;
         this.wasPaused = false; // ?
+        DT.game.wasStarted = false;
     };
     DT.Game.prototype.gameOver = function() {
         this.wasOver = true;
@@ -5469,28 +5470,32 @@ window.DT = (function (window, document, undefined) {
         });
         // We receive our game code to show the user
         socket.on('initialize', function(gameCode) {
-            socket.gameCode = gameCode;
-            DT.$document.trigger('socketInitialized', gameCode);
+            // if (socket.gameCode !== gameCode) {
+                socket.gameCode = gameCode;
+                DT.$document.trigger('socketInitialized', gameCode);
+            // }
         });
         // When the user inputs the code into the phone client, we become 'connected'. Start the game.
         socket.on('connected', function(data) {
         });
         // When the phone is turned, change destPoint
         socket.on('turn', function(turn) {
-            if(turn < leftBreakThreshold) {
-                if(turn > leftTurnThreshold) {
-                    DT.handlers.center();
+            if (DT.enableMobileSatus === 'enabled') {
+                if(turn < leftBreakThreshold) {
+                    if(turn > leftTurnThreshold) {
+                        DT.handlers.center();
+                    } else {
+                        DT.handlers.left();
+                    }
+                } else if (turn > rightBreakThreshold) {
+                    if(turn < rightTurnThreshold) {
+                        DT.handlers.center();
+                    } else {
+                        DT.handlers.right();
+                    }
                 } else {
-                    DT.handlers.left();
-                }
-            } else if (turn > rightBreakThreshold) {
-                if(turn < rightTurnThreshold) {
                     DT.handlers.center();
-                } else {
-                    DT.handlers.right();
                 }
-            } else {
-                DT.handlers.center();
             }
         });
         socket.on('click', function(click) {
@@ -5500,11 +5505,11 @@ window.DT = (function (window, document, undefined) {
             if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
         });
         socket.on('start', function(data) {
-            DT.$document.trigger('startFromMobile', data);
+            if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: 'mobile'});
         });
-        socket.on('disconnectController', function(data) {
-            DT.$document.trigger('pauseGame', {});
-        });
+        // socket.on('disconnectController', function(data) {
+        //     DT.$document.trigger('pauseGame', {});
+        // });
     };
     DT.sendSocketMessage = function (options) {
         var data = {
@@ -5519,15 +5524,15 @@ window.DT = (function (window, document, undefined) {
         }
     };
 
-    DT.$document.on('startFromMobile', function (e, data) {
-        DT.$document.trigger('startGame', {});
-    });
     DT.$document.on('startGame', function (e, data) {
         DT.sendSocketMessage({type: 'gamestarted'});
     });
-    // DT.$document.on('resetGame', function (e, data) {
-    //     DT.sendSocketMessage({type: 'gamestarted'});
-    // });
+    DT.$document.on('startGame', function (e, data) {
+        if (data.control === 'mobile') DT.enableMobileSatus = 'enabled';
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        if (data.cause === 'chooseControl') DT.enableMobileSatus = 'disabled';
+    });
     DT.$document.on('gameOver', function (e, data) {
         DT.sendSocketMessage({type: 'gameover'});
     });
@@ -5593,7 +5598,7 @@ window.DT = (function (window, document, undefined) {
                 }
                 if (event.status === 'found' && !DT.gameWasStarted) {
                     DT.enableWebcam.satus = 'enabled';
-                    DT.$document.trigger('startGame', {});
+                    if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
                 }
             };
 
@@ -5640,7 +5645,7 @@ window.DT = (function (window, document, undefined) {
                 if (data.cause === 'chooseControl') DT.enableWebcam.satus = 'disabled';
             });
         } else if (DT.enableWebcam.satus = 'disabled') {
-            DT.$document.trigger('startGame', {});
+            if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
             DT.enableWebcam.satus = 'enabled';
         }
     };
@@ -5675,7 +5680,7 @@ window.DT = (function (window, document, undefined) {
     DT.handlers.startOnSpace = function(event) {
         var k = event.keyCode;
         if (k === 32) {
-            DT.$document.trigger('startGame', {control: 'keyboard'});
+            if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: 'keyboard'});
         }
     };
     DT.handlers.pauseOnSpace = function(event) {
@@ -5762,7 +5767,7 @@ window.DT = (function (window, document, undefined) {
             $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.bind('keyup', DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
-                DT.$document.trigger('startGame', {control: 'keyboard'});
+                if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: 'keyboard'});
             });
             $('.choose_mobile').click(function() {
                 $chooseControl.fadeOut(250);
@@ -5784,7 +5789,7 @@ window.DT = (function (window, document, undefined) {
 
     $('.restart').click(function() {
         DT.$document.trigger('resetGame', {});
-        DT.$document.trigger('startGame', {});
+        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
     });
 
     $('.change_controls.pause_control').click(function() {
@@ -5859,7 +5864,7 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('socketInitialized', function (e, gameCode) {
         var address = DT.server + '/m/#' + gameCode;
         $('.mobile_message span').html(address);
-        $('#qrcode').qrcode(address);
+        $('#qrcode').html('').qrcode(address);
     });
     DT.$document.on('pauseGame', function () {
         $('.pause').css({'display': 'table'});

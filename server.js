@@ -262,10 +262,9 @@ io.sockets.on('connection', function(socket) {
             });
         } else if(data.type == 'controller') { // if client is a phone controller
             // if game code is valid...
-            if(data.gameCode in socketCodes && !socketCodes[data.gameCode].isControlllerConnected) {
+            if(data.gameCode in socketCodes) {
                 // save the game code for controller commands
-                socket.gameCode = data.gameCode
-                socketCodes[data.gameCode].isControlllerConnected = true;
+                socket.gameCode = data.gameCode;
                 // initialize the controller
                 socket.emit('connected', {});
                 

@@ -13,23 +13,36 @@
     <audio id="audioloop" src="../sounds/loop.mp3" onended="this.play();" autobuffer></audio>
 
     <div id="controller" style="display:none">
+        
+        <!-- code input -->
         <div id="socket">
+            <!-- status message -->
+            <div id="status" ></div>
             <input id="gameCodeInput" autofocus type="text" name="socketId"/>
-            <input type="button" id="connect" value="Connect"/>
+            <button id="connect">connect</button>
         </div>
+
+        <!-- game control -->
         <div id="wheel" style="display:none">
-            <div id="turnRight"></div>
-            <div id="turnLeft"></div>
-            <div id="onMoreTime"></div>
+            <div id="turnLeft"><img src="../img/left.png"></div>
+            <div id="sphere"><img src="../img/sphere.png"></div>
+            <div id="turnRight"><img src="../img/right.png"></div>
         </div>
-        <div id="status"></div>
+        
+            <!-- game over -->
+        <div id="gameover" style="display:none">
+            <img src="../img/mobilereset.jpg">
+            <button id="restart">restart</button>
+        </div>
+
+            <!-- start -->
+        <div id="preparetostart" style="display:none">
+            <div id="start"><img src="../img/sphere.png" height="145" width="146" alt=""></div>
+        </div>
     </div>
-    <div id="gameover" style="display:none">
-        <input type="button" id="restart" value="on more time"/>
-    </div>
-    <div id="preparetostart" style="display:none">
-        <button id="start">start</button>
-    </div>
+    
+    <!-- logo -->
+    <a href="http://hotdot.pro/" id="hotdot" target="_blank"><img src="../img/hotdot.png" height="20" width="20" alt=""></a>
 
     <script src="../js/mobile.min.js"></script>
     <script src="../../socket.io/socket.io.js"></script>

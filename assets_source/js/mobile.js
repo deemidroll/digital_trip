@@ -39,7 +39,7 @@ $(function() {
                 }
                 if (data.type === "gameover") {
                     // console.log("gameover");
-                    controller.hide();
+                    wheel.hide();
                     $("#gameover").show();
                 }
                 if (data.type === "resetGame") {
@@ -110,7 +110,8 @@ $(function() {
                 $("#restart").click(function () {
                     socket.emit("click", {"click":"restart"});
                     $("#gameover").hide();
-                    controller.show();
+                    wheel.show();
+                    $('#audioloop').trigger('play');
                 });
 
             });

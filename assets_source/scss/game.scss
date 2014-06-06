@@ -52,9 +52,18 @@ body {
 .webcamcontrol {
     width: 100%;
     height: 100%;
-    display: none;
+    // display: none;
     position: absolute;
     text-align: center;
+}
+
+#compare {
+    z-index: 1;
+    display: none;
+    position: absolute;
+    right: 30px;
+    top: 30px;
+    border: 2px solid white;
 }
 
 .hit {
@@ -421,7 +430,7 @@ a:hover {
 }
 .webcam_message {
     font-size: 40px;
-    line-height: 1.5em;
+    line-height: 1.2em;
     letter-spacing: 0.1em;
 }
 .turn_to_start {
@@ -441,16 +450,19 @@ a:hover {
     top: 50px;
     left: 50%;
     margin-left: -72px;
+    display: none;
 }
 #left_v_check {
     position: absolute;
     bottom: 50px;
-    left: 0;
+    left: 100px;
+    display: none;
 }
 #right_v_check {
     position: absolute;
     bottom: 50px;
-    right: 0;
+    right: 100px;
+    display: none;
 }
 .mobile_message span{
     text-transform: lowercase;

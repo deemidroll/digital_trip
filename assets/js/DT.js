@@ -4012,6 +4012,13 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('resetGame', function (e, data) {
         DT.game.reset();
     });
+    DT.$document.on('showFun', function (e, data) {
+        if (data.isFun) {
+            DT.$document.trigger('changeSpeed', {changer: -DT.game.speed.getSpeed0()/2});
+        } else {
+            DT.$document.trigger('changeSpeed', {changer: 0});
+        }
+    });
 
 // ██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗ 
 // ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔════╝██╔══██╗
@@ -5021,6 +5028,11 @@ window.DT = (function (window, document, undefined) {
             });
     }
 
+    DT.$document.on('update', function (e, data) {
+        new DT.StaticStonesCollection()
+            .update();
+    });
+
     DT.CoinsCollection = function () {
         if (!DT.CoinsCollection.__instance) {
             DT.CoinsCollection.__instance = this;
@@ -5235,7 +5247,7 @@ window.DT = (function (window, document, undefined) {
         }
     });
 
-    $(function(){
+    (function () {
         // MUSIC
         var context,
             counter = 0,
@@ -5370,7 +5382,7 @@ window.DT = (function (window, document, undefined) {
             // return it
             return source;
         };
-    });
+    })();
 
     DT.$document.on('showBonuses', function (e, data) {
         DT.audio.sounds.catchBonus.play();
@@ -5381,6 +5393,15 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('makeInvulner', function (e, data) {
         DT.audio.sounds.shield.play();
     });
+    DT.$document.on('showFun', function (e, data) {
+        if (data.isFun) {
+            DT.stopSound(0);
+            DT.playSound(1);
+        } else {
+            DT.stopSound(1);
+            DT.playSound(0);
+        }
+    });
 
 // ██╗  ██╗███████╗██╗   ██╗██████╗  ██████╗  █████╗ ██████╗ ██████╗ 
 // ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔══██╗██╔═══██╗██╔══██╗██╔══██╗██╔══██╗
@@ -5389,64 +5410,64 @@ window.DT = (function (window, document, undefined) {
 // ██║  ██╗███████╗   ██║   ██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝
 // ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ 
 
-    (function () {
-        var keydownArrows = function(event) {
-            var k = event.keyCode
-            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
-                    // arrows control
-                if (k === 38) { // up arrow
-                    //
-                }
-                if (k === 40) { // down arrow
-                    // 
-                }
-                if (k === 37) { // left arrow
-                    DT.handlers.toTheLeft();
-                }
-                if (k === 39) { // right arrow
-                    DT.handlers.toTheRight();
-                }
+(function () {
+    var keydownArrows = function(event) {
+        var k = event.keyCode
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+                // arrows control
+            if (k === 38) { // up arrow
+                //
             }
-        };
-        var keyupHandler = function(event) {
-            var k = event.keyCode;
-            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
-                if (k === 16) { //shift
-                    DT.$document.trigger('changeSpeed', {changer: 0});
-                }
+            if (k === 40) { // down arrow
+                // 
             }
-        };
-        DT.$document.on('startGame', function (e, data) {
-            if (data.control === 'keyboard') {
-                DT.$document.bind('keydown', keydownArrows);
+            if (k === 37) { // left arrow
+                DT.handlers.toTheLeft();
             }
-        });
-        DT.$document.on('resetGame', function (e, data) {
-            if (data.cause === 'chooseControl') {
-                DT.$document.unbind('keydown', keydownArrows);
+            if (k === 39) { // right arrow
+                DT.handlers.toTheRight();
             }
-        });
-        DT.$document.bind('keydown', function(event) {
-            var k = event.keyCode
-            if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
-                // speedUp
-                if (k === 16) { //shift
-                    DT.$document.trigger('stopFun', {});
-                    DT.$document.trigger('changeSpeed', {changer: DT.game.speed.getSpeed0()});
-                }
-                if (k === 17) {
-                    DT.$document.trigger('makeFun', {});
-                }
+        }
+    };
+    var keyupHandler = function(event) {
+        var k = event.keyCode;
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+            if (k === 16) { //shift
+                DT.$document.trigger('changeSpeed', {changer: 0});
             }
-        });
-        DT.$document.bind('keyup', keyupHandler);
-        DT.$document.on('startGame', function (e, data) {
-            DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
-        });
-        DT.$document.on('gameOver', function (e, data) {
-            DT.$document.unbind('keyup', DT.handlers.pauseOnSpace);
-        });
-    })();
+        }
+    };
+    DT.$document.on('startGame', function (e, data) {
+        if (data.control === 'keyboard') {
+            DT.$document.bind('keydown', keydownArrows);
+        }
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        if (data.cause === 'chooseControl') {
+            DT.$document.unbind('keydown', keydownArrows);
+        }
+    });
+    DT.$document.bind('keydown', function(event) {
+        var k = event.keyCode
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+            // speedUp
+            if (k === 16) { //shift
+                DT.$document.trigger('stopFun', {});
+                DT.$document.trigger('changeSpeed', {changer: DT.game.speed.getSpeed0()});
+            }
+            if (k === 17) {
+                DT.$document.trigger('makeFun', {});
+            }
+        }
+    });
+    DT.$document.bind('keyup', keyupHandler);
+    DT.$document.on('startGame', function (e, data) {
+        DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
+    });
+    DT.$document.on('gameOver', function (e, data) {
+        DT.$document.unbind('keyup', DT.handlers.pauseOnSpace);
+    });
+})();
 
 // ███████╗ ██████╗  ██████╗██╗  ██╗███████╗████████╗
 // ██╔════╝██╔═══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝
@@ -5549,20 +5570,16 @@ window.DT = (function (window, document, undefined) {
 // ██║███╗██║██╔══╝  ██╔══██╗██║     ██╔══██║██║╚██╔╝██║
 // ╚███╔███╔╝███████╗██████╔╝╚██████╗██║  ██║██║ ╚═╝ ██║
  // ╚══╝╚══╝ ╚══════╝╚═════╝  ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝
+(function () {
     // headtracker realization
-    // Получаем элементы video и canvas
+    // get video and canvas
     var videoInput = document.getElementById('vid');
     var canvasInput = document.getElementById('compare');
-    var debugOverlay = document.getElementById('debug');
     
     var canvasContext = canvasInput.getContext('2d');
-    // переворачиваем canvas зеркально по горизонтали
+    // set mirror view to canvas
     canvasContext.translate(canvasInput.width, 0);
     canvasContext.scale(-1, 1);
-    
-    // debugOverlay.style.height = '100%';
-    debugOverlay.style.opacity = '0.1';
-    debugOverlay.style.zIndex = '0';
 
     DT.enableWebcam = function () {
         if (DT.enableWebcam.satus === undefined) {
@@ -5573,7 +5590,7 @@ window.DT = (function (window, document, undefined) {
             var rightBreakThreshold = 5;
             var rightTurnThreshold = 10;
             
-            // Определяем сообщения, выдаваемые библиотекой
+            // Defime lib messages
             var statusMessages = {
                 'whitebalance' : 'Checking cam and white balance',
                 'detecting' : 'Head detected',
@@ -5596,11 +5613,20 @@ window.DT = (function (window, document, undefined) {
                     console.log(statusMessages[event.status]);
                     $('.turn_to_start span').html(statusMessages[event.status])
                 }
-                if (event.status === 'found' && !DT.gameWasStarted) {
+                if (event.status === 'found' && !DT.gameWasStarted && DT.enableWebcam.satus === 'init') {
                     DT.enableWebcam.satus = 'enabled';
-                    if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
+                    DT.$document.trigger('startGame', {});
+                }
+                if (event.status === 'camera found') {
+                    $('#head').show();
+                    $('.webcam_message').html('Turn your head left<br>and right to steer');
+                    $('#compare').show();
                 }
             };
+
+            DT.$document.on('startGame', function (e, data) {
+                $('#compare').hide();
+            });
 
             var facetrackingEventHandler = function( event ) {
                 // once we have stable tracking, draw rectangle
@@ -5627,47 +5653,30 @@ window.DT = (function (window, document, undefined) {
             
             document.addEventListener('headtrackrStatus', headtrackrStatusHandler, true);
             
-            // Установка отслеживания
+            // Set heastrackr
             DT.htracker = DT.htracker || new headtrackr.Tracker({
                 altVideo : {ogv : '', mp4 : ''},
                 calcAngles : true,
                 ui : false,
-                headPosition : false,
-                debug : debugOverlay
+                headPosition : false
             });
             DT.htracker.init(videoInput, canvasInput);
             DT.htracker.start();
-            console.log(DT.htracker);
-            // Рисуем прямоугольник вокруг «пойманного» лица
             
             document.addEventListener('facetrackingEvent', facetrackingEventHandler);
             DT.$document.on('resetGame', function (e, data) {
-                if (data.cause === 'chooseControl') DT.enableWebcam.satus = 'disabled';
+                if (data.cause === 'chooseControl') {
+                    DT.enableWebcam.satus = 'disabled';
+                    DT.htracker.stop();
+                }
             });
         } else if (DT.enableWebcam.satus = 'disabled') {
             if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
             DT.enableWebcam.satus = 'enabled';
+            DT.htracker.start();
         }
     };
-
-// ██╗     ██╗███████╗████████╗███████╗███╗   ██╗███████╗██████╗ ███████╗
-// ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║██╔════╝██╔══██╗██╔════╝
-// ██║     ██║███████╗   ██║   █████╗  ██╔██╗ ██║█████╗  ██████╔╝███████╗
-// ██║     ██║╚════██║   ██║   ██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗╚════██║
-// ███████╗██║███████║   ██║   ███████╗██║ ╚████║███████╗██║  ██║███████║
-// ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚══════╝
-
-    DT.$document.on('showFun', function (e, data) {
-        if (data.isFun) {
-            DT.$document.trigger('changeSpeed', {changer: -DT.game.speed.getSpeed0()/2});
-            DT.stopSound(0);
-            DT.playSound(1);
-        } else {
-            DT.$document.trigger('changeSpeed', {changer: 0});
-            DT.stopSound(1);
-            DT.playSound(0);
-        }
-    });
+})();
 
 // ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
 // ██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝
@@ -5689,12 +5698,6 @@ window.DT = (function (window, document, undefined) {
             DT.handlers.pause();
         }
     };
-    // DT.handlers.restartOnSpace = function(event) {
-    //     var k = event.keyCode;
-    //     if (k === 32) {
-    //         DT.$document.trigger('resetGame', {});
-    //     }
-    // };
     DT.handlers.fullscreen = function () {
         var isActivated = THREEx.FullScreen.activated();
         if (isActivated) {
@@ -5738,11 +5741,9 @@ window.DT = (function (window, document, undefined) {
     };
     DT.handlers.restart = function () {
         DT.$document.trigger('resetGame', {});
+        $('.game_over').fadeOut(250);
+        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
     };
-    // DT.$document.on('resetGame', function (e, data) {
-    //     // DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
-    //     // DT.$document.unbind('keyup', DT.handlers.restartOnSpace);
-    // });
 
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
 // ██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝
@@ -5750,7 +5751,7 @@ window.DT = (function (window, document, undefined) {
 // ██║██║╚██╗██║   ██║   ██╔══╝  ██╔══██╗██╔══╝  ██╔══██║██║     ██╔══╝  
 // ██║██║ ╚████║   ██║   ███████╗██║  ██║██║     ██║  ██║╚██████╗███████╗
 // ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝
-// interface module
+(function () {
     var $chooseControl = $('.choose_control');
     DT.runApp = function () {
         DT.initSocket();
@@ -5760,7 +5761,6 @@ window.DT = (function (window, document, undefined) {
             DT.setVolume(1);
         }
         DT.playSound(2);
-
         $(function() {
             $('.loader').hide();
             $chooseControl.css({'display': 'table', 'opacity': '1'});
@@ -5782,16 +5782,14 @@ window.DT = (function (window, document, undefined) {
             });
         });
     };
-
     $('.resume').click(function() {
         DT.$document.trigger('resumeGame', {});
     });
-
     $('.restart').click(function() {
         DT.$document.trigger('resetGame', {});
+        $('.game_over').fadeOut(250);
         if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
     });
-
     $('.change_controls.pause_control').click(function() {
         DT.$document.trigger('gameOver', {cause: 'reset'});
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
@@ -5799,26 +5797,24 @@ window.DT = (function (window, document, undefined) {
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace); 
     });
-
     $('.change_controls.webcam_control').click(function() {
+        DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.webcam_choosen').fadeOut(250);
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
     });
-
     $('.change_controls.mobile_control').click(function() {
+        DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.mobile_choosen').fadeOut(250);
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
     });
-
     $('.change_controls.gameove_control').click(function() {
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.game_over').fadeOut(250);
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace); 
     });
-
     $('#wow').on('click', function () {
         var inputDogeCoin = $('#dogecoin');
         if (inputDogeCoin.val() === 'YOUR DOGECOIN ID') {
@@ -5834,11 +5830,9 @@ window.DT = (function (window, document, undefined) {
             DT.$document.trigger('checkUp', {});
         }
     });
-
     $('.restart').click(function () {
         DT.$document.trigger('resetGame', {});
     });
-
     DT.$document.keyup(function(event) {
         var k = event.keyCode;
         if (k === 77) {
@@ -5872,9 +5866,6 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('resumeGame', function (e, data) {
         $('.pause').css({'display': 'none'});
     });
-    // DT.$document.on('startGame', function (e, data) {
-    //     $('.gameTimer').css({'display': 'block'});
-    // });
     DT.$document.on('showScore', function (e, data) {
         $('.current_coins').text(data.score);
     });
@@ -5905,6 +5896,7 @@ window.DT = (function (window, document, undefined) {
         var text = data.checkup ? 'success' : 'fail';
         $('.gameover_message').html(text);
     });
+})();
 // ███████╗████████╗ █████╗ ████████╗███████╗
 // ██╔════╝╚══██╔══╝██╔══██╗╚══██╔══╝██╔════╝
 // ███████╗   ██║   ███████║   ██║   ███████╗

@@ -1,87 +1,168 @@
+@font-face {
+  font-family: 'plumbmediumcmediumc';
+  src: url('../fonts/plm65__c-webfont.eot');
+  src: url('../fonts/plm65__c-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/plm65__c-webfont.woff') format('woff'), url('../fonts/plm65__c-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal; }
+
 body, html {
   padding: 0;
   margin: 0;
   color: #eee;
   width: 100%;
   height: 100%;
-  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-family: 'plumbmediumcmediumc', "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   font-weight: 300;
   margin: 0px;
   background-color: #000000;
   overflow: hidden;
-  text-align: center; }
-
-h1 {
-  color: #666; }
-
-a {
-  color: blue; }
+  text-align: center;
+  text-transform: uppercase; }
 
 #controller {
   width: 100%;
   height: 100%;
-  background-color: #000; }
-
-#wheel {
-  position: relative;
-  width: 100%;
-  height: 100%; }
+  background-color: #000;
+  display: table; }
 
 #turnLeft {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 50%;
+  width: 33%;
   height: 100%;
-  background-image: url('../img/turn.png');
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-  background-size: auto 20%;
-  -webkit-transform: scaleX(-1); }
-
-#turnLeft:active, #turnRight:active {
-  background-image: url('../img/turnon.png');
-  cursor: pointer; }
+  background-color: #000;
+  z-index: 1; }
+  #turnLeft > img {
+    position: absolute;
+    left: 10%;
+    top: 50%;
+    margin-top: -50px;
+    height: 100px; }
 
 #turnRight {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 50%;
+  width: 33%;
   height: 100%;
-  background-image: url('../img/turn.png');
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-  background-size: auto 20%; }
+  background-color: #000;
+  z-index: 1; }
+  #turnRight > img {
+    position: absolute;
+    right: 10%;
+    top: 50%;
+    margin-top: -50px;
+    height: 100px; }
 
-#socket, #gameover, #preparetostart {
+#sphere {
   position: absolute;
-  top: 50%;
-  left: 0;
+  bottom: 0;
+  right: 33%;
+  width: 33%;
+  height: 100%;
+  background-color: #000;
+  z-index: 2; }
+  #sphere > img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -70px;
+    margin-top: -70px;
+    height: 140px; }
+
+#socket, #wheel, #preparetostart, #gameover {
   width: 100%;
-  height: auto;
-  text-align: center; }
+  height: 100%;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  overflow: hidden; }
 
-.button {
-  width: 50px;
-  height: 50px;
-  border: solid 1px #eee;
+#wheel {
+  z-index: 1;
+  background-color: #000; }
+
+#hotdot {
   position: absolute;
-  bottom: 5px;
-  font-size: 42px;
-  cursor: pointer;
-  display: none; }
+  left: 50%;
+  margin-left: -10px;
+  bottom: 20px; }
 
-#M {
-  left: 5px; }
+#gameCodeInput {
+  width: 210px;
+  height: 40px;
+  background-color: #000;
+  border: 2px solid #69ffd3;
+  color: #FFF;
+  padding-left: 10px;
+  font-size: 14px;
+  font-family: 'plumbmediumcmediumc';
+  letter-spacing: 0.15em;
+  vertical-align: middle;
+  text-transform: uppercase;
+  border-radius: 0;
+  box-sizing: border-box;
+  margin: 10px 6px; }
 
-#P {
-  left: 60px; }
-
-.red {
-  color: #CE5839; }
+#connect {
+  height: 40px;
+  width: 100px;
+  background-color: #fd5439;
+  color: #fff;
+  font-size: 14px;
+  font-family: 'plumbmediumcmediumc';
+  letter-spacing: 0.15em;
+  border: none;
+  vertical-align: middle;
+  text-transform: uppercase;
+  margin: 10px 6px; }
 
 #start {
-  width: 100px;
-  height: 50px;
-  background-color: red; }
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  z-index: 1; }
+  #start > img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -70px;
+    margin-top: -70px;
+    height: 140px; }
+
+#gameover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #ffae9b;
+  width: 100%;
+  height: 100%;
+  z-index: 1; }
+  #gameover > img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-top: -280px;
+    margin-left: -300px;
+    width: 727px;
+    height: 740px; }
+  #gameover > #restart {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 190px;
+    height: 62px;
+    margin-left: -95px;
+    margin-top: -31px;
+    background-color: #000;
+    border: none;
+    border-radius: 0;
+    color: #fff;
+    font-size: 26px;
+    font-family: 'plumbmediumcmediumc';
+    letter-spacing: 0.15em;
+    text-transform: uppercase; }

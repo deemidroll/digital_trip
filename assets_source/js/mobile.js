@@ -13,17 +13,6 @@ $(function() {
         turned = false;
 
     if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
-        // Show the controller ui with gamecode input
-        controller.show();
-        // window.addEventListener('orientationchange', function(event) {
-        //     var rotate = 0 - window.orientation;
-        //     $("body").css({
-        //         "transform": "rotate("+rotate+"deg)",
-        //         "-ms-transform": "rotate("+rotate+"deg)",
-        //         "-webkit-transform": "rotate("+rotate+"deg)",
-        //         "-moz-transform": "rotate("+rotate+"deg)"
-        //     });
-        // }, false );
         // When connect is pushed, establish socket connection
         var connect = function(gameCode) {
             socket = io.connect(server);
@@ -39,26 +28,26 @@ $(function() {
                 }
                 if (data.type === "gameover") {
                     // console.log("gameover");
-                    wheel.hide();
-                    $("#gameover").show();
+                    wheel.css({display: 'none'});
+                    $("#gameover").css({display: 'table-cell'});
                 }
                 if (data.type === "resetGame") {
                     // console.log("resetGame");
-                    $("#gameover").hide();
-                    wheel.show();
+                    $("#gameover").css({display: 'none'});
+                    wheel.css({display: 'table-cell'});
                 }
             });
             // When game code is validated, we can begin playing...
             socket.on("connected", function(data) {
 
-                // Hide game code input, and show the vehicle wheel UI
-                $("#socket").hide();
-                $("#preparetostart").show();
+                // css {display: 'none'}game code input, and css {display: 'table-cell'}the vehicle wheel UI
+                $("#socket").css({display: 'none'});
+                $("#preparetostart").css({display: 'table-cell'});
                 $("#start").click(function () {
                     socket.emit('start', {});
                     $(this).unbind('click');
-                    $("#preparetostart").hide();
-                    wheel.show();
+                    $("#preparetostart").css({display: 'none'});
+                    wheel.css({display: 'table-cell'});
                     // Audio loop - hack for prevent screen sleep
                     $('#audioloop').trigger('play');
                 });
@@ -95,23 +84,23 @@ $(function() {
 
                 setTimeout(function () {
                     if (!turned) {
-                        $("#turnLeft").on('touchstart',function () {
+                        $("#btnLeft").on('touchstart',function () {
                             socket.emit("click", {"click":"toTheLeft"});
                         });
-                        $("#turnRight").on('touchstart',function () {
+                        $("#btnRight").on('touchstart',function () {
                             socket.emit("click", {"click":"toTheRight"});
                         });
                     }
                 }, 1000);
 
-                $("#sphere").on('touchstart',function () {
+                $("#btnSphere").on('touchstart',function () {
                     socket.emit("click", {"click":"pause"});
                 });
 
                 $("#restart").click(function () {
                     socket.emit("click", {"click":"restart"});
-                    $("#gameover").hide();
-                    wheel.show();
+                    $("#gameover").css({display: 'none'});
+                    wheel.css({display: 'table-cell'});
                     $('#audioloop').trigger('play');
                 });
 

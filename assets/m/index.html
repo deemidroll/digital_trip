@@ -12,7 +12,7 @@
     <!-- prevent screen sleep hack -->
     <audio id="audioloop" src="../sounds/loop.mp3" onended="this.play();" autobuffer></audio>
 
-    <div id="controller" style="display:none">
+    <div id="controller">
         
         <!-- code input -->
         <div id="socket">
@@ -23,21 +23,21 @@
         </div>
 
         <!-- game control -->
-        <div id="wheel" style="display:none">
-            <div id="turnLeft"><img src="../img/left.png"></div>
-            <div id="sphere"><img src="../img/sphere.png"></div>
-            <div id="turnRight"><img src="../img/right.png"></div>
+        <div id="wheel">
+            <div id="turnLeft"><img id="btnLeft" src="../img/left.png"></div>
+            <div id="sphere"><img id="btnSphere" src="../img/sphere.png"></div>
+            <div id="turnRight"><img id="btnRight" src="../img/right.png"></div>
         </div>
         
             <!-- game over -->
-        <div id="gameover" style="display:none">
+        <div id="gameover">
             <img src="../img/mobilereset.jpg">
             <button id="restart">restart</button>
         </div>
 
-            <!-- start -->
-        <div id="preparetostart" style="display:none">
-            <div id="start"><img src="../img/sphere.png" height="145" width="146" alt=""></div>
+        <!-- start -->
+        <div id="preparetostart">
+            <div id="start"><div class="push">start</div><img src="../img/sphere.png" height="145" width="146" alt=""></div>
         </div>
     </div>
     

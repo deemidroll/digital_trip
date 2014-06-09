@@ -84,15 +84,17 @@ body, html {
   z-index: 2;
   display: table-cell; }
 
-#preparetostart > #start > .push {
-  position: absolute;
-  width: 100%;
-  top: 50%;
-  font-size: 25px;
-  margin-top: -0.5em;
-  text-align: center;
-  z-index: 1;
-  color: rgba(255, 255, 255, 0.5); }
+#preparetostart {
+  display: table-cell; }
+  #preparetostart > #start > .push {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    font-size: 25px;
+    margin-top: -0.5em;
+    text-align: center;
+    z-index: 1;
+    color: rgba(255, 255, 255, 0.5); }
 
 #wheel {
   z-index: 1;

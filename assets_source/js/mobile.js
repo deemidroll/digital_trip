@@ -95,6 +95,7 @@ $(function() {
 
                 $("#btnSphere").on('touchstart',function () {
                     socket.emit("click", {"click":"pause"});
+                    $('#audioloop').trigger('play');
                 });
 
                 $("#restart").click(function () {

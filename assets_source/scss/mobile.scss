@@ -97,6 +97,7 @@ body,html {
 }
 
 #preparetostart {
+    display: table-cell;
     > #start > .push {
         position: absolute;
         width: 100%;

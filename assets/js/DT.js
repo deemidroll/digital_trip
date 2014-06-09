@@ -3573,6 +3573,26 @@ window.DT = (function (window, document, undefined) {
     DT.getBinormalAt = function (t, tube) {
         return DT.getNormalAt(t, tube, 'binormals');
     };
+    DT.createGeometry = function (n, circumradius) {
+        var geometry = new THREE.Geometry(),
+            vertices = [],
+            faces = [],
+            x;
+        // Generate the vertices of the n-gon.
+        for (x = 0; x <= n; x++) {
+            geometry.vertices.push(new THREE.Vector3(
+                circumradius * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+                circumradius * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+                0
+            ));
+        }
+        // Generate the faces of the n-gon.
+        for (x = 0; x < n-2; x++) {
+            geometry.faces.push(new THREE.Face3(0, x + 1, x + 2));
+        }
+        geometry.computeBoundingSphere();
+        return geometry;
+    }
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
         DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
@@ -4052,6 +4072,11 @@ window.DT = (function (window, document, undefined) {
         this.light.color = this.sphere.material.color;
         this.scene.add(this.light);
 
+        this.line = new THREE.Line(DT.createGeometry(6, 1), new THREE.LineBasicMaterial( { color: 0x0000ff, linewidth: 1} ));
+        this.scene.add(this.line);
+        console.log(this.line);
+        // this.line.geometry.verticesNeedUpdate = true;
+
         this.firstMove = true;
         this.moveIterator = 0;
 
@@ -4134,7 +4159,7 @@ window.DT = (function (window, document, undefined) {
             var helth = this.currentHelth;
             if (helth > 0) {
                 helth += delta;
-                if (helth < 0) {
+                if (helth <= 0) {
                     helth = 0;
                     DT.$document.trigger('gameOver', {cause: 'death'});
                 }
@@ -4146,6 +4171,34 @@ window.DT = (function (window, document, undefined) {
             DT.$document.trigger('showHelth', {helth: this.currentHelth});
         }
         return this;
+    };
+
+    DT.Player.prototype.showSegments = function (delta) {
+        var segments;
+        switch (this.currentHelth) {
+            case 100:
+                segments = 64;
+                break;
+            case 80:
+                segments = 6;
+                break;
+            case 60:
+                segments = 5;
+                break;
+            case 40:
+                segments = 4;
+                break;
+            case 20:
+                segments = 3;
+                break;
+            case 0:
+                segments = 2;
+                break;
+            default:
+                segments = 64;
+                break;
+        }
+        this.line.geometry = new THREE.CircleGeometry( 4, segments );
     };
 
     DT.Player.prototype.makeInvulner = function (time) {
@@ -4238,6 +4291,22 @@ window.DT = (function (window, document, undefined) {
         this.emitter._particles.forEach(function(el) {
             el.velocity.vector = posVel;
         });
+
+        //line 
+        this.line.position = data.tube.path.getPointAt(DT.normalizeT(data.t+0.001)).multiplyScalar(DT.scale);
+        var tLook = DT.normalizeT(data.t),
+            normalLook = DT.getNormalAt(tLook),
+            vectorLook = data.tube.path.getTangentAt(tLook)
+                .multiplyScalar(DT.scale)
+                .add(this.line.position);
+
+        DT.lineAngle = Math.PI/4;
+
+        var m1 = new THREE.Matrix4().copy( this.line.matrix );
+        m1.lookAt( vectorLook, this.line.position, normalLook.applyAxisAngle(vectorLook.clone().normalize(), DT.lineAngle) );
+        
+        this.line.rotation.setFromRotationMatrix( m1 );
+
         return this;
     };
 
@@ -4326,6 +4395,9 @@ window.DT = (function (window, document, undefined) {
     });
     DT.$document.on('changeScore', function (e, data) {
         DT.player.changeScore(data.delta);
+    });
+    DT.$document.on('showHelth', function (e, data) {
+        DT.player.showSegments(data.delta);
     });
     DT.$document.on('changeHelth', function (e, data) {
         DT.player.changeHelth(data.delta);
@@ -4620,7 +4692,7 @@ window.DT = (function (window, document, undefined) {
             });
             this.removeFromScene();
 
-            DT.$document.trigger('changeHelth', {delta: -19});
+            DT.$document.trigger('changeHelth', {delta: -20});
             DT.$document.trigger('bump', {});
             // вызвать вспышку экрана
             if (DT.player.isInvulnerability === false) {

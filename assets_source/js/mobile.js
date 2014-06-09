@@ -45,11 +45,9 @@ $(function() {
                 if (data.type === "resetGame") {
                     // console.log("resetGame");
                     $("#gameover").hide();
-                    controller.show();
+                    wheel.show();
                 }
             });
-            // Audio loop - hack for prevent screen sleep
-            $('#audioloop').trigger('play');
             // When game code is validated, we can begin playing...
             socket.on("connected", function(data) {
 
@@ -61,6 +59,8 @@ $(function() {
                     $(this).unbind('click');
                     $("#preparetostart").hide();
                     wheel.show();
+                    // Audio loop - hack for prevent screen sleep
+                    $('#audioloop').trigger('play');
                 });
                 // If user touches the screen, accelerate
                 document.addEventListener("touchstart", function (event) {
@@ -77,36 +77,37 @@ $(function() {
                     event.preventDefault();
                 }, false);
                 
-                // Steer the vehicle based on the phone orientation
-                window.addEventListener('deviceorientation', function(event) {
+                function orientationHandler (event) {
                     var a = event.alpha, // "direction"
                         b = event.beta,  // left/right 'tilt'
                         g = event.gamma; // forward/back 'tilt'
-                    var turn = b;
-                    updateController(turn);
-                    // $('body').trigger('touchstart');
+                    var turn,
+                        ori = window.orientation;
+                    if (ori === 0) turn = g;
+                    if (ori === 90) turn = b;
+                    if (ori === -90) turn = -b;
+                    if (!turned) turned = true;
                     socket.emit("turn", {'turn':turn, 'g':a});
-                }, false);
-
-                window.addEventListener('MozOrientation', function(event) {
-                    var a = event.alpha, // "direction"
-                        b = event.beta,  // left/right 'tilt'
-                        g = event.gamma; // forward/back 'tilt'
-                    var turn = b;
-                    updateController(turn);
-                    socket.emit("turn", {'turn':turn, 'g':a});
-                }, false);
-
-                if (!turned) {
-                    $("#turnLeft").click(function () {
-                        socket.emit("click", {"click":"left"});
-                    });
-                    $("#turnRight").click(function () {
-                        socket.emit("click", {"click":"right"});
-                    });
                 }
+                // Steer the vehicle based on the phone orientation
+                window.addEventListener('deviceorientation', orientationHandler, false);
+                window.addEventListener('MozOrientation', orientationHandler, false);
 
-                $(".button").show();
+                setTimeout(function () {
+                    if (!turned) {
+                        $("#turnLeft").on('touchstart',function () {
+                            socket.emit("click", {"click":"toTheLeft"});
+                        });
+                        $("#turnRight").on('touchstart',function () {
+                            socket.emit("click", {"click":"toTheRight"});
+                        });
+                    }
+                }, 1000);
+
+                $("#sphere").on('touchstart',function () {
+                    socket.emit("click", {"click":"pause"});
+                });
+
                 $("#restart").click(function () {
                     socket.emit("click", {"click":"restart"});
                     $("#gameover").hide();
@@ -133,29 +134,5 @@ $(function() {
             connect($gameCodeInput.val());
         });
         $(document).bind("keyup", connnectOnEnter);
-    }
-    // Helper function to update controller UI
-    function updateController(turn) {
-        turned = true;
-        // Rotate forward indicator towards direction of vehicle
-        $('#forward').css('transform', 'rotate(' + (turn) + 'deg)');
-        // Activate/Deactivate turn / airbreak signals based on turn degree
-        if(turn < leftBreakThreshold) {
-            $('#stopRight, #turnRight').removeClass('active');
-            if(turn > leftTurnThreshold) {
-                $('#stopLeft').addClass('active');
-            } else {
-                $('#turnLeft').addClass('active');
-            }
-        } else if (turn > rightBreakThreshold) {
-            $('#stopLeft, #turnLeft').removeClass('active');
-            if(turn < rightTurnThreshold) {
-                $('#stopRight').addClass('active');
-            } else {
-                $('#turnRight').addClass('active');
-            }
-        } else {
-            $('#stopLeft, #turnLeft, #stopRight, #turnRight').removeClass('active');
-        }
     }
 });

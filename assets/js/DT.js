@@ -5476,7 +5476,7 @@ window.DT = (function (window, document, undefined) {
 // ███████║╚██████╔╝╚██████╗██║  ██╗███████╗   ██║   
 // ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   
 
-    DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://192.168.1.36';
+    DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://192.168.1.44';
     DT.initSocket = function() {
         // Game config
         var leftBreakThreshold = -3,
@@ -5526,7 +5526,10 @@ window.DT = (function (window, document, undefined) {
             if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
         });
         socket.on('start', function(data) {
-            if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: 'mobile'});
+            if (!DT.game.wasStarted) {
+                DT.$document.trigger('startGame', {control: 'mobile'});
+                DT.lastControl = 'mobile';
+            }
         });
         // socket.on('disconnectController', function(data) {
         //     DT.$document.trigger('pauseGame', {});
@@ -5615,7 +5618,8 @@ window.DT = (function (window, document, undefined) {
                 }
                 if (event.status === 'found' && !DT.gameWasStarted && DT.enableWebcam.satus === 'init') {
                     DT.enableWebcam.satus = 'enabled';
-                    DT.$document.trigger('startGame', {});
+                    DT.$document.trigger('startGame', {control: 'webcam'});
+                    DT.lastControl = 'webcam'
                 }
                 if (event.status === 'camera found') {
                     $('#head').show();
@@ -5689,7 +5693,10 @@ window.DT = (function (window, document, undefined) {
     DT.handlers.startOnSpace = function(event) {
         var k = event.keyCode;
         if (k === 32) {
-            if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: 'keyboard'});
+            if (!DT.game.wasStarted) {
+                DT.$document.trigger('startGame', {control: 'keyboard'});
+                DT.lastControl = 'keyboard';
+            }
         }
     };
     DT.handlers.pauseOnSpace = function(event) {
@@ -5767,7 +5774,10 @@ window.DT = (function (window, document, undefined) {
             $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.bind('keyup', DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
-                if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: 'keyboard'});
+                if (!DT.game.wasStarted) {
+                    DT.$document.trigger('startGame', {control: 'keyboard'});
+                    DT.lastControl = 'keyboard';
+                }
             });
             $('.choose_mobile').click(function() {
                 $chooseControl.fadeOut(250);
@@ -5788,7 +5798,7 @@ window.DT = (function (window, document, undefined) {
     $('.restart').click(function() {
         DT.$document.trigger('resetGame', {});
         $('.game_over').fadeOut(250);
-        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
+        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: DT.lastContol});
     });
     $('.change_controls.pause_control').click(function() {
         DT.$document.trigger('gameOver', {cause: 'reset'});
@@ -5809,7 +5819,7 @@ window.DT = (function (window, document, undefined) {
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
     });
-    $('.change_controls.gameove_control').click(function() {
+    $('.change_controls.gameover_control').click(function() {
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.game_over').fadeOut(250);
         $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
@@ -5830,8 +5840,8 @@ window.DT = (function (window, document, undefined) {
             DT.$document.trigger('checkUp', {});
         }
     });
-    $('.restart').click(function () {
-        DT.$document.trigger('resetGame', {});
+    $('#dogecoin').on('keyup', function (e) {
+        e.stopPropagation();
     });
     DT.$document.keyup(function(event) {
         var k = event.keyCode;

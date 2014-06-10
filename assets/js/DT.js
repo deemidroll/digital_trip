@@ -3582,7 +3582,7 @@ window.DT = (function (window, document, undefined) {
         // Generate the vertices of the n-gon.
         [7, 6, 5, 4, 3].forEach(function (el) {
             var vertices = [];
-            var m = el/10;
+            var m = 0.9;
             for (x = 0; x <= n; x++) {
                 vertices.push(new THREE.Vector3(
                 circumradius * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
@@ -3893,8 +3893,8 @@ window.DT = (function (window, document, undefined) {
                 break;
         }
         DT.splineCamera.children.forEach(function (el) {
-            el.morphTargetInfluences[ 0 ] = 50;
-            el.morphTargetInfluences[ 1 ] = 50;
+            el.morphTargetInfluences[ 0 ] = 0;
+            el.morphTargetInfluences[ 1 ] = 20 ;
         });
     });
 

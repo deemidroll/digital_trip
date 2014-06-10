@@ -3577,20 +3577,53 @@ window.DT = (function (window, document, undefined) {
         var geometry = new THREE.Geometry(),
             vertices = [],
             faces = [],
-            x;
+            x,
+            innerradius = circumradius * 0.97;
         // Generate the vertices of the n-gon.
-        for (x = 0; x <= n; x++) {
-            geometry.vertices.push(new THREE.Vector3(
+        [7, 6, 5, 4, 3].forEach(function (el) {
+            var vertices = [];
+            var m = el/10;
+            for (x = 0; x <= n; x++) {
+                vertices.push(new THREE.Vector3(
                 circumradius * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
                 circumradius * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
                 0
             ));
+            }
+            for (x = 0; x <= n; x++) {
+                    vertices.push(new THREE.Vector3(
+                    innerradius * m * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+                    innerradius * m * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+                    0
+                ));
+            }
+            //morph tagrets
+            geometry.morphTargets.push({name: 'vert'+el, vertices: vertices});
+        });
+        console.log(geometry.morphTargets);
+            for (x = 0; x <= n; x++) {
+                geometry.vertices.push(new THREE.Vector3(
+                    circumradius * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+                    circumradius * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+                    0
+                ));
+            }
+            for (x = 0; x <= n; x++) {
+                geometry.vertices.push(new THREE.Vector3(
+                    innerradius * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+                    innerradius * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+                    0
+                ));
+            }
+        // Generate the faces of the n-gon.
+        var normal = new THREE.Vector3( 0, 1, 0 );
+        var color = new THREE.Color( 0x0000ff );
+        var color = new THREE.Color( 0x0000ff );
+        for (x = 0; x < n; x++) {
+            geometry.faces.push(new THREE.Face3(x, x + 1, x + n + 1));
+            geometry.faces.push(new THREE.Face3(x, x + n + 1, x + n));
         }
-        // // Generate the faces of the n-gon.
-        // for (x = 0; x < n-2; x++) {
-        //     geometry.faces.push(new THREE.Face3(0, x + 1, x + 2));
-        // }
-        geometry.computeBoundingSphere();
+        geometry.faces.push(new THREE.Face3(0, n + 1, 2 * n));
         return geometry;
     }
     DT.animate = function (nowMsec) {
@@ -3653,12 +3686,24 @@ window.DT = (function (window, document, undefined) {
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
 
-    var lineGeom = DT.createGeometry(64, 0.8),
-        limeMat = new THREE.LineBasicMaterial( { color: 0x0000ff, linewidth: 1} ),
-        line = new THREE.Line(lineGeom, limeMat);
-        
+    var lineGeom = DT.createGeometry(60, 0.95),
+        limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
+        limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true }),
+        line = new THREE.Mesh(lineGeom, limeMat),
+        line2 = new THREE.Mesh(lineGeom, limeMat2);
+
     line.position.z = -1;
-    DT.splineCamera.add(line)
+    line.position.y = -0.03;
+    line.rotation.y = Math.PI;
+    line.offset = 0;
+    DT.splineCamera.add(line);
+
+    line2.position.z = -0.99;
+    line2.rotation.y = Math.PI;
+    line2.offset = 0.005;
+    line2.position.y = line2.offset - 0.03;
+    DT.splineCamera.add(line2);
+
 
     // when resize
     new THREEx.WindowResize(DT.renderer, DT.splineCamera);
@@ -3719,7 +3764,12 @@ window.DT = (function (window, document, undefined) {
         normal.copy( binormal ).cross( dir );
 
         DT.splineCamera.position = pos;
-        DT.splineCamera.children[0].position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator;
+        // DT.splineCamera.children[0].position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator;
+        // DT.splineCamera.children[1].position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + 0.01;
+        DT.splineCamera.children.forEach(function (el) {
+            el.position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + el.offset;
+            el.rotation.z += Math.PI/360/10;
+        });
 
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
 
@@ -3842,7 +3892,10 @@ window.DT = (function (window, document, undefined) {
                 segments = 64;
                 break;
         }
-        // DT.splineCamera.children[0].geometry = DT.createGeometry(segments, 0.8)
+        DT.splineCamera.children.forEach(function (el) {
+            el.morphTargetInfluences[ 0 ] = 50;
+            el.morphTargetInfluences[ 1 ] = 50;
+        });
     });
 
     // change IcosahedronGeometry prototype
@@ -4107,9 +4160,6 @@ window.DT = (function (window, document, undefined) {
         this.light.color = this.sphere.material.color;
         this.scene.add(this.light);
 
-        // this.line = new THREE.Line(DT.createGeometry(6, 1), new THREE.LineBasicMaterial( { color: 0x0000ff, linewidth: 1} ));
-        // this.scene.add(this.line);
-
         this.firstMove = true;
         this.moveIterator = 0;
 
@@ -4296,31 +4346,6 @@ window.DT = (function (window, document, undefined) {
         this.emitter._particles.forEach(function(el) {
             el.velocity.vector = posVel;
         });
-
-        //line 
-        // this.line.position = data.tube.path.getPointAt(DT.normalizeT(data.t+0.001)).multiplyScalar(DT.scale);
-        // this.line.position = this.position.clone();
-        // var tLook = DT.normalizeT(data.t),
-        //     normalLook = DT.getNormalAt(tLook),
-        //     vectorLook = data.tube.path.getTangentAt(tLook)
-        //         .multiplyScalar(DT.scale)
-        //         .add(this.line.position);
-
-        // DT.lineAngle = Math.PI/4;
-
-        // var m1 = new THREE.Matrix4().copy( this.line.matrix );
-        // m1.lookAt( vectorLook, this.line.position, normalLook.applyAxisAngle(vectorLook.clone().normalize(), DT.lineAngle) );
-        
-        // this.line.rotation.setFromRotationMatrix( m1 );
-
-
-        // var pos = data.tube.path.getPointAt( data.t );
-        // pos.multiplyScalar(DT.scale);
-
-        // var dir = data.tube.path.getTangentAt( DT.normalizeT(data. t + 0.01) );
-        // dir.multiplyScalar(DT.scale);
-        // this.line.position = dir;
-
         return this;
     };
 

@@ -3586,10 +3586,10 @@ window.DT = (function (window, document, undefined) {
                 0
             ));
         }
-        // Generate the faces of the n-gon.
-        for (x = 0; x < n-2; x++) {
-            geometry.faces.push(new THREE.Face3(0, x + 1, x + 2));
-        }
+        // // Generate the faces of the n-gon.
+        // for (x = 0; x < n-2; x++) {
+        //     geometry.faces.push(new THREE.Face3(0, x + 1, x + 2));
+        // }
         geometry.computeBoundingSphere();
         return geometry;
     }
@@ -3653,6 +3653,13 @@ window.DT = (function (window, document, undefined) {
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
 
+    var lineGeom = DT.createGeometry(64, 0.8),
+        limeMat = new THREE.LineBasicMaterial( { color: 0x0000ff, linewidth: 1} ),
+        line = new THREE.Line(lineGeom, limeMat);
+        
+    line.position.z = -1;
+    DT.splineCamera.add(line)
+
     // when resize
     new THREEx.WindowResize(DT.renderer, DT.splineCamera);
 
@@ -3712,6 +3719,7 @@ window.DT = (function (window, document, undefined) {
         normal.copy( binormal ).cross( dir );
 
         DT.splineCamera.position = pos;
+        DT.splineCamera.children[0].position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator;
 
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
 
@@ -3808,6 +3816,33 @@ window.DT = (function (window, document, undefined) {
             speed: 0.3,
             rollSpeed: 0.1
         }
+    });
+    DT.$document.on('showHelth', function (e, data) {
+        var segments;
+        switch (data.helth) {
+            case 100:
+                segments = 64;
+                break;
+            case 80:
+                segments = 6;
+                break;
+            case 60:
+                segments = 5;
+                break;
+            case 40:
+                segments = 4;
+                break;
+            case 20:
+                segments = 3;
+                break;
+            case 0:
+                segments = 2;
+                break;
+            default:
+                segments = 64;
+                break;
+        }
+        // DT.splineCamera.children[0].geometry = DT.createGeometry(segments, 0.8)
     });
 
     // change IcosahedronGeometry prototype
@@ -4072,10 +4107,8 @@ window.DT = (function (window, document, undefined) {
         this.light.color = this.sphere.material.color;
         this.scene.add(this.light);
 
-        this.line = new THREE.Line(DT.createGeometry(6, 1), new THREE.LineBasicMaterial( { color: 0x0000ff, linewidth: 1} ));
-        this.scene.add(this.line);
-        console.log(this.line);
-        // this.line.geometry.verticesNeedUpdate = true;
+        // this.line = new THREE.Line(DT.createGeometry(6, 1), new THREE.LineBasicMaterial( { color: 0x0000ff, linewidth: 1} ));
+        // this.scene.add(this.line);
 
         this.firstMove = true;
         this.moveIterator = 0;
@@ -4168,37 +4201,9 @@ window.DT = (function (window, document, undefined) {
                 }
             }
             this.currentHelth = helth;
-            DT.$document.trigger('showHelth', {helth: this.currentHelth});
+            DT.$document.trigger('showHelth', {delta: delta, helth: this.currentHelth});
         }
         return this;
-    };
-
-    DT.Player.prototype.showSegments = function (delta) {
-        var segments;
-        switch (this.currentHelth) {
-            case 100:
-                segments = 64;
-                break;
-            case 80:
-                segments = 6;
-                break;
-            case 60:
-                segments = 5;
-                break;
-            case 40:
-                segments = 4;
-                break;
-            case 20:
-                segments = 3;
-                break;
-            case 0:
-                segments = 2;
-                break;
-            default:
-                segments = 64;
-                break;
-        }
-        this.line.geometry = new THREE.CircleGeometry( 4, segments );
     };
 
     DT.Player.prototype.makeInvulner = function (time) {
@@ -4293,19 +4298,28 @@ window.DT = (function (window, document, undefined) {
         });
 
         //line 
-        this.line.position = data.tube.path.getPointAt(DT.normalizeT(data.t+0.001)).multiplyScalar(DT.scale);
-        var tLook = DT.normalizeT(data.t),
-            normalLook = DT.getNormalAt(tLook),
-            vectorLook = data.tube.path.getTangentAt(tLook)
-                .multiplyScalar(DT.scale)
-                .add(this.line.position);
+        // this.line.position = data.tube.path.getPointAt(DT.normalizeT(data.t+0.001)).multiplyScalar(DT.scale);
+        // this.line.position = this.position.clone();
+        // var tLook = DT.normalizeT(data.t),
+        //     normalLook = DT.getNormalAt(tLook),
+        //     vectorLook = data.tube.path.getTangentAt(tLook)
+        //         .multiplyScalar(DT.scale)
+        //         .add(this.line.position);
 
-        DT.lineAngle = Math.PI/4;
+        // DT.lineAngle = Math.PI/4;
 
-        var m1 = new THREE.Matrix4().copy( this.line.matrix );
-        m1.lookAt( vectorLook, this.line.position, normalLook.applyAxisAngle(vectorLook.clone().normalize(), DT.lineAngle) );
+        // var m1 = new THREE.Matrix4().copy( this.line.matrix );
+        // m1.lookAt( vectorLook, this.line.position, normalLook.applyAxisAngle(vectorLook.clone().normalize(), DT.lineAngle) );
         
-        this.line.rotation.setFromRotationMatrix( m1 );
+        // this.line.rotation.setFromRotationMatrix( m1 );
+
+
+        // var pos = data.tube.path.getPointAt( data.t );
+        // pos.multiplyScalar(DT.scale);
+
+        // var dir = data.tube.path.getTangentAt( DT.normalizeT(data. t + 0.01) );
+        // dir.multiplyScalar(DT.scale);
+        // this.line.position = dir;
 
         return this;
     };
@@ -4364,6 +4378,8 @@ window.DT = (function (window, document, undefined) {
         }
 
         this.light.position = this.sphere.position = this.position;
+
+        DT.moveIterator = this.moveIterator
         return this;
     };
 
@@ -4395,9 +4411,6 @@ window.DT = (function (window, document, undefined) {
     });
     DT.$document.on('changeScore', function (e, data) {
         DT.player.changeScore(data.delta);
-    });
-    DT.$document.on('showHelth', function (e, data) {
-        DT.player.showSegments(data.delta);
     });
     DT.$document.on('changeHelth', function (e, data) {
         DT.player.changeHelth(data.delta);

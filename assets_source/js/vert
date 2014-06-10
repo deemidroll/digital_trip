@@ -1,0 +1,92 @@
+DT.createGeometry = function (circumradius) {
+        var geometry = new THREE.Geometry(),
+            faces = [],
+            x,
+            innerradius = circumradius * 0.97;
+
+        function setVertices (vert, rad) {
+            n = n || 60;
+            for (var i = 0; i <= n; i++) {
+                vert.push(new THREE.Vector3(
+                rad * Math.sin((Math.PI / n) + (i * ((2 * Math.PI)/ n))),
+                rad * Math.cos((Math.PI / n) + (i * ((2 * Math.PI)/ n))),
+                0
+            ));
+            return vert;
+        }
+
+        function setMainVert (vert, rad, numb) {
+            n = n || 60;
+            var step = n/numb;
+            for (var i = 0; i < n; i+=step) {
+                var index = i === 0 ? 0 : i - 1;
+                vert[index] = new THREE.Vector3(
+                    rad * Math.sin((Math.PI / n) + (index * ((2 * Math.PI)/ n))),
+                    rad * Math.cos((Math.PI / n) + (index * ((2 * Math.PI)/ n))),
+                    0
+                );
+            }
+            return vert;
+        }
+
+        function fillVert (vert) {
+            n = n || 60;
+            var filledVerts = [],
+                nFilled, nUnfilled;
+            vert.forEach(function (el, i) {
+                el.i = i;
+                filledVerts.push(el);
+            });
+
+            nFilled = fillVert.length;
+            nUnfilled = n/nFilled - 2;
+
+            filledVerts.forEach(function (el, i, arr) {
+                var nextInd = i + 1 === arr.length ? 0 : i + 1;
+                var vec = el.clone().sub(arr[nextInd]);
+                for (var j = 0; j < nUnfilled; j++) {
+                    var curr = el.i + j + 1;
+                    vert[curr] = ver.clone().multiplyScalar(1/nUnfilled).add(el);
+                }
+            });
+            return vert;
+        }
+
+        n = n || 60;
+        
+        // set morph targets for vert0;
+        var vert0 = []; 
+        setVertices(vert0, circumradius);
+        geometry.morphTargets.push({name: 'vert0', vertices: vert0});
+
+        // set morph targets for other vetr
+        [6, 5, 4, 3].forEach(function (el) {
+            var vert,
+                vertOuter = [],
+                vertInner = [];
+
+            setMainVert(vertOuter, circumradius, el);
+            setMainVert(vertInner, innerradius, el);
+
+            fillVert(vertOuter);
+            fillVert(vertInner);
+
+            vert = vertOuter.concat(vertInner);
+
+            geometry.morphTargets.push({name: 'vert'+el, vertices: vert});
+        });
+
+        // set geom vert
+        setVertices(geometry.vertices, circumradius);
+        setVertices(geometry.vertices, innerradius);
+        
+        // Generate the faces of the n-gon.
+        for (x = 0; x < n; x++) {
+            geometry.faces.push(new THREE.Face3(x, x + 1, x + n + 1));
+            geometry.faces.push(new THREE.Face3(x, x + n + 1, x + n));
+        }
+        // last face
+        geometry.faces.push(new THREE.Face3(0, n + 1, 2 * n));
+        // return
+        return geometry;
+    };

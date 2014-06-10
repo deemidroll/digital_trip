@@ -3573,59 +3573,113 @@ window.DT = (function (window, document, undefined) {
     DT.getBinormalAt = function (t, tube) {
         return DT.getNormalAt(t, tube, 'binormals');
     };
-    DT.createGeometry = function (n, circumradius) {
+    DT.createGeometry = function (circumradius) {
         var geometry = new THREE.Geometry(),
-            vertices = [],
             faces = [],
             x,
             innerradius = circumradius * 0.97;
-        // Generate the vertices of the n-gon.
-        [7, 6, 5, 4, 3].forEach(function (el) {
-            var vertices = [];
-            var m = 0.9;
-            for (x = 0; x <= n; x++) {
-                vertices.push(new THREE.Vector3(
-                circumradius * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
-                circumradius * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
-                0
-            ));
-            }
-            for (x = 0; x <= n; x++) {
-                    vertices.push(new THREE.Vector3(
-                    innerradius * m * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
-                    innerradius * m * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
+
+        // function setVertices (vert, rad) {
+        //     n = n || 60;
+        //     for (var i = 0; i <= n; i++) {
+        //         vert.push(new THREE.Vector3(
+        //             rad * Math.sin((Math.PI / n) + (i * ((2 * Math.PI)/ n))),
+        //             rad * Math.cos((Math.PI / n) + (i * ((2 * Math.PI)/ n))),
+        //             0
+        //         ));
+        //     }
+        //     return vert;
+        // }
+
+        function setMainVert (vert, rad, numb) {
+            n = n || 60;
+            var step = n/numb;
+            // console.log(step);
+            for (var i = 0; i < n; i+=step) {
+                var index = i === 0 ? 0 : i - 1;
+                vert[index] = new THREE.Vector3(
+                    rad * Math.sin((Math.PI / n) + (index * ((2 * Math.PI)/ n))),
+                    rad * Math.cos((Math.PI / n) + (index * ((2 * Math.PI)/ n))),
                     0
-                ));
+                );
             }
-            //morph tagrets
-            geometry.morphTargets.push({name: 'vert'+el, vertices: vertices});
-        });
-        console.log(geometry.morphTargets);
-            for (x = 0; x <= n; x++) {
-                geometry.vertices.push(new THREE.Vector3(
-                    circumradius * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
-                    circumradius * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
-                    0
-                ));
-            }
-            for (x = 0; x <= n; x++) {
-                geometry.vertices.push(new THREE.Vector3(
-                    innerradius * Math.sin((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
-                    innerradius * Math.cos((Math.PI / n) + (x * ((2 * Math.PI)/ n))),
-                    0
-                ));
-            }
-        // Generate the faces of the n-gon.
-        var normal = new THREE.Vector3( 0, 1, 0 );
-        var color = new THREE.Color( 0x0000ff );
-        var color = new THREE.Color( 0x0000ff );
-        for (x = 0; x < n; x++) {
-            geometry.faces.push(new THREE.Face3(x, x + 1, x + n + 1));
-            geometry.faces.push(new THREE.Face3(x, x + n + 1, x + n));
+            return vert;
         }
-        geometry.faces.push(new THREE.Face3(0, n + 1, 2 * n));
+
+        function fillVert (vert, step) {
+            n = n || 60;
+            var filledVerts = [],
+                nFilled, nUnfilled;
+
+            vert.forEach(function (el, i) {
+                
+                filledVerts[i] = el.clone();
+                filledVerts[i].i = i;
+            });
+            nFilled = filledVerts.length;
+            nUnfilled = n/nFilled - 2;
+            console.log(filledVerts);
+
+            for (var i = 0; i < n; i+=step) {
+                var nextIndex = (i + step - 2 > n) ? 0 : i + step - 2;
+                console.log(i, filledVerts[i]);
+                var vec = filledVerts[i].clone().sub(filledVerts[nextIndex]);
+                for (var j = 0; j < nUnfilled; j++) {
+                    var curr = filledVerts[i].i + j + 1;
+                    vert[curr] = vec.clone().multiplyScalar(1/nUnfilled).add(filledVerts[i]);
+                }
+            }
+            return vert;
+        }
+
+        var n = n || 60;
+        var el = 6;
+        
+        // set morph targets for vert0;
+        // var vert0 = []; 
+        // setVertices(vert0, circumradius);
+        // geometry.morphTargets.push({name: 'vert0', vertices: vert0});
+
+        // set morph targets for other vetr
+        [6, 6, 5, 4, 3].forEach(function (el) {
+            var vert,
+                vertOuter = [],
+                vertInner = [];
+
+            setMainVert(vertOuter, circumradius, el);
+            setMainVert(vertInner, innerradius, el);
+
+            fillVert(vertOuter, n/el);
+            fillVert(vertInner, n/el);
+
+            vert = vertOuter.concat(vertInner);
+
+            geometry.morphTargets.push({name: 'vert'+el, vertices: vert});
+        });
+
+        // set geom vert
+        var vertOuter = [],
+            vertInner = [];
+
+        setMainVert(vertOuter, circumradius, el);
+        setMainVert(vertInner, innerradius, el);
+    console.log(vertOuter, vertInner, geometry.vertices);
+        var nextArrOuter = fillVert(vertOuter.slice(0), n/el);
+        var nextArrInner = fillVert(vertInner.slice(0), n/el);
+    console.log(nextArrOuter, nextArrInner, geometry.vertices);
+        geometry.vertices = nextArrOuter.concat(nextArrOuter);
+    console.log(nextArrOuter, nextArrInner, geometry.vertices);
+        // console.log(geometry.vertices, vertOuter, vertInner);
+        // Generate the faces of the n-gon.
+        for (x = 0; x < n; x++) {
+            geometry.faces.push(new THREE.Face3(x, x + 1, x + n));
+            // geometry.faces.push(new THREE.Face3(x, x + n + 1, x + n));
+        }
+        // last face
+        // geometry.faces.push(new THREE.Face3(0, n + 1, 2 * n));
+        // return
         return geometry;
-    }
+    };
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
         DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
@@ -3686,9 +3740,9 @@ window.DT = (function (window, document, undefined) {
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
 
-    var lineGeom = DT.createGeometry(60, 0.95),
-        limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
-        limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true }),
+    var lineGeom = DT.createGeometry(0.95),
+        limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: true, transparent: true, opacity: 0.6, morphTargets: true }),
+        limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: true, transparent: true, opacity: 0.4, morphTargets: true }),
         line = new THREE.Mesh(lineGeom, limeMat),
         line2 = new THREE.Mesh(lineGeom, limeMat2);
 
@@ -3696,12 +3750,14 @@ window.DT = (function (window, document, undefined) {
     line.position.y = -0.03;
     line.rotation.y = Math.PI;
     line.offset = 0;
+    line.morphTargetInfluences[ 0 ] = 1;
     DT.splineCamera.add(line);
 
     line2.position.z = -0.99;
     line2.rotation.y = Math.PI;
     line2.offset = 0.005;
     line2.position.y = line2.offset - 0.03;
+    line2.morphTargetInfluences[ 0 ] = 1;
     DT.splineCamera.add(line2);
 
 
@@ -3868,33 +3924,42 @@ window.DT = (function (window, document, undefined) {
         }
     });
     DT.$document.on('showHelth', function (e, data) {
-        var segments;
+        var segments, mt;
         switch (data.helth) {
             case 100:
                 segments = 64;
+                mt = 0;
                 break;
             case 80:
                 segments = 6;
+                mt = 1;
                 break;
             case 60:
                 segments = 5;
+                mt = 2;
                 break;
             case 40:
                 segments = 4;
+                mt = 3;
                 break;
             case 20:
                 segments = 3;
+                mt = 4;
                 break;
             case 0:
                 segments = 2;
+                mt = 4;
                 break;
             default:
                 segments = 64;
+                mt = 4;
                 break;
         }
         DT.splineCamera.children.forEach(function (el) {
-            el.morphTargetInfluences[ 0 ] = 0;
-            el.morphTargetInfluences[ 1 ] = 20 ;
+            el.morphTargetInfluences.forEach(function (e, i, a) {
+                a[i] = 0;
+            });
+            el.morphTargetInfluences[ mt ] = 1;
         });
     });
 

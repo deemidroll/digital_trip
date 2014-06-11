@@ -3609,30 +3609,48 @@ window.DT = (function (window, document, undefined) {
         function fillVert (vert, step) {
             n = n || 60;
             var filledVerts = [],
+                resultArr = [],
                 nFilled, nUnfilled;
 
             vert.forEach(function (el, i) {
-                
-                filledVerts[i] = el.clone();
-                filledVerts[i].i = i;
+                var vec = el.clone();
+                vec.i = i;
+                filledVerts.push(vec);
             });
             nFilled = filledVerts.length;
-            nUnfilled = n/nFilled - 2;
-            console.log(filledVerts);
+            nUnfilled = n/nFilled;
+            // console.log(nUnfilled);
 
-            for (var i = 0; i < n; i+=step) {
-                var nextIndex = (i + step - 2 > n) ? 0 : i + step - 2;
-                console.log(i, filledVerts[i]);
-                var vec = filledVerts[i].clone().sub(filledVerts[nextIndex]);
-                for (var j = 0; j < nUnfilled; j++) {
-                    var curr = filledVerts[i].i + j + 1;
-                    vert[curr] = vec.clone().multiplyScalar(1/nUnfilled).add(filledVerts[i]);
+            filledVerts.forEach(function (el, i, arr) {
+                var nextInd, vec, j;
+                nextInd = i+1 === arr.length ? 0 : i+1;
+                // vec = el.clone().sub(arr[nextInd]);
+                vec = arr[nextInd].clone().sub(el);
+                //?// console.log(vec);
+                for (j = 0; j < nUnfilled; j++) {
+                    var curr = el.i + j + 1;
+                    // console.log(vec.setLength(1/nUnfilled*j));
+                    var vec3 = el.clone().add(vec.setLength(1/nUnfilled*j));
+                    // console.log(vec3);
+                    resultArr.push(vec3);
+                    // vert[curr] = vec.clone().multiplyScalar(1/nUnfilled*(j+1)).add(el);
                 }
-            }
-            return vert;
+            });
+            // console.log(resultArr);
+
+            // for (var i = 0; i < n; i+=step) {
+            //     var nextIndex = (i + step - 2 > n) ? 0 : i + step - 2;
+            //     console.log(i, filledVerts[i]);
+            //     var vec = filledVerts[i].clone().sub(filledVerts[nextIndex]);
+            //     for (var j = 0; j < nUnfilled; j++) {
+            //         var curr = filledVerts[i].i + j + 1;
+            //         vert[curr] = vec.clone().multiplyScalar(1/nUnfilled).add(filledVerts[i]);
+            //     }
+            // }
+            return resultArr;
         }
 
-        var n = n || 60;
+        var n = n || 6;
         var el = 6;
         
         // set morph targets for vert0;
@@ -3640,8 +3658,8 @@ window.DT = (function (window, document, undefined) {
         // setVertices(vert0, circumradius);
         // geometry.morphTargets.push({name: 'vert0', vertices: vert0});
 
-        // set morph targets for other vetr
-        [6, 6, 5, 4, 3].forEach(function (el) {
+        // // set morph targets for other vetr
+        [6].forEach(function (el) {
             var vert,
                 vertOuter = [],
                 vertInner = [];
@@ -3649,10 +3667,10 @@ window.DT = (function (window, document, undefined) {
             setMainVert(vertOuter, circumradius, el);
             setMainVert(vertInner, innerradius, el);
 
-            fillVert(vertOuter, n/el);
-            fillVert(vertInner, n/el);
+            var nextArrOuter = fillVert(vertOuter, n/el);
+            var nextArrInner = fillVert(vertInner, n/el);
 
-            vert = vertOuter.concat(vertInner);
+            vert = nextArrOuter.concat(nextArrInner);
 
             geometry.morphTargets.push({name: 'vert'+el, vertices: vert});
         });
@@ -3663,20 +3681,20 @@ window.DT = (function (window, document, undefined) {
 
         setMainVert(vertOuter, circumradius, el);
         setMainVert(vertInner, innerradius, el);
-    console.log(vertOuter, vertInner, geometry.vertices);
+    // console.log(vertOuter, vertInner, geometry.vertices);
         var nextArrOuter = fillVert(vertOuter.slice(0), n/el);
         var nextArrInner = fillVert(vertInner.slice(0), n/el);
-    console.log(nextArrOuter, nextArrInner, geometry.vertices);
+    // console.log(nextArrOuter, nextArrInner, geometry.vertices);
         geometry.vertices = nextArrOuter.concat(nextArrOuter);
-    console.log(nextArrOuter, nextArrInner, geometry.vertices);
+    console.log(geometry.vertices);
         // console.log(geometry.vertices, vertOuter, vertInner);
         // Generate the faces of the n-gon.
         for (x = 0; x < n; x++) {
             geometry.faces.push(new THREE.Face3(x, x + 1, x + n));
-            // geometry.faces.push(new THREE.Face3(x, x + n + 1, x + n));
+            geometry.faces.push(new THREE.Face3(x, x + n + 1, x + n));
         }
         // last face
-        // geometry.faces.push(new THREE.Face3(0, n + 1, 2 * n));
+        geometry.faces.push(new THREE.Face3(0, n + 1, 2 * n));
         // return
         return geometry;
     };

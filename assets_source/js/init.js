@@ -103,50 +103,46 @@ DT.createGeometry = function (circumradius) {
             n = 60;
 
         function setMainVert (rad, numb) {
-            var step = n/numb,
-                vert = [];
-            for (var i = 0; i < n; i+=step) {
-                var index = i === 0 ? 0 : i - 1;
-                vert[index] = new THREE.Vector3(
-                    rad * Math.sin((Math.PI / n) + (index * ((2 * Math.PI)/ n))),
-                    rad * Math.cos((Math.PI / n) + (index * ((2 * Math.PI)/ n))),
+            var vert = [];
+            for (var i = 0; i < numb; i++) {
+                var vec3 = new THREE.Vector3(
+                    rad * Math.sin((Math.PI / numb) + (i * ((2 * Math.PI)/ numb))),
+                    rad * Math.cos((Math.PI / numb) + (i * ((2 * Math.PI)/ numb))),
                     0
                 );
+                // vec3.i = i;
+                vert.push(vec3);
             }
+            console.log(vert);
             return vert;
         }
 
         function fillVert (vert) {
-            var filledVerts = [],
-                nFilled, nUnfilled;
-            vert.forEach(function (el, i) {
-                el.i = i;
-                filledVerts.push(el);
-            });
+            console.log(vert);
+            var nFilled, nUnfilled, result = [];
 
-            nFilled = fillVert.length;
-            nUnfilled = n/nFilled - 2;
-
-            filledVerts.forEach(function (el, i, arr) {
-                var nextInd = i + 1 === arr.length ? 0 : i + 1;
+            nFilled = vert.length;
+            nUnfilled = n/nFilled;
+            console.log(nFilled,nUnfilled);
+            vert.forEach(function (el, i, arr) {
+                var nextInd = i === arr.length - 1 ? 0 : i + 1;
                 var vec = el.clone().sub(arr[nextInd]);
                 for (var j = 0; j < nUnfilled; j++) {
-                    var curr = el.i + j + 1;
-                    vert[curr] = vec.clone().multiplyScalar(1/nUnfilled).add(el);
+                    result.push(vec.clone().multiplyScalar(1/nUnfilled*j).add(el));
                 }
             });
-            return vert;
+            console.log(result);
+            return result;
         }
 
         // set morph targets for other vetr
-        [3].forEach(function (el, i, arr) {
-        // [10, 6, 5, 4, 3].forEach(function (el, i, arr) {
+        [10, 6, 5, 4, 3].forEach(function (el, i, arr) {
             var vert,
                 vertOuter,
                 vertInner;
 
-            vertOuter = fillVert(setMainVert(circumradius, el));
-            vertInner = fillVert(setMainVert(innerradius, el));
+            vertOuter = fillVert(setMainVert(circumradius, el).slice(0)).slice(0);
+            vertInner = fillVert(setMainVert(innerradius, el).slice(0)).slice(0);
 
             vert = vertOuter.concat(vertInner);
 
@@ -227,7 +223,7 @@ DT.createGeometry = function (circumradius) {
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
 
-    var lineGeom = DT.createGeometry(0.95),
+    var lineGeom = DT.createGeometry(0.5),
         limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: true, transparent: true, opacity: 0.6, morphTargets: true }),
         limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: true, transparent: true, opacity: 0.4, morphTargets: true }),
         line = new THREE.Mesh(lineGeom, limeMat),

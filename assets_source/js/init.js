@@ -133,7 +133,7 @@ DT.createGeometry = function (circumradius) {
 
         // set morph targets for other vetr
         // [3].forEach(function (el, i, arr) {
-        [60, 6, 5, 4, 3].forEach(function (el, i, arr) {
+        [60, 6, 5, 4, 3, 2].forEach(function (el, i, arr) {
             var vert,
                 vertOuter,
                 vertInner;
@@ -422,45 +422,52 @@ DT.createGeometry = function (circumradius) {
         var segments, mt;
         switch (data.helth) {
             case 100:
-                segments = 64;
                 mt = 0;
                 break;
             case 80:
-                segments = 6;
                 mt = 1;
                 break;
             case 60:
-                segments = 5;
                 mt = 2;
                 break;
             case 40:
-                segments = 4;
                 mt = 3;
                 break;
             case 20:
-                segments = 3;
                 mt = 4;
                 break;
             case 0:
-                segments = 2;
-                mt = 4;
+                mt = 5;
                 break;
             default:
-                segments = 64;
                 mt = 4;
                 break;
         }
-        var counter = 0,
-            interval = setInterval(function () {
-                counter++
-                DT.splineCamera.children.forEach(function (el) {
-                    el.morphTargetInfluences.forEach(function (e, i, a) {
-                        if (el !== 0 && i !== mt) a[i] = 1 - counter/10;
-                    });
-                    el.morphTargetInfluences[ mt ] = counter/10;
+        var counter = 0;
+        clearInterval(DT.lineChangeInterval);
+        DT.lineChangeInterval = setInterval(function () {
+            counter++
+            DT.splineCamera.children.forEach(function (el) {
+                el.morphTargetInfluences.forEach(function (e, i, a) {
+                    if (e !== 0 && i !== mt) {
+                        a[i] -= 1/20;
+                    }
+                    if (a[i] < 0) a[i] = 0;
+                    if (a[i] > 1) a[i] = 1;
                 });
-            if (counter === 10) clearInterval(interval);
-        }, 50);
+                el.morphTargetInfluences[ mt ] += 1/20;
+            });
+            if (counter === 20) clearInterval(DT.lineChangeInterval);
+            console.log(DT.splineCamera.children[0].morphTargetInfluences);
+        }, 100);
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        DT.splineCamera.children.forEach(function (el) {
+            el.morphTargetInfluences.forEach(function (e, i, a) {
+                a[i] = 0;
+            });
+            el.morphTargetInfluences[ 0 ] = 1;
+        });
     });
 
     // change IcosahedronGeometry prototype

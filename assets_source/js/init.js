@@ -277,24 +277,40 @@ window.DT = (function (window, document, undefined) {
     });
 
     // BACKGROUND
-    var pi_2 = Math.PI/2;
+    // var pi_2 = Math.PI/2;
 
-    DT.backgroundMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(1366, 768, 0),
-        new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture('img/background.jpg')
-        })
-    );
-    DT.backgroundMesh.visible = false;
-    DT.backgroundMesh.position.set(-100, 0, 0);
-    DT.backgroundMesh.rotation.set(0, pi_2, pi_2);
-    DT.scene.add(DT.backgroundMesh);
+    // DT.backgroundMesh = new THREE.Mesh(
+    //     new THREE.PlaneGeometry(1366, 768, 0),
+    //     new THREE.MeshBasicMaterial({
+    //         map: THREE.ImageUtils.loadTexture('img/background.jpg')
+    //     })
+    // );
+    // DT.backgroundMesh.visible = false;
+    // DT.backgroundMesh.position.set(-100, 0, 0);
+    // DT.backgroundMesh.rotation.set(0, pi_2, pi_2);
+    // DT.scene.add(DT.backgroundMesh);
 
-    DT.$document.on('update', function (e, data) {
-        if (!DT.backgroundMesh.visible) {
-            DT.backgroundMesh.visible = true;
-        }
-    });
+    // DT.$document.on('update', function (e, data) {
+    //     if (!DT.backgroundMesh.visible) {
+    //         DT.backgroundMesh.visible = true;
+    //     }
+    // });
+
+    // mesh.material.side = THREE.BackSide;
+    // var texture = THREE.ImageUtils.loadTexture('img/background.jpg', {}, function() {
+    //     renderer.render(scene, camera);
+    // });
+    // texture.needsUpdate = true;
+    var geomBG = new THREE.SphereGeometry(500, 32, 32);
+    var matBG = new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture('img/background.jpg'),
+            // color: 0xffffff,
+            // wireframe: true
+        });
+    var worldBG = new THREE.Mesh(geomBG, matBG);
+    worldBG.material.side = THREE.BackSide;
+    // worldBG.rotation.x = Math.PI/4;
+    DT.scene.add(worldBG);
 
     // EFFECT
     DT.effectComposer = new THREE.EffectComposer( DT.renderer );

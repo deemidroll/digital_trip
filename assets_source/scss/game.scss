@@ -356,9 +356,20 @@ body {
 }
 
 .score {
+    width: 207px;
     height: 30px;
-    left: 30px;
-    font-size: 2em;
+    left: 0;
+    font-size: 40px;
+    bottom: 125px;
+    text-align: right;
+    > span {
+        vertical-align: middle;
+    }
+    > img {
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 5px;
+    }
 }
 
 .color {

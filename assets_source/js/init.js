@@ -282,7 +282,7 @@ window.DT = (function (window, document, undefined) {
     DT.backgroundMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(1366, 768, 0),
         new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture('img/bg1.jpg')
+            map: THREE.ImageUtils.loadTexture('img/background.jpg')
         })
     );
     DT.backgroundMesh.visible = false;

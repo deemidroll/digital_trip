@@ -441,6 +441,22 @@ DT.createGeometry = function (circumradius) {
             el.morphTargetInfluences[ 0 ] = 1;
         });
     });
+    DT.$document.on('showInvulner', function (e, data) {
+        if (data.invulner) {
+            DT.splineCamera.children[1].material.color = new THREE.Color(0xff0000);
+        } else {
+            DT.splineCamera.children[1].material.color = new THREE.Color(0x00ffc6);
+        }
+    });
+    DT.$document.on('showFun', function (e, data) {
+        if (data.isFun) {
+            DT.splineCamera.children[0].material.color = new THREE.Color(0xffffff);
+            DT.splineCamera.children[1].material.color = new THREE.Color(0xffffff);
+        } else {
+            DT.splineCamera.children[0].material.color = new THREE.Color(0xff0000);
+            DT.splineCamera.children[1].material.color = new THREE.Color(0x00ffc6);
+        }
+    });
 
     // change IcosahedronGeometry prototype
     THREE.IcosahedronGeometry = function (radius, detail) {
@@ -1127,46 +1143,46 @@ DT.createGeometry = function (circumradius) {
 // ███████║██║  ██║██║███████╗███████╗██████╔╝
 // ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═════╝ 
 
-    DT.Shield = function (options) {
-        if (!DT.Shield.__instance) {
-            DT.Shield.__instance = this;
-        } else {
-            return DT.Shield.__instance;
-        }
-        DT.GameObject.apply(this, arguments);
-        this.material.color = options.player.sphere.material.color;
-        this.tObject.position = options.player.position;
-        this.player = options.player
-    };
-    DT.Shield.prototype = Object.create(DT.GameObject.prototype);
-    DT.Shield.prototype.constructor = DT.Shield;
+    // DT.Shield = function (options) {
+    //     if (!DT.Shield.__instance) {
+    //         DT.Shield.__instance = this;
+    //     } else {
+    //         return DT.Shield.__instance;
+    //     }
+    //     DT.GameObject.apply(this, arguments);
+    //     this.material.color = options.player.sphere.material.color;
+    //     this.tObject.position = options.player.position;
+    //     this.player = options.player
+    // };
+    // DT.Shield.prototype = Object.create(DT.GameObject.prototype);
+    // DT.Shield.prototype.constructor = DT.Shield;
 
-    DT.Shield.prototype.update = function () {
-        this.tObject.position = this.player.position;
-    };
+    // DT.Shield.prototype.update = function () {
+    //     this.tObject.position = this.player.position;
+    // };
 
-    DT.shield = new DT.Shield({
-        THREEConstructor: THREE.Mesh,
-        geometry: new THREE.CubeGeometry(1.3, 1.3, 1.3, 2, 2, 2),
-        material: new THREE.MeshPhongMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.5
-        }),
-        player: DT.player
-    });
+    // DT.shield = new DT.Shield({
+    //     THREEConstructor: THREE.Mesh,
+    //     geometry: new THREE.CubeGeometry(1.3, 1.3, 1.3, 2, 2, 2),
+    //     material: new THREE.MeshPhongMaterial({
+    //         color: 0xffffff,
+    //         transparent: true,
+    //         opacity: 0.5
+    //     }),
+    //     player: DT.player
+    // });
 
-    DT.$document.on('update', function (e, data) {
-        DT.shield.update();
-    });
+    // DT.$document.on('update', function (e, data) {
+    //     DT.shield.update();
+    // });
 
-    DT.$document.on('showInvulner', function (e, data) {
-        if (data.invulner) {
-            DT.shield.addToScene();
-        } else {
-            DT.shield.removeFromScene();
-        }
-    });
+    // DT.$document.on('showInvulner', function (e, data) {
+    //     if (data.invulner) {
+    //         DT.shield.addToScene();
+    //     } else {
+    //         DT.shield.removeFromScene();
+    //     }
+    // });
 
 // ██████╗ ██╗   ██╗███████╗████████╗
 // ██╔══██╗██║   ██║██╔════╝╚══██╔══╝
@@ -1768,7 +1784,7 @@ DT.createGeometry = function (circumradius) {
         var self = this;
         if (!this.caughtBonuses.length || this.caughtBonuses[0] === type) {
             this.caughtBonuses.push(type);
-            if (this.caughtBonuses.length === 3) {
+            if (this.caughtBonuses.length === 2) {
                 this.useBonuses(type);
                 var refreshBonus = setTimeout(function() {
                     self.caughtBonuses.length = 0;
@@ -2555,7 +2571,7 @@ DT.createGeometry = function (circumradius) {
     });
     DT.$document.on('showBonuses', function (e, data) {
         $('.bonus').text(data.caughtBonuses.join(' '));
-        if (data.caughtBonuses.length === 3) {
+        if (data.caughtBonuses.length === 2) {
             $('.bonus').fadeOut(300, function(){
                 $('.bonus').text('').fadeIn(100);
             });

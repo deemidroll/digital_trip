@@ -24,9 +24,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale; }
 
-.helthbar, .menu_button, .music_button, .fs_button, .score, .bonus {
-  position: absolute;
-  opacity: 0.5; }
+.score, .bonus {
+  position: absolute; }
 
 .hit, .game_over, .pause, .loader, .choose_control, #nogame, .mobile_choosen, .webcam_choosen {
   width: 100%;
@@ -302,7 +301,8 @@ body {
   left: 0;
   font-size: 40px;
   bottom: 125px;
-  text-align: right; }
+  text-align: right;
+  color: #fff; }
   .score > span {
     vertical-align: middle; }
   .score > img {

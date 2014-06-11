@@ -31,9 +31,8 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.helthbar, .menu_button, .music_button, .fs_button, .score, .bonus{
+.score, .bonus{
     position: absolute;
-    opacity: 0.5;
 }
 
 .hit, .game_over, .pause, .loader, .choose_control, #nogame, .mobile_choosen, .webcam_choosen {
@@ -362,6 +361,7 @@ body {
     font-size: 40px;
     bottom: 125px;
     text-align: right;
+    color: #fff;
     > span {
         vertical-align: middle;
     }

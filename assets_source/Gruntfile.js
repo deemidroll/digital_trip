@@ -41,7 +41,7 @@ module.exports = function(grunt) {
         },
         concat_sourcemap: {
             options: {
-                // sourcesContent: true
+                sourcesContent: true
             },
             target: {
                 files: {

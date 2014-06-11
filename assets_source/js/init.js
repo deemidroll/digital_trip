@@ -96,28 +96,15 @@ window.DT = (function (window, document, undefined) {
     DT.getBinormalAt = function (t, tube) {
         return DT.getNormalAt(t, tube, 'binormals');
     };
-    DT.createGeometry = function (circumradius) {
+DT.createGeometry = function (circumradius) {
         var geometry = new THREE.Geometry(),
-            faces = [],
             x,
-            innerradius = circumradius * 0.97;
+            innerradius = circumradius * 0.97,
+            n = 60;
 
-        // function setVertices (vert, rad) {
-        //     n = n || 60;
-        //     for (var i = 0; i <= n; i++) {
-        //         vert.push(new THREE.Vector3(
-        //             rad * Math.sin((Math.PI / n) + (i * ((2 * Math.PI)/ n))),
-        //             rad * Math.cos((Math.PI / n) + (i * ((2 * Math.PI)/ n))),
-        //             0
-        //         ));
-        //     }
-        //     return vert;
-        // }
-
-        function setMainVert (vert, rad, numb) {
-            n = n || 60;
-            var step = n/numb;
-            // console.log(step);
+        function setMainVert (rad, numb) {
+            var step = n/numb,
+                vert = [];
             for (var i = 0; i < n; i+=step) {
                 var index = i === 0 ? 0 : i - 1;
                 vert[index] = new THREE.Vector3(
@@ -129,96 +116,55 @@ window.DT = (function (window, document, undefined) {
             return vert;
         }
 
-        function fillVert (vert, step) {
-            n = n || 60;
+        function fillVert (vert) {
             var filledVerts = [],
-                resultArr = [],
                 nFilled, nUnfilled;
-
             vert.forEach(function (el, i) {
-                var vec = el.clone();
-                vec.i = i;
-                filledVerts.push(vec);
+                el.i = i;
+                filledVerts.push(el);
             });
-            nFilled = filledVerts.length;
-            nUnfilled = n/nFilled;
-            // console.log(nUnfilled);
+
+            nFilled = fillVert.length;
+            nUnfilled = n/nFilled - 2;
 
             filledVerts.forEach(function (el, i, arr) {
-                var nextInd, vec, j;
-                nextInd = i+1 === arr.length ? 0 : i+1;
-                // vec = el.clone().sub(arr[nextInd]);
-                vec = arr[nextInd].clone().sub(el);
-                //?// console.log(vec);
-                for (j = 0; j < nUnfilled; j++) {
+                var nextInd = i + 1 === arr.length ? 0 : i + 1;
+                var vec = el.clone().sub(arr[nextInd]);
+                for (var j = 0; j < nUnfilled; j++) {
                     var curr = el.i + j + 1;
-                    // console.log(vec.setLength(1/nUnfilled*j));
-                    var vec3 = el.clone().add(vec.setLength(1/nUnfilled*j));
-                    // console.log(vec3);
-                    resultArr.push(vec3);
-                    // vert[curr] = vec.clone().multiplyScalar(1/nUnfilled*(j+1)).add(el);
+                    vert[curr] = vec.clone().multiplyScalar(1/nUnfilled).add(el);
                 }
             });
-            // console.log(resultArr);
-
-            // for (var i = 0; i < n; i+=step) {
-            //     var nextIndex = (i + step - 2 > n) ? 0 : i + step - 2;
-            //     console.log(i, filledVerts[i]);
-            //     var vec = filledVerts[i].clone().sub(filledVerts[nextIndex]);
-            //     for (var j = 0; j < nUnfilled; j++) {
-            //         var curr = filledVerts[i].i + j + 1;
-            //         vert[curr] = vec.clone().multiplyScalar(1/nUnfilled).add(filledVerts[i]);
-            //     }
-            // }
-            return resultArr;
+            return vert;
         }
 
-        var n = n || 6;
-        var el = 6;
-        
-        // set morph targets for vert0;
-        // var vert0 = []; 
-        // setVertices(vert0, circumradius);
-        // geometry.morphTargets.push({name: 'vert0', vertices: vert0});
-
-        // // set morph targets for other vetr
-        [6].forEach(function (el) {
+        // set morph targets for other vetr
+        [3].forEach(function (el, i, arr) {
+        // [10, 6, 5, 4, 3].forEach(function (el, i, arr) {
             var vert,
-                vertOuter = [],
-                vertInner = [];
+                vertOuter,
+                vertInner;
 
-            setMainVert(vertOuter, circumradius, el);
-            setMainVert(vertInner, innerradius, el);
+            vertOuter = fillVert(setMainVert(circumradius, el));
+            vertInner = fillVert(setMainVert(innerradius, el));
 
-            var nextArrOuter = fillVert(vertOuter, n/el);
-            var nextArrInner = fillVert(vertInner, n/el);
-
-            vert = nextArrOuter.concat(nextArrInner);
+            vert = vertOuter.concat(vertInner);
 
             geometry.morphTargets.push({name: 'vert'+el, vertices: vert});
+
+            if (i === 0) {
+                geometry.vertices = vert.slice(0);
+                console.log(vert);
+            }
         });
-
-        // set geom vert
-        var vertOuter = [],
-            vertInner = [];
-
-        setMainVert(vertOuter, circumradius, el);
-        setMainVert(vertInner, innerradius, el);
-    // console.log(vertOuter, vertInner, geometry.vertices);
-        var nextArrOuter = fillVert(vertOuter.slice(0), n/el);
-        var nextArrInner = fillVert(vertInner.slice(0), n/el);
-    // console.log(nextArrOuter, nextArrInner, geometry.vertices);
-        geometry.vertices = nextArrOuter.concat(nextArrOuter);
-    console.log(geometry.vertices);
-        // console.log(geometry.vertices, vertOuter, vertInner);
+        
         // Generate the faces of the n-gon.
         for (x = 0; x < n; x++) {
-            geometry.faces.push(new THREE.Face3(x, x + 1, x + n));
-            geometry.faces.push(new THREE.Face3(x, x + n + 1, x + n));
+            var next = x === n - 1 ? 0 : x + 1;
+            geometry.faces.push(new THREE.Face3(x, next, x + n));
+            geometry.faces.push(new THREE.Face3(x + n, next, next + n));
         }
-        // last face
-        geometry.faces.push(new THREE.Face3(0, n + 1, 2 * n));
-        // return
+
         return geometry;
     };
     DT.animate = function (nowMsec) {
@@ -291,14 +237,14 @@ window.DT = (function (window, document, undefined) {
     line.position.y = -0.03;
     line.rotation.y = Math.PI;
     line.offset = 0;
-    line.morphTargetInfluences[ 0 ] = 1;
+    // line.morphTargetInfluences[ 0 ] = 1;
     DT.splineCamera.add(line);
 
     line2.position.z = -0.99;
     line2.rotation.y = Math.PI;
     line2.offset = 0.005;
     line2.position.y = line2.offset - 0.03;
-    line2.morphTargetInfluences[ 0 ] = 1;
+    // line2.morphTargetInfluences[ 0 ] = 1;
     DT.splineCamera.add(line2);
 
 

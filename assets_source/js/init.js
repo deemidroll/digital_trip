@@ -419,31 +419,8 @@ DT.createGeometry = function (circumradius) {
         }
     });
     DT.$document.on('showHelth', function (e, data) {
-        var segments, mt;
-        switch (data.helth) {
-            case 100:
-                mt = 0;
-                break;
-            case 80:
-                mt = 1;
-                break;
-            case 60:
-                mt = 2;
-                break;
-            case 40:
-                mt = 3;
-                break;
-            case 20:
-                mt = 4;
-                break;
-            case 0:
-                mt = 5;
-                break;
-            default:
-                mt = 4;
-                break;
-        }
-        var counter = 0;
+        var mt = (100 - data.helth) / 20,
+            counter = 0;
         clearInterval(DT.lineChangeInterval);
         DT.lineChangeInterval = setInterval(function () {
             counter++

@@ -6030,9 +6030,6 @@ DT.createGeometry = function (circumradius) {
     DT.$document.on('showScore', function (e, data) {
         $('.current_coins').text(data.score);
     });
-    DT.$document.on('showHelth', function (e, data) {
-        $('.helth').animate({width: data.helth + '%'});
-    });
     DT.$document.on('showBonuses', function (e, data) {
         $('.bonus').text(data.caughtBonuses.join(' '));
         if (data.caughtBonuses.length === 3) {

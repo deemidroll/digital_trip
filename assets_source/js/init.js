@@ -449,17 +449,12 @@ DT.createGeometry = function (circumradius) {
             counter++
             DT.splineCamera.children.forEach(function (el) {
                 el.morphTargetInfluences.forEach(function (e, i, a) {
-                    if (e !== 0 && i !== mt) {
-                        a[i] -= 1/20;
-                    }
-                    if (a[i] < 0) a[i] = 0;
-                    if (a[i] > 1) a[i] = 1;
+                    if (e !== 0 && i !== mt) a[i] = Math.max(a[i] - 1/20, 0);
                 });
-                el.morphTargetInfluences[ mt ] += 1/20;
+                el.morphTargetInfluences[ mt ] = Math.min(el.morphTargetInfluences[ mt ] + 1/20, 1);
             });
             if (counter === 20) clearInterval(DT.lineChangeInterval);
-            console.log(DT.splineCamera.children[0].morphTargetInfluences);
-        }, 100);
+        }, 20);
     });
     DT.$document.on('resetGame', function (e, data) {
         DT.splineCamera.children.forEach(function (el) {

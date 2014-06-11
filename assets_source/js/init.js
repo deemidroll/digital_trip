@@ -128,7 +128,7 @@ DT.createGeometry = function (circumradius) {
                 var nextInd = i === arr.length - 1 ? 0 : i + 1;
                 var vec = el.clone().sub(arr[nextInd]);
                 for (var j = 0; j < nUnfilled; j++) {
-                    result.push(vec.clone().multiplyScalar(1/nUnfilled*j).add(el));
+                    result.push(vec.clone().multiplyScalar(1/nUnfilled).add(el));
                 }
             });
             console.log(result);
@@ -136,7 +136,8 @@ DT.createGeometry = function (circumradius) {
         }
 
         // set morph targets for other vetr
-        [10, 6, 5, 4, 3].forEach(function (el, i, arr) {
+        // [3].forEach(function (el, i, arr) {
+        [60, 6, 5, 4, 3].forEach(function (el, i, arr) {
             var vert,
                 vertOuter,
                 vertInner;
@@ -223,9 +224,9 @@ DT.createGeometry = function (circumradius) {
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
 
-    var lineGeom = DT.createGeometry(0.5),
-        limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: true, transparent: true, opacity: 0.6, morphTargets: true }),
-        limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: true, transparent: true, opacity: 0.4, morphTargets: true }),
+    var lineGeom = DT.createGeometry(0.95),
+        limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
+        limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true }),
         line = new THREE.Mesh(lineGeom, limeMat),
         line2 = new THREE.Mesh(lineGeom, limeMat2);
 

@@ -143,7 +143,7 @@ DT.createGeometry = function (circumradius) {
 
             vert = vertOuter.concat(vertInner);
 
-            geometry.morphTargets.push({name: 'vert'+el, vertices: vert});
+            geometry.morphTargets.push({name: 'vert'+i, vertices: vert});
 
             if (i === 0) {
                 geometry.vertices = vert.slice(0);
@@ -239,6 +239,21 @@ DT.createGeometry = function (circumradius) {
     // line2.morphTargetInfluences[ 0 ] = 1;
     DT.splineCamera.add(line2);
 
+    var dispBonusGeom = new THREE.PlaneGeometry(0.5, 0.5);
+    var dispBonusMat = new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture('img/bonus_frame.png'),
+            color: 0xffffff,
+            transparent: true,
+            wireframe: true
+        });
+    var dispBonus = new THREE.Mesh(dispBonusGeom, dispBonusMat);
+    // dispBonus.position = line.geometry.vertices[10].clone();
+    dispBonus.position.z = -0.98
+    dispBonus.rotation.y = Math.PI;
+    // dispBonus.material.side = THREE.BackSide;
+    console.log(line);
+    DT.splineCamera.add(dispBonus);
+
 
     // when resize
     new THREEx.WindowResize(DT.renderer, DT.splineCamera);
@@ -298,12 +313,12 @@ DT.createGeometry = function (circumradius) {
 
         normal.copy( binormal ).cross( dir );
 
+        DT.angleSign = t > 0.5 ? 1 : -1;
+
         DT.splineCamera.position = pos;
-        // DT.splineCamera.children[0].position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator;
-        // DT.splineCamera.children[1].position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + 0.01;
         DT.splineCamera.children.forEach(function (el) {
             el.position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + el.offset;
-            el.rotation.z += Math.PI/360/10;
+            el.rotation.z += Math.PI/360/10 * DT.angleSign;
         });
 
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
@@ -339,39 +354,15 @@ DT.createGeometry = function (circumradius) {
     });
 
     // BACKGROUND
-    // var pi_2 = Math.PI/2;
-
-    // DT.backgroundMesh = new THREE.Mesh(
-    //     new THREE.PlaneGeometry(1366, 768, 0),
-    //     new THREE.MeshBasicMaterial({
-    //         map: THREE.ImageUtils.loadTexture('img/background.jpg')
-    //     })
-    // );
-    // DT.backgroundMesh.visible = false;
-    // DT.backgroundMesh.position.set(-100, 0, 0);
-    // DT.backgroundMesh.rotation.set(0, pi_2, pi_2);
-    // DT.scene.add(DT.backgroundMesh);
-
-    // DT.$document.on('update', function (e, data) {
-    //     if (!DT.backgroundMesh.visible) {
-    //         DT.backgroundMesh.visible = true;
-    //     }
-    // });
-
-    // mesh.material.side = THREE.BackSide;
-    // var texture = THREE.ImageUtils.loadTexture('img/background.jpg', {}, function() {
-    //     renderer.render(scene, camera);
-    // });
-    // texture.needsUpdate = true;
     var geomBG = new THREE.SphereGeometry(500, 32, 32);
     var matBG = new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture('img/background.jpg'),
-            // color: 0xffffff,
-            // wireframe: true
         });
     var worldBG = new THREE.Mesh(geomBG, matBG);
     worldBG.material.side = THREE.BackSide;
-    // worldBG.rotation.x = Math.PI/4;
+    worldBG.rotation.x = Math.PI/8;
+    worldBG.rotation.y = -Math.PI/2;
+    worldBG.rotation.z = Math.PI/2;
     DT.scene.add(worldBG);
 
     // EFFECT
@@ -424,7 +415,8 @@ DT.createGeometry = function (circumradius) {
         clearInterval(DT.lineChangeInterval);
         DT.lineChangeInterval = setInterval(function () {
             counter++
-            DT.splineCamera.children.forEach(function (el) {
+            DT.splineCamera.children.forEach(function (el, ind) {
+                if (ind > 1) return;
                 el.morphTargetInfluences.forEach(function (e, i, a) {
                     if (e !== 0 && i !== mt) a[i] = Math.max(a[i] - 1/20, 0);
                 });

@@ -2453,7 +2453,6 @@ DT.createGeometry = function (circumradius) {
         $(function() {
             $('.loader').hide();
             $chooseControl.css({'display': 'table', 'opacity': '1'});
-            $('.logo').animate({'margin-top': '50px'}, 250);
             DT.$document.bind('keyup', DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
                 if (!DT.game.wasStarted) {

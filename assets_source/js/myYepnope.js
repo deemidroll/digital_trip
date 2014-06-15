@@ -16,7 +16,8 @@ $(function () {
         yepnope.showLoading = function (n) {
             yepnope.percent += 100/3;
             yepnope.loadCounter += 1;
-            $(".loading").animate({minWidth: Math.round(yepnope.percent) + "px"}, {
+            console.log(Math.round(yepnope.percent));
+            $(".loading").animate({minWidth: Math.round(yepnope.percent)+"px"}, {
                 duration: 100,
                 progress: function () {
                     var current = parseInt($(".loading").css("minWidth"), 10);
@@ -24,25 +25,15 @@ $(function () {
                     if (current === 100) {
                         $("title").html("digital trip");
                     }
+                },
+                complete: function () {
+                    if (n === 3) {
+                        DT.runApp();
+                        // clearInterval(loadInterval);
+                    }
                 }
             });
         };
-        var count = 0,
-            loadInterval = setInterval(function () {
-                if (count < 6) {
-                    $(".loading img").eq(count).fadeOut(100);
-                    $(".loading img").eq(count+1).delay(50).fadeIn({
-                        duration: 100,
-                        complete: function () {
-                            count++
-                        }
-                    });
-                }
-                if (count === 6 && yepnope.loadCounter === 3) {
-                    DT.runApp();
-                    clearInterval(loadInterval);
-                }
-            }, 300);
         yepnope([{
             load: [
                 "js/vendor/three.min.js",

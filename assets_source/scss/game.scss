@@ -77,7 +77,7 @@ body {
 }
 
 .choose_control {
-    /*display: table;*/
+    display: table;
     background-color: #000;
     z-index: 1;
 }
@@ -155,8 +155,8 @@ body {
 }
 
 #loader {
-    display: none;
-    background-color: #ffae9b;
+    // display: none;
+    background-color: rgba(0,0,0,0.8);
     z-index: 5;
 }
 
@@ -411,7 +411,7 @@ a:hover {
 }
 .logo {
     // position: absolute;
-    margin-top: 200px;
+    margin-top: 50px;
     margin-bottom: 10px;
     height: 130px;
     overflow: hidden;

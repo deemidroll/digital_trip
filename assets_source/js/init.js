@@ -2601,7 +2601,7 @@ DT.createGeometry = function (circumradius) {
         DT.stats.domElement.style.zIndex = 100;
         body.appendChild( DT.stats.domElement );
         DT.stats2 = DT.stats2 || new Stats();
-        DT.stats2.setMode(1); // 0: fps, 1: ms
+        DT.stats2.setMode(1);
         DT.stats2.domElement.style.position = 'absolute';
         DT.stats2.domElement.style.top = '0px';
         DT.stats2.domElement.style.left = '80px';

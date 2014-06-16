@@ -29,7 +29,9 @@ body {
     text-align: center;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    -webkit-filter: blur(100px);
+    // filter: blur(100px);
+    // -webkit-filter: blur(100px);
+    // -moz-filter: blur(100px);
 }
 
 .score, .bonus{

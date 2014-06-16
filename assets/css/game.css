@@ -22,8 +22,7 @@ body {
   color: #eee;
   text-align: center;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-filter: blur(100px); }
+  -moz-osx-font-smoothing: grayscale; }
 
 .score, .bonus {
   position: absolute; }

@@ -1921,7 +1921,6 @@ DT.createGeometry = function (circumradius) {
             freqDomain = [];
         var audio = new Audio();
         var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs=\'vorbis\'') !== '';
-        var canPlayOgg = true;
         console.info('canPlayOgg', canPlayOgg);
         try {
             window.AudioContext = window.AudioContext || window.webkitAudioContext;

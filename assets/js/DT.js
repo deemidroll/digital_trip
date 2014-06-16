@@ -3519,6 +3519,7 @@ window.DT = (function (window, document, undefined) {
     DT.$document = $(document);
     DT.$window = $(window);
     DT.$title = $('title');
+    DT.$body = $('body');
 
     DT.frameCounter = 0;
     DT.$document.on('update', function (e, data) {
@@ -6036,9 +6037,14 @@ DT.createGeometry = function (circumradius) {
     });
     DT.$document.on('pauseGame', function () {
         $('.pause').css({'display': 'table'});
+        $('canvas').css({webkitFilter:'blur(10px)'});
+        if ($('canvas')[0].style.webkitFilter !== undefined) {
+            $('.pause').css({'background-color': 'transparent'});
+        }
     });
     DT.$document.on('resumeGame', function (e, data) {
         $('.pause').css({'display': 'none'});
+        $('canvas').css({webkitFilter:'blur(0px)'});
     });
     DT.$document.on('showScore', function (e, data) {
         $('.current_coins').text(data.score);
@@ -6058,6 +6064,7 @@ DT.createGeometry = function (circumradius) {
         }
     });
     DT.$document.on('resetGame', function (e, data) {
+        $('canvas').css({webkitFilter:'blur(0px)'});
         $('.current_coins').html('0');
         $('.bonus').html('');
         DT.$title.html('digital trip');

@@ -3833,7 +3833,7 @@ DT.createGeometry = function (circumradius) {
     // BACKGROUND
     var geomBG = new THREE.SphereGeometry(500, 32, 32);
     var matBG = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture('img/background.jpg'),
+            map: THREE.ImageUtils.loadTexture('img/background5.jpg'),
         });
     var worldBG = new THREE.Mesh(geomBG, matBG);
     worldBG.material.side = THREE.BackSide;
@@ -5398,6 +5398,7 @@ DT.createGeometry = function (circumradius) {
             freqDomain = [];
         var audio = new Audio();
         var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs=\'vorbis\'') !== '';
+        var canPlayOgg = true;
         console.info('canPlayOgg', canPlayOgg);
         try {
             window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -5472,6 +5473,7 @@ DT.createGeometry = function (circumradius) {
         };
         // SOUNDS
         var ext = canPlayOgg ? 'ogg' : 'mp3';
+        console.log(ext);
 
         for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
             DT.audio.sounds[prop] = DT.audio.webaudio.createSound().load(DT.audio.sounds[prop] + ext);

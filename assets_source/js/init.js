@@ -2561,7 +2561,7 @@ DT.createGeometry = function (circumradius) {
     DT.$document.on('pauseGame', function () {
         $('.pause').css({'display': 'table'});
         $('canvas').css({webkitFilter:'blur(10px)'});
-        if ($('canvas')[0].style.webkitFilter !== undefined) {
+        if ($('.pause')[0].style.webkitFilter !== undefined) {
             $('.pause').css({'background-color': 'transparent'});
         }
     });

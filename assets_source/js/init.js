@@ -252,7 +252,6 @@ DT.createGeometry = function (circumradius) {
     dispBonus.position.z = -0.98
     dispBonus.rotation.y = Math.PI;
     // dispBonus.material.side = THREE.BackSide;
-    console.log(line);
     DT.splineCamera.add(dispBonus);
 
 
@@ -2002,6 +2001,7 @@ DT.createGeometry = function (circumradius) {
         for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
             DT.audio.sounds[prop] = DT.audio.webaudio.createSound().load(DT.audio.sounds[prop] + ext);
         }
+        console.log(DT.audio.sounds);
         var loadSoundFile = function(urlArr, bufferIndex) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', urlArr[bufferIndex] + ext, true);

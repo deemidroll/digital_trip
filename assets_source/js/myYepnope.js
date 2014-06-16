@@ -18,7 +18,7 @@ $(function () {
             yepnope.percent += 100/3;
             yepnope.loadCounter += 1;
             $(".loader").animate({minWidth: Math.round(yepnope.percent)+"px"}, {
-                duration: 100,
+                duration: 1000,
                 progress: function () {
                     var current = parseInt($(".loader").css("minWidth"), 10);
                     $("title").html(Math.floor(current) + "% " + "digital trip");

@@ -133,7 +133,6 @@ body {
   z-index: 4; }
 
 #loader {
-  background-color: rgba(0, 0, 0, 0.8);
   z-index: 5; }
 
 #nogame {

@@ -427,7 +427,8 @@ DT.createGeometry = function (circumradius) {
         }, 20);
     });
     DT.$document.on('resetGame', function (e, data) {
-        DT.splineCamera.children.forEach(function (el) {
+        DT.splineCamera.children.forEach(function (el, ind) {
+            if (ind > 1) return;
             el.morphTargetInfluences.forEach(function (e, i, a) {
                 a[i] = 0;
             });

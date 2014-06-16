@@ -11,6 +11,7 @@ $(function () {
     }
     if (isWebGLSupported) {
         var $body = $('body');
+        if ($body[0].style.webkitFilter === '') $('#loader').css({'background-color': 'transparent'})
         $('#loader').css({display: 'table'});
         yepnope.loadCounter = 0;
         yepnope.percent = 0;

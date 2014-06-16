@@ -395,7 +395,6 @@ a:hover {
 
 .button:hover {
     cursor: pointer;
-    color: red;
 }
 
 #loader {
@@ -489,15 +488,31 @@ a:hover {
     margin-top: -10px;
     div:hover .rect {
         background-color: #fff;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
     }
     div:hover .rect .quad {
-        background-color: #fd5439;
+        background-color: #000;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
     }
     .rect {
         position: relative;
         background-color: #fd5439;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
         > .quad {
             background-color: #fff;
+            -webkit-transition: background-color 0.4s ease-out 0;
+            -moz-transition: background-color 0.4s ease-out 0;
+            -o-transition: background-color 0.4s ease-out 0;
+            transition: background-color 0.4s ease-out 0;
             position: absolute;
             width: 7px;
             height: 7px;

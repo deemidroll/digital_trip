@@ -327,8 +327,7 @@ a:hover {
   color: red; }
 
 .button:hover {
-  cursor: pointer;
-  color: red; }
+  cursor: pointer; }
 
 #loader {
   display: none; }
@@ -412,14 +411,30 @@ a:hover {
   letter-spacing: 0.2em;
   margin-top: -10px; }
   .controls div:hover .rect {
-    background-color: #fff; }
+    background-color: #fff;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
   .controls div:hover .rect .quad {
-    background-color: #fd5439; }
+    background-color: #000;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
   .controls .rect {
     position: relative;
-    background-color: #fd5439; }
+    background-color: #fd5439;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
     .controls .rect > .quad {
       background-color: #fff;
+      -webkit-transition: background-color 0.4s ease-out 0;
+      -moz-transition: background-color 0.4s ease-out 0;
+      -o-transition: background-color 0.4s ease-out 0;
+      transition: background-color 0.4s ease-out 0;
       position: absolute;
       width: 7px;
       height: 7px; }

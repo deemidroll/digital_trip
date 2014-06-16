@@ -1,17 +1,15 @@
 @font-face {
   font-family: 'plumbcbold';
-  src: url('../fonts/plm75__c-webfont.eot');
-  src: url('../fonts/plm75__c-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/plm75__c-webfont.woff') format('woff'), url('../fonts/plm75__c-webfont.ttf') format('truetype');
+  src: url("../fonts/plm75__c-webfont.eot");
+  src: url("../fonts/plm75__c-webfont.eot?#iefix") format("embedded-opentype"), url("../fonts/plm75__c-webfont.woff") format("woff"), url("../fonts/plm75__c-webfont.ttf") format("truetype");
   font-weight: normal;
   font-style: normal; }
-
 @font-face {
   font-family: 'plumbmediumcmediumc';
-  src: url('../fonts/plm65__c-webfont.eot');
-  src: url('../fonts/plm65__c-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/plm65__c-webfont.woff') format('woff'), url('../fonts/plm65__c-webfont.ttf') format('truetype');
+  src: url("../fonts/plm65__c-webfont.eot");
+  src: url("../fonts/plm65__c-webfont.eot?#iefix") format("embedded-opentype"), url("../fonts/plm65__c-webfont.woff") format("woff"), url("../fonts/plm65__c-webfont.ttf") format("truetype");
   font-weight: normal;
   font-style: normal; }
-
 body {
   font-family: "plumbmediumcmediumc", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   font-weight: 300;
@@ -22,8 +20,7 @@ body {
   color: #eee;
   text-align: center;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-filter: blur(100px); }
+  -moz-osx-font-smoothing: grayscale; }
 
 .score, .bonus {
   position: absolute; }
@@ -162,7 +159,6 @@ body {
       text-decoration: none; }
       #nogame > .cont > .nogame2 > a:hover {
         text-decoration: underline; }
-
 
 .loader span {
   color: #fff;
@@ -411,52 +407,27 @@ a:hover {
   font-size: 16px;
   letter-spacing: 0.2em;
   margin-top: -10px; }
-  .controls div:hover .rect {
-    background-color: #fff; }
-  .controls div:hover .rect .quad {
-    background-color: #fd5439; }
   .controls .rect {
     position: relative;
-    background-color: #fd5439; }
+    background-color: #fd5439;
+    background-color: transparent; }
+    .controls .rect:hover {
+      background-color: #fff; }
     .controls .rect > .quad {
-      background-color: #fff;
-      position: absolute;
-      width: 7px;
-      height: 7px; }
-  .controls > .choose_wasd .rect {
-    width: 112px;
-    height: 46px;
-    margin: 52px auto; }
-    .controls > .choose_wasd .rect .quad1 {
-      bottom: 17px;
-      right: 38px; }
-    .controls > .choose_wasd .rect .quad2 {
-      bottom: 8px;
-      right: 47px; }
-    .controls > .choose_wasd .rect .quad3 {
-      bottom: 8px;
-      right: 38px; }
-    .controls > .choose_wasd .rect .quad4 {
-      bottom: 8px;
-      right: 29px; }
-  .controls > .choose_mobile .rect {
-    margin: 34px auto;
-    width: 51px;
-    height: 82px; }
-    .controls > .choose_mobile .rect .quad {
-      bottom: 7px;
-      right: 21px;
-      width: 8px;
-      height: 8px; }
-  .controls > .choose_webcam .rect {
-    margin: 43px auto;
-    width: 89px;
-    height: 63px; }
-    .controls > .choose_webcam .rect .quad {
-      top: 8px;
-      right: 40px;
-      width: 8px;
-      height: 8px; }
+      background-color: #fff; }
+  .controls > .choose_wasd {
+    background: url(../img/keyboard.png) 50% 50% no-repeat; }
+    .controls > .choose_wasd .rect {
+      width: 112px;
+      height: 46px;
+      margin: 52px auto; }
+      .controls > .choose_wasd .rect .quad1 {
+        bottom: 5px;
+        right: 10px; }
+  .controls > .choose_mobile {
+    background: url(../img/mobile.png) 50% 50% no-repeat; }
+  .controls > .choose_webcam {
+    background: url(../img/webcam.png) 50% 50% no-repeat; }
   .controls > div {
     display: inline-block;
     position: relative;

@@ -29,6 +29,7 @@ body {
     text-align: center;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-filter: blur(100px);
 }
 
 .score, .bonus{
@@ -72,7 +73,7 @@ body {
 
 .game_over {
     /*display: table;*/
-    background-color: #fafafa;
+    // background-color: #fafafa;
     z-index: 3;
 }
 
@@ -101,7 +102,7 @@ body {
     color: #fff;
 }
 .gameover_control {
-    background-color: #959595;
+    background-color: #272727;
     display: inline-block;
     position: static;
     margin-right: 4px;
@@ -128,7 +129,7 @@ body {
 .restart {
     width: 188px;
     height: 36px;
-    background-color: #959595;
+    background-color: #272727;
     padding-top: 15px;
     font-size: 18px;
     letter-spacing: 0.1em;
@@ -240,12 +241,15 @@ body {
     margin-top: -498px;
     z-index: -1;
 }
+.coins {
+    margin-bottom: 100px;
+}
 .gameover_message {
-    color: #000;
+    color: #fff;
     font-size: 40px;
     letter-spacing: 0.1em;
     line-height: 53px;
-    margin-bottom: 94px;
+    margin-bottom: 20px;
 }
 .left {
     float: left;
@@ -483,14 +487,70 @@ a:hover {
     font-size: 16px;
     letter-spacing: 0.2em;
     margin-top: -10px;
+    div:hover .rect {
+        background-color: #fff;
+    }
+    div:hover .rect .quad {
+        background-color: #fd5439;
+    }
+    .rect {
+        position: relative;
+        background-color: #fd5439;
+        > .quad {
+            background-color: #fff;
+            position: absolute;
+            width: 7px;
+            height: 7px;
+        }
+    }
     >.choose_wasd {
-        background: url(../img/keyboard.png) 50% 50% no-repeat;
+        .rect {
+            width: 112px;
+            height: 46px;
+            margin: 52px auto;
+            .quad1 {
+                bottom: 17px;
+                right: 38px;
+            }
+            .quad2 {
+                bottom: 8px;
+                right: 47px;
+            }
+            .quad3 {
+                bottom: 8px;
+                right: 38px;
+            }
+            .quad4 {
+                bottom: 8px;
+                right: 29px;
+            }
+        }
     }
     >.choose_mobile {
-        background: url(../img/mobile.png) 50% 50% no-repeat;
+        .rect {
+            margin: 34px auto;
+            width: 51px;
+            height: 82px;
+            .quad {
+                bottom: 7px;
+                right: 21px;
+                width: 8px;
+                height: 8px;
+            }
+        }
     }
     >.choose_webcam {
-        background: url(../img/webcam.png) 50% 50% no-repeat;
+        .rect {
+            margin: 43px auto;
+            width: 89px;
+            height: 63px;
+            .quad {
+                top: 8px;
+                right: 40px;
+                width: 8px;
+                height: 8px;
+            }
+        }
     }
     >div {
         display: inline-block;
@@ -520,7 +580,8 @@ a:hover {
     display: none;
 }
 #dogecoin {
-    border: 2px solid #6d6d6d;
+    border: 2px solid #fff;
+    color: #fff;
     width: 226px;
     margin-right: 5px;
     height: 47px;
@@ -533,7 +594,7 @@ a:hover {
     letter-spacing: 0.05em;
 }
 #wow {
-    background-color: #1affbb;
+    background-color: #fd5439;
     border: none;
     color: #fff;
     height: 52px;

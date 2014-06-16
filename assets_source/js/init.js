@@ -414,15 +414,16 @@ DT.createGeometry = function (circumradius) {
             counter = 0;
         clearInterval(DT.lineChangeInterval);
         DT.lineChangeInterval = setInterval(function () {
+            var max = 40;
             counter++
             DT.splineCamera.children.forEach(function (el, ind) {
                 if (ind > 1) return;
                 el.morphTargetInfluences.forEach(function (e, i, a) {
-                    if (e !== 0 && i !== mt) a[i] = Math.max(a[i] - 1/20, 0);
+                    if (e !== 0 && i !== mt) a[i] = Math.max(a[i] - 1/max, 0);
                 });
-                el.morphTargetInfluences[ mt ] = Math.min(el.morphTargetInfluences[ mt ] + 1/20, 1);
+                el.morphTargetInfluences[ mt ] = Math.min(el.morphTargetInfluences[ mt ] + 1/max, 1);
             });
-            if (counter === 20) clearInterval(DT.lineChangeInterval);
+            if (counter === max) clearInterval(DT.lineChangeInterval);
         }, 20);
     });
     DT.$document.on('resetGame', function (e, data) {
@@ -435,18 +436,20 @@ DT.createGeometry = function (circumradius) {
     });
     DT.$document.on('showInvulner', function (e, data) {
         if (data.invulner) {
-            DT.splineCamera.children[1].material.color = new THREE.Color(0xff0000);
-        } else {
-            DT.splineCamera.children[1].material.color = new THREE.Color(0x00ffc6);
-        }
-    });
-    DT.$document.on('showFun', function (e, data) {
-        if (data.isFun) {
             DT.splineCamera.children[0].material.color = new THREE.Color(0xffffff);
             DT.splineCamera.children[1].material.color = new THREE.Color(0xffffff);
         } else {
             DT.splineCamera.children[0].material.color = new THREE.Color(0xff0000);
             DT.splineCamera.children[1].material.color = new THREE.Color(0x00ffc6);
+        }
+    });
+    DT.$document.on('showFun', function (e, data) {
+        if (data.isFun) {
+            DT.splineCamera.children[0].material.opacity = 0;
+            DT.splineCamera.children[1].material.opacity = 0;
+        } else {
+            DT.splineCamera.children[0].material.opacity = 0.6;
+            DT.splineCamera.children[1].material.opacity = 0.4;
         }
     });
 
@@ -498,7 +501,7 @@ DT.createGeometry = function (circumradius) {
             'shield': 0xC35020,
         }, {
             name: 'bonusE',
-            scale: 0.02,
+            scale: 1,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0x606060,
         }
@@ -1440,7 +1443,7 @@ DT.createGeometry = function (circumradius) {
 
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-
+        // this.type = 2;
         DT.GameCollectionObject.apply(this, [{
             tObject: DT.listOfModels[this.type].object.clone(),
             collection: options.collection
@@ -2451,7 +2454,7 @@ DT.createGeometry = function (circumradius) {
         }
         DT.playSound(2);
         $(function() {
-            $('.loader').hide();
+            $('#loader').hide();
             $chooseControl.css({'display': 'table', 'opacity': '1'});
             DT.$document.bind('keyup', DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {

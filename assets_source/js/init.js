@@ -43,6 +43,7 @@ window.DT = (function (window, document, undefined) {
     DT.$window = $(window);
     DT.$title = $('title');
     DT.$body = $('body');
+    DT.$chooseControl = $('.choose_control');
 
     DT.frameCounter = 0;
     DT.$document.on('update', function (e, data) {
@@ -190,6 +191,9 @@ DT.createGeometry = function (circumradius) {
         if (data.cause === 'death') {
             setTimeout(function() {
                 cancelAnimFrame(DT.animate.id);
+                $('.restart').bind('click',DT.handlers.restart);
+                $('.change_controls.gameover_control').bind('click', DT.handlers.chooseControlAfterGameOver);
+                DT.$document.bind('keyup', DT.handlers.restartOnSpace);
             }, DT.gameOverTime);
         } else {
             cancelAnimFrame(DT.animate.id);
@@ -427,6 +431,7 @@ DT.createGeometry = function (circumradius) {
         }, 20);
     });
     DT.$document.on('resetGame', function (e, data) {
+        clearInterval(DT.lineChangeInterval);
         DT.splineCamera.children.forEach(function (el, ind) {
             if (ind > 1) return;
             el.morphTargetInfluences.forEach(function (e, i, a) {
@@ -2437,7 +2442,19 @@ DT.createGeometry = function (circumradius) {
     DT.handlers.restart = function () {
         DT.$document.trigger('resetGame', {});
         $('.game_over').fadeOut(250);
-        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
+        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: DT.lastContol});
+    };
+    DT.handlers.chooseControlAfterGameOver = function () {
+        DT.$document.trigger('resetGame', {cause: 'chooseControl'});
+        $('.game_over').fadeOut(250);
+        DT.$chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+        DT.$document.bind('keyup', DT.handlers.startOnSpace);
+    };
+    DT.handlers.restartOnSpace = function () {
+        var k = event.keyCode;
+        if (k === 32) {
+            DT.handlers.restart();
+        }
     };
 
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
@@ -2447,7 +2464,6 @@ DT.createGeometry = function (circumradius) {
 // ██║██║ ╚████║   ██║   ███████╗██║  ██║██║     ██║  ██║╚██████╗███████╗
 // ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝
 (function () {
-    var $chooseControl = $('.choose_control');
     DT.runApp = function () {
         DT.initSocket();
         if (!document.hasFocus()) {
@@ -2458,7 +2474,7 @@ DT.createGeometry = function (circumradius) {
         DT.playSound(2);
         $(function() {
             $('#loader').hide();
-            $chooseControl.css({'display': 'table', 'opacity': '1'});
+            DT.$chooseControl.css({'display': 'table', 'opacity': '1'});
             DT.$document.bind('keyup', DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {
                 if (!DT.game.wasStarted) {
@@ -2467,12 +2483,12 @@ DT.createGeometry = function (circumradius) {
                 }
             });
             $('.choose_mobile').click(function() {
-                $chooseControl.hide();
+                DT.$chooseControl.hide();
                 DT.$document.unbind('keyup', DT.handlers.startOnSpace);
                 $('.mobile_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
             });
             $('.choose_webcam').click(function() {
-                $chooseControl.hide();
+                DT.$chooseControl.hide();
                 DT.$document.unbind('keyup', DT.handlers.startOnSpace);
                 $('.webcam_choosen').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
                 DT.enableWebcam();
@@ -2482,35 +2498,24 @@ DT.createGeometry = function (circumradius) {
     $('.resume').click(function() {
         DT.$document.trigger('resumeGame', {});
     });
-    $('.restart').click(function() {
-        DT.$document.trigger('resetGame', {});
-        $('.game_over').fadeOut(250);
-        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: DT.lastContol});
-    });
     $('.change_controls.pause_control').click(function() {
         DT.$document.trigger('gameOver', {cause: 'reset'});
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.pause').fadeOut(250);
-        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+        DT.$chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace); 
     });
     $('.change_controls.webcam_control').click(function() {
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.webcam_choosen').fadeOut(250);
-        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+        DT.$chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
     });
     $('.change_controls.mobile_control').click(function() {
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.mobile_choosen').fadeOut(250);
-        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
+        DT.$chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
-    });
-    $('.change_controls.gameover_control').click(function() {
-        DT.$document.trigger('resetGame', {cause: 'chooseControl'});
-        $('.game_over').fadeOut(250);
-        $chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
-        DT.$document.bind('keyup', DT.handlers.startOnSpace); 
     });
     $('#wow').on('click', function () {
         var inputDogeCoin = $('#dogecoin');
@@ -2547,7 +2552,7 @@ DT.createGeometry = function (circumradius) {
         $('.hit').css({'display': 'table'}).fadeOut(250);
     });
     DT.$document.on('startGame', function (e, data) {
-        $chooseControl.fadeOut(250);
+        DT.$chooseControl.fadeOut(250);
         $('.mobile_choosen').fadeOut(250);
         $('.webcam_choosen').fadeOut(250);
         DT.$document.unbind('keyup', DT.handlers.startOnSpace);
@@ -2591,6 +2596,10 @@ DT.createGeometry = function (circumradius) {
         $('.bonus').html('');
         DT.$title.html('digital trip');
         $('.helth').css({width: '100%'});
+
+        DT.$document.unbind('keyup', DT.handlers.restartOnSpace);
+        $('.restart').unbind('click', DT.handlers.restart);
+        $('.change_controls.gameover_control').unbind('click', DT.handlers.chooseControlAfterGameOver);
     });
     DT.$document.on('paymentCheck', function (e, data) {
         var text = data.checkup ? 'success' : 'fail';

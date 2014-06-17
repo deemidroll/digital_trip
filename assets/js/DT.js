@@ -4193,6 +4193,8 @@ DT.createGeometry = function (circumradius) {
         this.sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({color: 0xff0000}));
         this.sphere.position = this.position;
 
+        this.t = 0;
+
         this.light = new THREE.PointLight(0xff0000, 1.75, 15);
         this.light.position = this.position;
         this.light.color = this.sphere.material.color;
@@ -4360,7 +4362,8 @@ DT.createGeometry = function (circumradius) {
 
     DT.Player.prototype.update = function (data) {
         // var self = this;
-        var pos = data.tube.path.getPointAt(DT.normalizeT(data.t + 0.004));
+        this.t = DT.normalizeT(data.t + 0.004);
+        var pos = data.tube.path.getPointAt(this.t);
         var posPlayer = pos.clone().multiplyScalar(DT.scale);
         data.normalPos = posPlayer.clone();
 
@@ -4776,8 +4779,8 @@ DT.createGeometry = function (circumradius) {
                 DT.$document.trigger('hit', {});
             }
         }
-        if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance + 1) {
-            DT.audio.sounds.stoneMiss.play();
+        if (this.distanceToSphere < this.minDistance + 1 && this.t < DT.player.t) {
+            DT.audio.sounds.stoneMiss.play(); 
         }
         var binormal = DT.getBinormalAt(this.t),
             estimatedPlayerPosition = options.data.tube.path.getPointAt(this.t)
@@ -5262,7 +5265,7 @@ DT.createGeometry = function (circumradius) {
         var self = this;
         if (!this.caughtBonuses.length || this.caughtBonuses[0] === type) {
             this.caughtBonuses.push(type);
-            if (this.caughtBonuses.length === 2) {
+            if (this.caughtBonuses.length === 1) {
                 this.useBonuses(type);
                 var refreshBonus = setTimeout(function() {
                     self.caughtBonuses.length = 0;
@@ -5273,7 +5276,7 @@ DT.createGeometry = function (circumradius) {
             this.caughtBonuses.length = 0;
             this.caughtBonuses.push(type);
         }
-        DT.$document.trigger('showBonuses', {caughtBonuses: this.caughtBonuses});
+        DT.$document.trigger('showBonuses', {type: type, caughtBonuses: this.caughtBonuses});
         return this;
     };
     DT.BonusesCollection.prototype.reset = function () {
@@ -5324,13 +5327,16 @@ DT.createGeometry = function (circumradius) {
             stoneDestroy: 'sounds/stoneDestroy.',
             stoneMiss: 'sounds/stoneMiss.',
             catchBonus: 'sounds/catchBonus.',
+            catchBonus0: 'sounds/catchBonus0.',
+            catchBonus1: 'sounds/catchBonus1.',
+            catchBonus2: 'sounds/catchBonus2.',
             helth: 'sounds/helth.',
             shield: 'sounds/shield.',
         },
         music: {
-            0: 'sounds/$O$.',
-            1: 'sounds/heart.',
-            2: 'sounds/space_ambient2.',
+            0: 'sounds/main.',
+            1: 'sounds/fun.',
+            2: 'sounds/intro.',
             started: [],
             startedAt: [],
             pausedAt: [],
@@ -5535,7 +5541,7 @@ DT.createGeometry = function (circumradius) {
     })();
 
     DT.$document.on('showBonuses', function (e, data) {
-        DT.audio.sounds.catchBonus.play();
+        DT.audio.sounds['catchBonus' + data.type].play();
     });
     DT.$document.on('changeHelth', function (e, data) {
         if (data.delta > 0) DT.audio.sounds.helth.play();
@@ -6055,14 +6061,14 @@ DT.createGeometry = function (circumradius) {
     DT.$document.on('showScore', function (e, data) {
         $('.current_coins').text(data.score);
     });
-    DT.$document.on('showBonuses', function (e, data) {
-        $('.bonus').text(data.caughtBonuses.join(' '));
-        if (data.caughtBonuses.length === 2) {
-            $('.bonus').fadeOut(300, function(){
-                $('.bonus').text('').fadeIn(100);
-            });
-        }
-    });
+    // DT.$document.on('showBonuses', function (e, data) {
+    //     $('.bonus').text(data.caughtBonuses.join(' '));
+    //     if (data.caughtBonuses.length === 1) {
+    //         $('.bonus').fadeOut(300, function(){
+    //             $('.bonus').text('').fadeIn(100);
+    //         });
+    //     }
+    // });
     DT.$document.on('gameOver', function (e, data) {
         if (data.cause === 'death') {
             $('.total_coins').text(DT.player.currentScore);

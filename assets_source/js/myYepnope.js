@@ -35,10 +35,11 @@ $(function () {
                     var current = parseInt($(".loader").css("minWidth"), 10) * 100/maxBlur;
                     $("title").html(Math.floor(current) + "% " + "digital trip");
                     if (isWebkitBlurSupported) $body[0].style.webkitFilter = 'blur('+ (maxBlur - current)+ 'px)';
+                    if (!isWebkitBlurSupported && current % 20 === 0) $cc.css({filter: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"blur-overlay\"><feGaussianBlur stdDeviation=\"" + (maxBlur - maxBlur/4*n) + "\"/></filter></svg>#blur-overlay')"});
                     if (current === 100) {
                         $("title").html("digital trip");
+                        if (!isWebkitBlurSupported && current % 20 === 0) $cc.css({filter: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"blur-overlay\"><feGaussianBlur stdDeviation=\"" + 0 + "\"/></filter></svg>#blur-overlay')"});
                     }
-                    if (!isWebkitBlurSupported && current % 10 === 0) $cc.css({filter: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"blur-overlay\"><feGaussianBlur stdDeviation=\"" + (maxBlur - maxBlur/3*n) + "\"/></filter></svg>#blur-overlay')"});
                 },
                 complete: function () {
                     if (n === 3) {

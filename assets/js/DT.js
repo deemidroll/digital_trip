@@ -3575,7 +3575,7 @@ window.DT = (function (window, document, undefined) {
     DT.getBinormalAt = function (t, tube) {
         return DT.getNormalAt(t, tube, 'binormals');
     };
-DT.createGeometry = function (circumradius) {
+    DT.createGeometry = function (circumradius) {
         var geometry = new THREE.Geometry(),
             x,
             innerradius = circumradius * 0.97,
@@ -3701,39 +3701,39 @@ DT.createGeometry = function (circumradius) {
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
 
-    var lineGeom = DT.createGeometry(0.95),
-        limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
-        limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true }),
-        line = new THREE.Mesh(lineGeom, limeMat),
-        line2 = new THREE.Mesh(lineGeom, limeMat2);
+    // var lineGeom = DT.createGeometry(0.95),
+    //     limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
+    //     limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true }),
+    //     line = new THREE.Mesh(lineGeom, limeMat),
+    //     line2 = new THREE.Mesh(lineGeom, limeMat2);
 
-    line.position.z = -1;
-    line.position.y = -0.03;
-    line.rotation.y = Math.PI;
-    line.offset = 0;
-    // line.morphTargetInfluences[ 0 ] = 1;
-    DT.splineCamera.add(line);
+    // line.position.z = -1;
+    // line.position.y = -0.03;
+    // line.rotation.y = Math.PI;
+    // line.offset = 0;
+    // // line.morphTargetInfluences[ 0 ] = 1;
+    // DT.splineCamera.add(line);
 
-    line2.position.z = -0.99;
-    line2.rotation.y = Math.PI;
-    line2.offset = 0.005;
-    line2.position.y = line2.offset - 0.03;
-    // line2.morphTargetInfluences[ 0 ] = 1;
-    DT.splineCamera.add(line2);
+    // line2.position.z = -0.99;
+    // line2.rotation.y = Math.PI;
+    // line2.offset = 0.005;
+    // line2.position.y = line2.offset - 0.03;
+    // // line2.morphTargetInfluences[ 0 ] = 1;
+    // DT.splineCamera.add(line2);
 
-    var dispBonusGeom = new THREE.PlaneGeometry(0.5, 0.5);
-    var dispBonusMat = new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture('img/bonus_frame.png'),
-            color: 0xffffff,
-            transparent: true,
-            wireframe: true
-        });
-    var dispBonus = new THREE.Mesh(dispBonusGeom, dispBonusMat);
-    // dispBonus.position = line.geometry.vertices[10].clone();
-    dispBonus.position.z = -0.98
-    dispBonus.rotation.y = Math.PI;
-    // dispBonus.material.side = THREE.BackSide;
-    DT.splineCamera.add(dispBonus);
+    // var dispBonusGeom = new THREE.PlaneGeometry(0.5, 0.5);
+    // var dispBonusMat = new THREE.MeshBasicMaterial({
+    //         map: THREE.ImageUtils.loadTexture('img/bonus_frame.png'),
+    //         color: 0xffffff,
+    //         transparent: true,
+    //         wireframe: true
+    //     });
+    // var dispBonus = new THREE.Mesh(dispBonusGeom, dispBonusMat);
+    // // dispBonus.position = line.geometry.vertices[10].clone();
+    // dispBonus.position.z = -0.98
+    // dispBonus.rotation.y = Math.PI;
+    // // dispBonus.material.side = THREE.BackSide;
+    // DT.splineCamera.add(dispBonus);
 
 
     // when resize
@@ -3794,13 +3794,13 @@ DT.createGeometry = function (circumradius) {
 
         normal.copy( binormal ).cross( dir );
 
-        DT.angleSign = t > 0.5 ? 1 : -1;
+        // DT.angleSign = t > 0.5 ? 1 : -1;
 
         DT.splineCamera.position = pos;
-        DT.splineCamera.children.forEach(function (el) {
-            el.position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + el.offset;
-            el.rotation.z += Math.PI/360/10 * DT.angleSign;
-        });
+        // DT.splineCamera.children.forEach(function (el) {
+        //     el.position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + el.offset;
+        //     el.rotation.z += Math.PI/360/10 * DT.angleSign;
+        // });
 
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
 
@@ -3897,7 +3897,7 @@ DT.createGeometry = function (circumradius) {
         DT.lineChangeInterval = setInterval(function () {
             var max = 40;
             counter++
-            DT.splineCamera.children.forEach(function (el, ind) {
+            DT.player.lines.children.forEach(function (el, ind) {
                 if (ind > 1) return;
                 el.morphTargetInfluences.forEach(function (e, i, a) {
                     if (e !== 0 && i !== mt) a[i] = Math.max(a[i] - 1/max, 0);
@@ -3909,7 +3909,7 @@ DT.createGeometry = function (circumradius) {
     });
     DT.$document.on('resetGame', function (e, data) {
         clearInterval(DT.lineChangeInterval);
-        DT.splineCamera.children.forEach(function (el, ind) {
+        DT.player.lines.children.forEach(function (el, ind) {
             if (ind > 1) return;
             el.morphTargetInfluences.forEach(function (e, i, a) {
                 a[i] = 0;
@@ -3919,20 +3919,20 @@ DT.createGeometry = function (circumradius) {
     });
     DT.$document.on('showInvulner', function (e, data) {
         if (data.invulner) {
-            DT.splineCamera.children[0].material.color = new THREE.Color(0xffffff);
-            DT.splineCamera.children[1].material.color = new THREE.Color(0xffffff);
+            DT.player.lines.children[0].material.color = new THREE.Color(0xffffff);
+            DT.player.lines.children[1].material.color = new THREE.Color(0xffffff);
         } else {
-            DT.splineCamera.children[0].material.color = new THREE.Color(0xff0000);
-            DT.splineCamera.children[1].material.color = new THREE.Color(0x00ffc6);
+            DT.player.lines.children[0].material.color = new THREE.Color(0xff0000);
+            DT.player.lines.children[1].material.color = new THREE.Color(0x00ffc6);
         }
     });
     DT.$document.on('showFun', function (e, data) {
         if (data.isFun) {
-            DT.splineCamera.children[0].material.opacity = 0;
-            DT.splineCamera.children[1].material.opacity = 0;
+            DT.player.lines.children[0].material.opacity = 0;
+            DT.player.lines.children[1].material.opacity = 0;
         } else {
-            DT.splineCamera.children[0].material.opacity = 0.6;
-            DT.splineCamera.children[1].material.opacity = 0.4;
+            DT.player.lines.children[0].material.opacity = 0.6;
+            DT.player.lines.children[1].material.opacity = 0.4;
         }
     });
 
@@ -4203,6 +4203,30 @@ DT.createGeometry = function (circumradius) {
         this.firstMove = true;
         this.moveIterator = 0;
 
+        this.lines = new THREE.Object3D();
+        this.scene.add(this.lines);
+        var lineGeom = DT.createGeometry(3),
+            limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
+            limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true });
+        this.line = new THREE.Mesh(lineGeom, limeMat);
+        this.line2 = new THREE.Mesh(lineGeom, limeMat2);
+
+        this.line.position.z = +0.5;
+        // this.line.position.y = -0.03;
+        // this.line.rotation.y = Math.PI;
+        this.line.offset = 0;
+        // this.line.morphTargetInfluences[ 0 ] = 1;
+        this.lines.add(this.line);
+
+        // this.line2.position.z = -0.99;
+        this.line2.position.z = -0.5;
+        // this.line2.rotation.y = Math.PI;
+        this.line2.offset = 0.05;
+        this.line2.position.x = this.line2.offset;
+        this.line2.position.y = this.line2.offset;
+        // this.line2.morphTargetInfluences[ 0 ] = 1;
+        this.lines.add(this.line2);
+
         this.blink = {
             defColor: new THREE.Color('red'),
             color: new THREE.Color('white'),
@@ -4375,6 +4399,26 @@ DT.createGeometry = function (circumradius) {
         this.updateBlink();
 
         this.moveSphere(data);
+
+        this.lines.position = this.position.clone();
+
+        var tLook = DT.normalizeT(data.t + 0.006),
+            normalLook = DT.getNormalAt(tLook),
+            binormalLook = DT.getBinormalAt(tLook),
+            vectorLook = data.tube.path.getTangentAt(tLook)
+                .multiplyScalar(DT.scale)
+                .add(this.lines.position);
+
+        var m1 = new THREE.Matrix4().copy( this.lines.matrix );
+        m1.lookAt( vectorLook, this.lines.position, normalLook );
+        this.lines.rotation.setFromRotationMatrix( m1 );
+
+        this.lines.children.forEach(function (el, i) {
+            // el.position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + el.offset;
+            // el.rotation.z += Math.PI/360/2 * DT.angleSign;
+            DT.angleSign = i === 0 ? 1 : -1;
+            el.rotation.z += Math.PI/360/2 * DT.angleSign;
+        });
 
         this.particleSystem.position.copy(this.position);
 

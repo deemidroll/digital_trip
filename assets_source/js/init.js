@@ -1302,7 +1302,7 @@ DT.createGeometry = function (circumradius) {
                 DT.$document.trigger('hit', {});
             }
         }
-        if (this.distanceToSphere < this.minDistance + 1 && this.t < DT.player.t) {
+        if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.3 && this.t < DT.player.t) {
             DT.audio.sounds.stoneMiss.play(); 
         }
         var binormal = DT.getBinormalAt(this.t),
@@ -1853,13 +1853,14 @@ DT.createGeometry = function (circumradius) {
             catchBonus0: 'sounds/catchBonus0.',
             catchBonus1: 'sounds/catchBonus1.',
             catchBonus2: 'sounds/catchBonus2.',
-            helth: 'sounds/helth.',
+            // helth: 'sounds/helth.',
             shield: 'sounds/shield.',
         },
         music: {
             0: 'sounds/main.',
             1: 'sounds/fun.',
             2: 'sounds/intro.',
+            3: 'sounds/invulner.',
             started: [],
             startedAt: [],
             pausedAt: [],
@@ -2021,7 +2022,7 @@ DT.createGeometry = function (circumradius) {
             };
             xhr.send();
         };
-        for (var i = 0; i < 3; i++) {
+        for (var i = 0; i < 4; i++) {
             loadSoundFile(DT.audio.music, i);
         }
         var visualize = function(index) {
@@ -2066,17 +2067,30 @@ DT.createGeometry = function (circumradius) {
     DT.$document.on('showBonuses', function (e, data) {
         DT.audio.sounds['catchBonus' + data.type].play();
     });
-    DT.$document.on('changeHelth', function (e, data) {
-        if (data.delta > 0) DT.audio.sounds.helth.play();
-    });
-    DT.$document.on('makeInvulner', function (e, data) {
-        DT.audio.sounds.shield.play();
-    });
+    // DT.$document.on('changeHelth', function (e, data) {
+    //     if (data.delta > 0) DT.audio.sounds.helth.play();
+    // });
+    // DT.$document.on('makeInvulner', function (e, data) {
+    //     DT.audio.sounds.shield.play();
+    // });
     DT.$document.on('showFun', function (e, data) {
         if (data.isFun) {
             DT.stopSound(0);
+            DT.stopSound(3);
             DT.playSound(1);
         } else {
+            DT.stopSound(1);
+            DT.stopSound(3);
+            DT.playSound(0);
+        }
+    });
+    DT.$document.on('showInvulner', function (e, data) {
+        if (data.isInvulner) {
+            DT.stopSound(0);
+            DT.stopSound(1);
+            DT.playSound(3);
+        } else {
+            DT.stopSound(3);
             DT.stopSound(1);
             DT.playSound(0);
         }

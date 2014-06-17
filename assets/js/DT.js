@@ -5951,6 +5951,8 @@ DT.createGeometry = function (circumradius) {
         DT.playSound(2);
         $(function() {
             $('#loader').hide();
+            $('#interface').show();
+            $('#footer').show();
             DT.$chooseControl.css({'display': 'table', 'opacity': '1'});
             DT.$document.bind('keyup', DT.handlers.startOnSpace);
             $('.choose_wasd').click(function() {

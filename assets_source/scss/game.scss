@@ -32,6 +32,7 @@ body {
     // filter: blur(100px);
     // -webkit-filter: blur(100px);
     // -moz-filter: blur(100px);
+    // filter: url(..img/filters.svg#blur-overlay);
 }
 
 .score, .bonus{
@@ -80,6 +81,7 @@ body {
 }
 
 .choose_control {
+    // filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="blur-overlay"><feGaussianBlur stdDeviation="3"/></filter></svg>#blur-overlay');
     display: table;
     background-color: #000;
     z-index: 1;
@@ -159,7 +161,7 @@ body {
 
 #loader {
     // display: none;
-    background-color: rgba(0,0,0,0.8);
+    // background-color: rgba(0,0,0,0.8);
     z-index: 5;
 }
 
@@ -209,8 +211,11 @@ body {
     font-size: 5em;
     z-index: 3;
 }
-
+#interface {
+    display: none;
+}
 #footer {
+    display: none;
     position: absolute;
     bottom: 0;
     left: 0;

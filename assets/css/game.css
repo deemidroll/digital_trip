@@ -132,7 +132,6 @@ body {
   z-index: 4; }
 
 #loader {
-  background-color: rgba(0, 0, 0, 0.8);
   z-index: 5; }
 
 #nogame {
@@ -168,7 +167,11 @@ body {
   font-size: 5em;
   z-index: 3; }
 
+#interface {
+  display: none; }
+
 #footer {
+  display: none;
   position: absolute;
   bottom: 0;
   left: 0;

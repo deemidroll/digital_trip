@@ -4205,7 +4205,7 @@ window.DT = (function (window, document, undefined) {
 
         this.lines = new THREE.Object3D();
         this.scene.add(this.lines);
-        var lineGeom = DT.createGeometry(3),
+        var lineGeom = DT.createGeometry(2),
             limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
             limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true });
         this.line = new THREE.Mesh(lineGeom, limeMat);
@@ -4514,7 +4514,7 @@ window.DT = (function (window, document, undefined) {
         DT.player.update(data);
     });
     DT.$document.on('makeFun', function (e, data) {
-        DT.player.makeFun();
+        if (!DT.game.wasOver) DT.player.makeFun();
     });
     DT.$document.on('stopFun', function (e, data) {
         DT.player.stopFun();

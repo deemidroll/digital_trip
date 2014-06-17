@@ -52,15 +52,15 @@ $(function() {
                     $('#audioloop').trigger('play');
                 });
                 // If user touches the screen, accelerate
-                document.addEventListener("touchstart", function (event) {
-                    socket.emit("accelerate", {'accelerate':true});
-                    $('#forward').addClass('active');
-                }, false);
-                // Stop accelerating if user stops touching screen
-                document.addEventListener("touchend", function(event) {
-                    socket.emit("accelerate", {'accelerate':false});
-                    $('#forward').removeClass('active');
-                }, false);
+                // document.addEventListener("touchstart", function (event) {
+                //     socket.emit("accelerate", {'accelerate':true});
+                //     $('#forward').addClass('active');
+                // }, false);
+                // // Stop accelerating if user stops touching screen
+                // document.addEventListener("touchend", function(event) {
+                //     socket.emit("accelerate", {'accelerate':false});
+                //     $('#forward').removeClass('active');
+                // }, false);
                 // Prevent touchmove event from cancelling the 'touchend' event above
                 document.addEventListener("touchmove", function(event) {
                     event.preventDefault();

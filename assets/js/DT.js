@@ -5330,8 +5330,8 @@ DT.createGeometry = function (circumradius) {
             catchBonus0: 'sounds/catchBonus0.',
             catchBonus1: 'sounds/catchBonus1.',
             catchBonus2: 'sounds/catchBonus2.',
-            // helth: 'sounds/helth.',
-            shield: 'sounds/shield.',
+            left: 'sounds/left.',
+            right: 'sounds/right.',
         },
         music: {
             0: 'sounds/main.',
@@ -5562,7 +5562,8 @@ DT.createGeometry = function (circumradius) {
         }
     });
     DT.$document.on('showInvulner', function (e, data) {
-        if (data.isInvulner) {
+        if (DT.player.isFun) return;
+        if (data.invulner) {
             DT.stopSound(0);
             DT.stopSound(1);
             DT.playSound(3);
@@ -5671,7 +5672,7 @@ DT.createGeometry = function (circumradius) {
         });
         // When the phone is turned, change destPoint
         socket.on('turn', function(turn) {
-            if (DT.enableMobileSatus === 'enabled') {
+            if (DT.enableMobileSatus === 'enabled' && DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
                 if(turn < leftBreakThreshold) {
                     if(turn > leftTurnThreshold) {
                         DT.handlers.center();
@@ -5690,9 +5691,7 @@ DT.createGeometry = function (circumradius) {
             }
         });
         socket.on('click', function(click) {
-            if (DT.game.wasStarted && !DT.game.wasOver) {
-                DT.handlers[click]();
-            }
+            DT.handlers[click]();
         });
         socket.on('message', function(data) {
             if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
@@ -5788,7 +5787,7 @@ DT.createGeometry = function (circumradius) {
                     console.log(statusMessages[event.status]);
                     // $('.turn_to_start span').html(statusMessages[event.status])
                 }
-                if (event.status === 'found' && !DT.gameWasStarted && DT.enableWebcam.satus === 'init') {
+                if (event.status === 'found' && !DT.game.wasStarted && DT.enableWebcam.satus === 'init') {
                     // DT.$document.trigger('startGame', {control: 'webcam'});
                     // DT.lastControl = 'webcam'
                 }
@@ -5805,7 +5804,7 @@ DT.createGeometry = function (circumradius) {
 
             var facetrackingEventHandler = function( event ) {
                 // once we have stable tracking, draw rectangle
-                if (event.detection == 'CS' && DT.enableWebcam.satus !== 'disabled') {
+                if (event.detection == 'CS' && DT.enableWebcam.satus !== 'disabled' && DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
                     var angle = Number(event.angle *(180/ Math.PI)-90);
                     // console.log(angle);
                     if(angle < leftBreakThreshold) {
@@ -5922,18 +5921,24 @@ DT.createGeometry = function (circumradius) {
         }
     };
     DT.handlers.toTheLeft = function () {
+        if (DT.player.destPoint.x !== -1) DT.audio.sounds.left.play();
         DT.player.changeDestPoint(new THREE.Vector3(-1, 0, 0));
     };
     DT.handlers.toTheRight = function () {
+        if (DT.player.destPoint.x !== 1) DT.audio.sounds.right.play();
         DT.player.changeDestPoint(new THREE.Vector3(1, 0, 0));
     };
     DT.handlers.left = function () {
+        if (DT.player.destPoint.x !== -1) DT.audio.sounds.left.play();
         DT.player.destPoint.x = -1;
     };
     DT.handlers.right = function () {
+        if (DT.player.destPoint.x !== 1) DT.audio.sounds.right.play();
         DT.player.destPoint.x = 1;
     };
     DT.handlers.center = function () {
+        if (DT.player.destPoint.x === -1) DT.audio.sounds.right.play();
+        if (DT.player.destPoint.x === 1) DT.audio.sounds.left.play();
         DT.player.destPoint.x = 0;
     };
     DT.handlers.restart = function () {

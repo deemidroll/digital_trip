@@ -8,11 +8,32 @@ $(function() {
         rightTurnThreshold = 20,
         controller = $("#controller"),
         $gameCodeInput = $("#gameCodeInput"),
-        wheel = $("#wheel"),
-        status = $("#status"),
+        $wheel = $("#wheel"),
+        $gameover = $("#gameover"),
+        $preparetostart = $("#preparetostart"),
+        $status = $("#status"),
         turned = false;
 
-    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent) || true) {
+    if( /iP(ad|od|hone)|Android|Blackberry|Windows Phone/i.test(navigator.userAgent)) {
+        // device orientation
+        function orientationTest (event) {
+            if (!turned) turned = true;
+            window.removeEventListener('deviceorientation', orientationTest, false);
+            window.removeEventListener('MozOrientation', orientationTest, false);
+        }
+        setTimeout(function () {
+            if (!turned) {
+                $("#btnLeft").on('touchstart',function () {
+                    socket.emit("click", {"click":"toTheLeft"});
+                });
+                $("#btnRight").on('touchstart',function () {
+                    socket.emit("click", {"click":"toTheRight"});
+                });
+                $status.html("push buttons to control");
+            } else {
+                $status.html("tilt your device to control");
+            }
+        }, 1000);
         // When connect is pushed, establish socket connection
         var connect = function(gameCode) {
             socket = io.connect(server);
@@ -28,26 +49,26 @@ $(function() {
                 }
                 if (data.type === "gameover") {
                     // console.log("gameover");
-                    wheel.css({display: 'none'});
-                    $("#gameover").css({display: 'table-cell'});
+                    $wheel.css({display: 'none'});
+                    $gameover.css({display: 'table-cell'});
                 }
                 if (data.type === "resetGame") {
                     // console.log("resetGame");
-                    $("#gameover").css({display: 'none'});
-                    wheel.css({display: 'table-cell'});
+                    $gameover.css({display: 'none'});
+                    $wheel.css({display: 'table-cell'});
                 }
             });
             // When game code is validated, we can begin playing...
             socket.on("connected", function(data) {
 
-                // css {display: 'none'}game code input, and css {display: 'table-cell'}the vehicle wheel UI
+                // css {display: 'none'}game code input, and css {display: 'table-cell'}the vehicle $wheel UI
                 $("#socket").css({display: 'none'});
-                $("#preparetostart").css({display: 'table-cell'});
+                $preparetostart.css({display: 'table-cell'});
                 $("#start").click(function () {
                     socket.emit('start', {});
                     $(this).unbind('click');
-                    $("#preparetostart").css({display: 'none'});
-                    wheel.css({display: 'table-cell'});
+                    $preparetostart.css({display: 'none'});
+                    $wheel.css({display: 'table-cell'});
                     // Audio loop - hack for prevent screen sleep
                     $('#audioloop').trigger('play');
                 });
@@ -62,9 +83,9 @@ $(function() {
                 //     $('#forward').removeClass('active');
                 // }, false);
                 // Prevent touchmove event from cancelling the 'touchend' event above
-                document.addEventListener("touchmove", function(event) {
-                    event.preventDefault();
-                }, false);
+                // document.addEventListener("touchmove", function(event) {
+                //     event.preventDefault();
+                // }, false);
                 
                 function orientationHandler (event) {
                     var a = event.alpha, // "direction"
@@ -75,23 +96,14 @@ $(function() {
                     if (ori === 0) turn = g;
                     if (ori === 90) turn = b;
                     if (ori === -90) turn = -b;
-                    if (!turned) turned = true;
                     socket.emit("turn", {'turn':turn, 'g':a});
                 }
                 // Steer the vehicle based on the phone orientation
                 window.addEventListener('deviceorientation', orientationHandler, false);
                 window.addEventListener('MozOrientation', orientationHandler, false);
 
-                setTimeout(function () {
-                    if (!turned) {
-                        $("#btnLeft").on('touchstart',function () {
-                            socket.emit("click", {"click":"toTheLeft"});
-                        });
-                        $("#btnRight").on('touchstart',function () {
-                            socket.emit("click", {"click":"toTheRight"});
-                        });
-                    }
-                }, 1000);
+                window.addEventListener('deviceorientation', orientationTest, false);
+                window.addEventListener('MozOrientation', orientationTest, false);
 
                 $("#btnSphere").on('touchstart',function () {
                     socket.emit("click", {"click":"pause"});
@@ -100,14 +112,14 @@ $(function() {
 
                 $("#restart").click(function () {
                     socket.emit("click", {"click":"restart"});
-                    $("#gameover").css({display: 'none'});
-                    wheel.css({display: 'table-cell'});
+                    $gameover.css({display: 'none'});
+                    $wheel.css({display: 'table-cell'});
                     $('#audioloop').trigger('play');
                 });
 
             });
             socket.on("fail", function() {
-                status.html("Failed to connect! Reload!");
+                $status.html("Failed to connect! Reload!");
             });
             $(document).unbind("keyup", connnectOnEnter);
         };

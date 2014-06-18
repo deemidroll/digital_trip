@@ -84,8 +84,14 @@ body, html {
   z-index: 2;
   display: table-cell; }
 
+#status {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  z-index: 3; }
+
 #preparetostart {
-  display: table-cell; }
+  display: none; }
   #preparetostart > #start > .push {
     position: absolute;
     width: 100%;
@@ -97,6 +103,7 @@ body, html {
     color: rgba(255, 255, 255, 0.5); }
 
 #wheel {
+  display: none;
   z-index: 1;
   background-color: #000; }
 
@@ -152,6 +159,7 @@ body, html {
     height: 140px; }
 
 #gameover {
+  display: none;
   position: absolute;
   top: 0;
   left: 0;

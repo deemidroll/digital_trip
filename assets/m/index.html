@@ -13,11 +13,10 @@
     <audio id="audioloop" src="../sounds/loop.mp3" onended="this.play();" autobuffer></audio>
 
     <div id="controller">
-        
+        <!-- status message -->
+        <div id="status" ></div>
         <!-- code input -->
         <div id="socket">
-            <!-- status message -->
-            <div id="status" ></div>
             <input id="gameCodeInput" autofocus type="text" name="socketId"/>
             <button id="connect">connect</button>
         </div>

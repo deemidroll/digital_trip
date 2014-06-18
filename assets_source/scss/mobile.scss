@@ -96,8 +96,15 @@ body,html {
     display: table-cell;
 }
 
+#status {
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    z-index: 3;
+}
+
 #preparetostart {
-    display: table-cell;
+    display: none;
     > #start > .push {
         position: absolute;
         width: 100%;
@@ -111,6 +118,7 @@ body,html {
 }
 
 #wheel {
+    display: none;
     z-index: 1;
     background-color: #000;
 }
@@ -171,6 +179,7 @@ body,html {
     }
 }
 #gameover {
+    display: none;
     position:absolute;
     top:0;
     left:0;

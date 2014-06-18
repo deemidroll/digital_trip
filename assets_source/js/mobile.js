@@ -21,6 +21,9 @@ $(function() {
             window.removeEventListener('deviceorientation', orientationTest, false);
             window.removeEventListener('MozOrientation', orientationTest, false);
         }
+
+        window.addEventListener('deviceorientation', orientationTest, false);
+        window.addEventListener('MozOrientation', orientationTest, false);
         setTimeout(function () {
             if (!turned) {
                 $("#btnLeft").on('touchstart',function () {
@@ -72,20 +75,11 @@ $(function() {
                     // Audio loop - hack for prevent screen sleep
                     $('#audioloop').trigger('play');
                 });
-                // If user touches the screen, accelerate
-                // document.addEventListener("touchstart", function (event) {
-                //     socket.emit("accelerate", {'accelerate':true});
-                //     $('#forward').addClass('active');
-                // }, false);
-                // // Stop accelerating if user stops touching screen
-                // document.addEventListener("touchend", function(event) {
-                //     socket.emit("accelerate", {'accelerate':false});
-                //     $('#forward').removeClass('active');
-                // }, false);
+
                 // Prevent touchmove event from cancelling the 'touchend' event above
-                // document.addEventListener("touchmove", function(event) {
-                //     event.preventDefault();
-                // }, false);
+                document.addEventListener("touchmove", function(event) {
+                    event.preventDefault();
+                }, false);
                 
                 function orientationHandler (event) {
                     var a = event.alpha, // "direction"
@@ -101,9 +95,6 @@ $(function() {
                 // Steer the vehicle based on the phone orientation
                 window.addEventListener('deviceorientation', orientationHandler, false);
                 window.addEventListener('MozOrientation', orientationHandler, false);
-
-                window.addEventListener('deviceorientation', orientationTest, false);
-                window.addEventListener('MozOrientation', orientationTest, false);
 
                 $("#btnSphere").on('touchstart',function () {
                     socket.emit("click", {"click":"pause"});

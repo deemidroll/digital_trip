@@ -52,7 +52,6 @@ $(function () {
         yepnope([{
             load: [
                 "js/vendor/three.min.js",
-                "js/vendor/CurveExtras.js",
                 "js/DT.js",
                 "../socket.io/socket.io.js"
             ],

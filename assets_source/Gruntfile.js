@@ -47,20 +47,28 @@ module.exports = function(grunt) {
                 files: {
                     // '../assets_source/js/DT.js'
                     '../assets/js/DT.js': [
+                        // QR code
                         'js/vendor/jquery.qrcode.min.js',
-
+                        // Particle system
                         'js/vendor/fireworks-bundle.js',
+                        // Detector
                         'js/vendor/Detector.js',
+                        // Resize
                         'js/vendor/threex.windowresize.js',
+                        // Stats
                         'js/vendor/Stats.js',
                         'js/vendor/threex.rendererstats.js',
+                        // Curves
+                        'js/vendor/CurveExtras.js',
+                        // Sound
                         'js/vendor/webaudio.js',
-
+                        // Webcam control
                         'js/vendor/headtrackr.min.js',
-                        
+                        // External objects
                         'js/vendor/OBJLoader.js',
-
+                        // Full screen
                         'js/vendor/THREEx.FullScreen.js',
+                        // Postprocessing
                         'js/vendor/CopyShader.js',
                         'js/vendor/DotScreenShader.js',
                         'js/vendor/RGBShiftShader.js',
@@ -68,10 +76,9 @@ module.exports = function(grunt) {
                         'js/vendor/RenderPass.js',
                         'js/vendor/MaskPass.js',
                         'js/vendor/ShaderPass.js',
-                        // 'js/vendor/StaticShader.js',
                         'js/vendor/BadTVShader.js',
+                        // Game init
                         'js/init.js',
-                        'js/main.js',
                     ]
                 }
             }

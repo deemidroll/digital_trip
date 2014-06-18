@@ -2051,12 +2051,11 @@ window.DT = (function (window, document, undefined) {
         };
         // SOUNDS
         var ext = canPlayOgg ? 'ogg' : 'mp3';
-        console.log(ext);
 
         for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
             DT.audio.sounds[prop] = DT.audio.webaudio.createSound().load(DT.audio.sounds[prop] + ext);
         }
-        console.log(DT.audio.sounds);
+
         var loadSoundFile = function(urlArr, bufferIndex) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', urlArr[bufferIndex] + ext, true);

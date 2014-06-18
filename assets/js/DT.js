@@ -4655,6 +4655,7 @@ window.DT = (function (window, document, undefined) {
     };
 
     DT.Player.prototype.stopInvulner = function () {
+        if (!this.isInvulnerability) return;
         this.invulnerTimer = 0;
         this.isInvulnerability = false;
         DT.$document.trigger('showInvulner', {invulner: false});
@@ -5149,6 +5150,7 @@ window.DT = (function (window, document, undefined) {
                 DT.$document.trigger('blink', {color: 0x000000, frames: 60});
                 DT.$document.trigger('hit', {});
             }
+            DT.$document.trigger('stopInvulner', {});
         }
         if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.3 && this.t < DT.player.t) {
             DT.audio.sounds.stoneMiss.play(); 
@@ -5624,7 +5626,7 @@ window.DT = (function (window, document, undefined) {
     };
     DT.BonusesCollection.prototype.useBonuses = function (type) {
         // helth
-        if (type === 0) DT.$document.trigger('changeHelth', {delta: 100});
+        if (type === 0) DT.$document.trigger('changeHelth', {delta: 20});
         // invulnerability
         if (type === 1) DT.$document.trigger('makeInvulner', {});
         // entertainment
@@ -5914,12 +5916,6 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('showBonuses', function (e, data) {
         DT.audio.sounds['catchBonus' + data.type].play();
     });
-    // DT.$document.on('changeHelth', function (e, data) {
-    //     if (data.delta > 0) DT.audio.sounds.helth.play();
-    // });
-    // DT.$document.on('makeInvulner', function (e, data) {
-    //     DT.audio.sounds.shield.play();
-    // });
     DT.$document.on('showFun', function (e, data) {
         if (data.isFun) {
             DT.stopSound(0);
@@ -6467,9 +6463,7 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('resetGame', function (e, data) {
         $('canvas').css({webkitFilter:'blur(0px)'});
         $('.current_coins').html('0');
-        $('.bonus').html('');
         DT.$title.html('digital trip');
-        $('.helth').css({width: '100%'});
 
         DT.$document.unbind('keyup', DT.handlers.restartOnSpace);
         $('.restart').unbind('click', DT.handlers.restart);

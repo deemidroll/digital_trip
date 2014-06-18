@@ -30,7 +30,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     
-    -webkit-filter: blur(100px);
+    // -webkit-filter: blur(100px);
 }
 
 .score, .bonus{
@@ -80,7 +80,7 @@ body {
 
 .choose_control {
     display: none;
-    filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="blur-overlay"><feGaussianBlur stdDeviation="100"/></filter></svg>#blur-overlay');
+    // filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="blur-overlay"><feGaussianBlur stdDeviation="100"/></filter></svg>#blur-overlay');
     background-color: #000;
     z-index: 1;
 }
@@ -167,6 +167,8 @@ body {
     display: none;
     z-index: 4;
     background-color: #fafafa;
+    background: #fafafa url(../img/nogame.jpg) 0 0 no-repeat;
+    background-size: cover;
     overflow: hidden;
     >.cont {
 
@@ -181,13 +183,13 @@ body {
         z-index: -1;
         }
         >.nogame1 {
-            color: #fd5439;
+            color: #fafafa;
             font-size: 60px;
             letter-spacing: 0.08em;
         }
         >.nogame2 {
             padding-top: 200px;
-            color: #2f2f2f;
+            color: #fafafa;
             font-size: 18px;
             letter-spacing: 0.1em;
             >a {

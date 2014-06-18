@@ -25,6 +25,7 @@ $(function () {
             $body[0].style.webkitFilter = 'blur(' + maxBlur + 'px)';
         }
         $('#loader').css({display: 'table'});
+        $cc.css({display: 'table'});
         yepnope.loadCounter = 0;
         yepnope.percent = 0;
         yepnope.showLoading = function (n) {

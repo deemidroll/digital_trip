@@ -3939,7 +3939,7 @@ window.DT = (function (window, document, undefined) {
 
         // set morph targets for other vetr
         // [3].forEach(function (el, i, arr) {
-        [60, 6, 5, 4, 3, 2].forEach(function (el, i, arr) {
+        [60, 5, 4, 3, 2].forEach(function (el, i, arr) {
             var vert,
                 vertOuter,
                 vertInner;
@@ -4218,7 +4218,7 @@ window.DT = (function (window, document, undefined) {
         }
     });
     DT.$document.on('showHelth', function (e, data) {
-        var mt = (100 - data.helth) / 20,
+        var mt = (100 - data.helth) / 25,
             counter = 0;
         clearInterval(DT.lineChangeInterval);
         DT.lineChangeInterval = setInterval(function () {
@@ -5144,7 +5144,7 @@ window.DT = (function (window, document, undefined) {
             this.removeFromScene();
 
             if (!DT.game.wasOver) {
-                DT.$document.trigger('changeHelth', {delta: -20});
+                DT.$document.trigger('changeHelth', {delta: -25});
                 DT.$document.trigger('bump', {});
             }
             if (DT.player.isInvulnerability === false) {
@@ -5631,7 +5631,7 @@ window.DT = (function (window, document, undefined) {
     };
     DT.BonusesCollection.prototype.useBonuses = function (type) {
         // helth
-        if (type === 0) DT.$document.trigger('changeHelth', {delta: 20});
+        if (type === 0) DT.$document.trigger('changeHelth', {delta: 25});
         // invulnerability
         if (type === 1) DT.$document.trigger('makeInvulner', {});
         // entertainment

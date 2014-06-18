@@ -22,7 +22,8 @@ body {
   color: #eee;
   text-align: center;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale; }
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-filter: blur(100px); }
 
 .score, .bonus {
   position: absolute; }
@@ -61,6 +62,8 @@ body {
   z-index: 3; }
 
 .choose_control {
+  display: none;
+  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="blur-overlay"><feGaussianBlur stdDeviation="100"/></filter></svg>#blur-overlay');
   display: table;
   background-color: #000;
   z-index: 1; }

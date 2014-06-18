@@ -5143,9 +5143,10 @@ window.DT = (function (window, document, undefined) {
             });
             this.removeFromScene();
 
-            DT.$document.trigger('changeHelth', {delta: -20});
-            DT.$document.trigger('bump', {});
-            // вызвать вспышку экрана
+            if (!DT.game.wasOver) {
+                DT.$document.trigger('changeHelth', {delta: -20});
+                DT.$document.trigger('bump', {});
+            }
             if (DT.player.isInvulnerability === false) {
                 DT.$document.trigger('blink', {color: 0x000000, frames: 60});
                 DT.$document.trigger('hit', {});
@@ -5282,12 +5283,14 @@ window.DT = (function (window, document, undefined) {
         var distanceBerweenCenters = positon.distanceTo(options.sphere.position);
         if (distanceBerweenCenters < 0.9) {
             this.removeFromScene();
-            DT.$document.trigger('changeScore', {delta: 1});
-            DT.audio.sounds.catchCoin.play();
-            DT.sendSocketMessage({
-                type: 'vibr',
-                time: 10
-            });
+            if (!DT.game.wasOver) {
+                DT.$document.trigger('changeScore', {delta: 1});
+                DT.audio.sounds.catchCoin.play();
+                DT.sendSocketMessage({
+                    type: 'vibr',
+                    time: 10
+                });
+            }
             DT.$document.trigger('blink', {color: 0xcfb53b, frames: 60});
         }
         return this;
@@ -5398,8 +5401,10 @@ window.DT = (function (window, document, undefined) {
 
         if (dist < 0.9) {
             this.removeFromScene();
-            DT.$document.trigger('catchBonus', {type: self.type});
-            DT.$document.trigger('blink', {color: 0xff2222, frames: 60});
+            if (!DT.game.wasOver) {
+                DT.$document.trigger('catchBonus', {type: self.type});
+                DT.$document.trigger('blink', {color: 0xff2222, frames: 60});
+            }
         }
     };
 

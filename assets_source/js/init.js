@@ -89,6 +89,8 @@ window.DT = (function (window, document, undefined) {
             pick = Math.floor( pickt ),
             pickNext = ( pick + 1 ) % segments;
 
+        if (pick < 0) pick = segments-1;
+
         tube = tube || DT.tube;
         if (!tube[normals][ pickNext ] || !tube[normals][ pick ]) console.log(pickNext, pick);
         normal.subVectors( tube[normals][ pickNext ], tube[normals][ pick ] );
@@ -160,6 +162,18 @@ window.DT = (function (window, document, undefined) {
         }
 
         return geometry;
+    };
+    DT.lookAt = function (t, tube, tObject) {
+        var tLook = DT.normalizeT(t),
+            normalLook = DT.getNormalAt(tLook),
+            binormalLook = DT.getBinormalAt(tLook),
+            vectorLook = tube.path.getTangentAt(tLook)
+                .multiplyScalar(DT.scale)
+                .add(tObject.position);
+
+        var m1 = new THREE.Matrix4().copy( tObject.matrix );
+        m1.lookAt( vectorLook, tObject.position, normalLook );
+        tObject.rotation.setFromRotationMatrix( m1 );
     };
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
@@ -441,22 +455,10 @@ window.DT = (function (window, document, undefined) {
         });
     });
     DT.$document.on('showInvulner', function (e, data) {
-        if (data.invulner) {
-            DT.player.lines.children[0].material.color = new THREE.Color(0xffffff);
-            DT.player.lines.children[1].material.color = new THREE.Color(0xffffff);
-        } else {
-            DT.player.lines.children[0].material.color = new THREE.Color(0xff0000);
-            DT.player.lines.children[1].material.color = new THREE.Color(0x00ffc6);
-        }
+        DT.handlers.triggerOpacityOnLines(data.invulner);
     });
     DT.$document.on('showFun', function (e, data) {
-        if (data.isFun) {
-            DT.player.lines.children[0].material.opacity = 0;
-            DT.player.lines.children[1].material.opacity = 0;
-        } else {
-            DT.player.lines.children[0].material.opacity = 0.6;
-            DT.player.lines.children[1].material.opacity = 0.4;
-        }
+        DT.handlers.triggerOpacityOnLines(data.isFun);
     });
 
     // change IcosahedronGeometry prototype
@@ -510,6 +512,11 @@ window.DT = (function (window, document, undefined) {
             scale: 1,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0x606060,
+        }, {
+            name: 'shield',
+            scale: 0.16,
+            rotaion: new THREE.Vector3(0, 0, 0),
+            color: 0x606060,
         }
     ];
     // LOADER
@@ -537,6 +544,7 @@ window.DT = (function (window, document, undefined) {
             } else {
                 a[i].object = object.children[0];
             }
+            DT.$document.trigger('externalObjectLoaded', {index: i});
         });
     });
 
@@ -926,16 +934,7 @@ window.DT = (function (window, document, undefined) {
 
         this.lines.position = this.position.clone();
 
-        var tLook = DT.normalizeT(data.t + 0.006),
-            normalLook = DT.getNormalAt(tLook),
-            binormalLook = DT.getBinormalAt(tLook),
-            vectorLook = data.tube.path.getTangentAt(tLook)
-                .multiplyScalar(DT.scale)
-                .add(this.lines.position);
-
-        var m1 = new THREE.Matrix4().copy( this.lines.matrix );
-        m1.lookAt( vectorLook, this.lines.position, normalLook );
-        this.lines.rotation.setFromRotationMatrix( m1 );
+        DT.lookAt(data.t + 0.006, data.tube, this.lines);
 
         this.lines.children.forEach(function (el, i) {
             // el.position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + el.offset;
@@ -1191,47 +1190,47 @@ window.DT = (function (window, document, undefined) {
 // ╚════██║██╔══██║██║██╔══╝  ██║     ██║  ██║
 // ███████║██║  ██║██║███████╗███████╗██████╔╝
 // ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═════╝ 
+    DT.Shield = function (options) {
+        if (!DT.Shield.__instance) {
+            DT.Shield.__instance = this;
+        } else {
+            return DT.Shield.__instance;
+        }
+        DT.GameObject.apply(this, arguments);
+        // this.material.color = options.player.sphere.material.color;
+        this.tObject.scale.multiplyScalar(DT.listOfModels[3].scale);
+        this.tObject.position = options.player.position;
+        this.tObject.material.transparent = true;
+        this.tObject.material.opacity = 0.5;
+        this.player = options.player
+    };
+    DT.Shield.prototype = Object.create(DT.GameObject.prototype);
+    DT.Shield.prototype.constructor = DT.Shield;
 
-    // DT.Shield = function (options) {
-    //     if (!DT.Shield.__instance) {
-    //         DT.Shield.__instance = this;
-    //     } else {
-    //         return DT.Shield.__instance;
-    //     }
-    //     DT.GameObject.apply(this, arguments);
-    //     this.material.color = options.player.sphere.material.color;
-    //     this.tObject.position = options.player.position;
-    //     this.player = options.player
-    // };
-    // DT.Shield.prototype = Object.create(DT.GameObject.prototype);
-    // DT.Shield.prototype.constructor = DT.Shield;
+    DT.Shield.prototype.update = function () {
+        this.tObject.position = this.player.position;
+        DT.lookAt(DT.player.t - 0.004, DT.tube, this.tObject);
+    };
 
-    // DT.Shield.prototype.update = function () {
-    //     this.tObject.position = this.player.position;
-    // };
+DT.$document.on('externalObjectLoaded', function (e, data) {
+    if (data.index !== 3) return;
+    DT.shield = new DT.Shield({
+        tObject: DT.listOfModels[3].object.clone(),
+        player: DT.player
+    });
 
-    // DT.shield = new DT.Shield({
-    //     THREEConstructor: THREE.Mesh,
-    //     geometry: new THREE.CubeGeometry(1.3, 1.3, 1.3, 2, 2, 2),
-    //     material: new THREE.MeshPhongMaterial({
-    //         color: 0xffffff,
-    //         transparent: true,
-    //         opacity: 0.5
-    //     }),
-    //     player: DT.player
-    // });
+    DT.$document.on('update', function (e, data) {
+        DT.shield.update();
+    });
 
-    // DT.$document.on('update', function (e, data) {
-    //     DT.shield.update();
-    // });
-
-    // DT.$document.on('showInvulner', function (e, data) {
-    //     if (data.invulner) {
-    //         DT.shield.addToScene();
-    //     } else {
-    //         DT.shield.removeFromScene();
-    //     }
-    // });
+    DT.$document.on('showInvulner', function (e, data) {
+        if (data.invulner) {
+            DT.shield.addToScene();
+        } else {
+            DT.shield.removeFromScene();
+        }
+    });
+});
 
 // ██████╗ ██╗   ██╗███████╗████████╗
 // ██╔══██╗██║   ██║██╔════╝╚══██╔══╝
@@ -1501,7 +1500,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-        // this.type = 2;
+        // this.type = 1;
         DT.GameCollectionObject.apply(this, [{
             tObject: DT.listOfModels[this.type].object.clone(),
             collection: options.collection
@@ -1515,16 +1514,7 @@ window.DT = (function (window, document, undefined) {
 
         this.tObject.position = pos;
 
-        var tLook = DT.normalizeT(t - 0.002),
-            normalLook = DT.getNormalAt(tLook),
-            binormalLook = DT.getBinormalAt(tLook),
-            vectorLook = options.tube.path.getTangentAt(tLook)
-                .multiplyScalar(DT.scale)
-                .add(this.tObject.position);
-
-        var m1 = new THREE.Matrix4().copy( this.tObject.matrix );
-        m1.lookAt( vectorLook, this.tObject.position, normalLook );
-        this.tObject.rotation.setFromRotationMatrix( m1 );
+        DT.lookAt(t - 0.002, options.tube, this.tObject);
 
         this.dontMakeTransparent = true;
 
@@ -1900,7 +1890,6 @@ window.DT = (function (window, document, undefined) {
             pause: 'sounds/pause.',
             stoneDestroy: 'sounds/stoneDestroy.',
             stoneMiss: 'sounds/stoneMiss.',
-            catchBonus: 'sounds/catchBonus.',
             catchBonus0: 'sounds/catchBonus0.',
             catchBonus1: 'sounds/catchBonus1.',
             catchBonus2: 'sounds/catchBonus2.',
@@ -2523,6 +2512,15 @@ window.DT = (function (window, document, undefined) {
         var k = event.keyCode;
         if (k === 32) {
             DT.handlers.restart();
+        }
+    };
+    DT.handlers.triggerOpacityOnLines = function (hide) {
+        if (hide) {
+            DT.player.lines.children[0].material.opacity = 0;
+            DT.player.lines.children[1].material.opacity = 0;
+        } else if (!DT.player.isFun && !DT.player.isInvulnerability) {
+            DT.player.lines.children[0].material.opacity = 0.6;
+            DT.player.lines.children[1].material.opacity = 0.4;
         }
     };
 

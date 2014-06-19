@@ -89,7 +89,7 @@ window.DT = (function (window, document, undefined) {
             pick = Math.floor( pickt ),
             pickNext = ( pick + 1 ) % segments;
 
-        if (pick < 0) pick = segments-1;
+        if (pick < 0) pick = 0;
 
         tube = tube || DT.tube;
         if (!tube[normals][ pickNext ] || !tube[normals][ pick ]) console.log(pickNext, pick);
@@ -135,8 +135,7 @@ window.DT = (function (window, document, undefined) {
             return result;
         }
 
-        // set morph targets for other vetr
-        // [3].forEach(function (el, i, arr) {
+        // set morph targets
         [60, 5, 4, 3, 2].forEach(function (el, i, arr) {
             var vert,
                 vertOuter,
@@ -192,9 +191,6 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('startGame', function (e, data) {
         DT.animate.id = requestAnimFrame(DT.animate);
     });
-    // DT.$document.on('resetGame', function (e, data) {
-    //     DT.animate.id = requestAnimFrame(DT.animate);
-    // });
     DT.$document.on('pauseGame', function () {
         cancelAnimFrame(DT.animate.id);
     });
@@ -237,41 +233,6 @@ window.DT = (function (window, document, undefined) {
     DT.scene.add(parent);
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
     parent.add(DT.splineCamera);
-
-    // var lineGeom = DT.createGeometry(0.95),
-    //     limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
-    //     limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true }),
-    //     line = new THREE.Mesh(lineGeom, limeMat),
-    //     line2 = new THREE.Mesh(lineGeom, limeMat2);
-
-    // line.position.z = -1;
-    // line.position.y = -0.03;
-    // line.rotation.y = Math.PI;
-    // line.offset = 0;
-    // // line.morphTargetInfluences[ 0 ] = 1;
-    // DT.splineCamera.add(line);
-
-    // line2.position.z = -0.99;
-    // line2.rotation.y = Math.PI;
-    // line2.offset = 0.005;
-    // line2.position.y = line2.offset - 0.03;
-    // // line2.morphTargetInfluences[ 0 ] = 1;
-    // DT.splineCamera.add(line2);
-
-    // var dispBonusGeom = new THREE.PlaneGeometry(0.5, 0.5);
-    // var dispBonusMat = new THREE.MeshBasicMaterial({
-    //         map: THREE.ImageUtils.loadTexture('img/bonus_frame.png'),
-    //         color: 0xffffff,
-    //         transparent: true,
-    //         wireframe: true
-    //     });
-    // var dispBonus = new THREE.Mesh(dispBonusGeom, dispBonusMat);
-    // // dispBonus.position = line.geometry.vertices[10].clone();
-    // dispBonus.position.z = -0.98
-    // dispBonus.rotation.y = Math.PI;
-    // // dispBonus.material.side = THREE.BackSide;
-    // DT.splineCamera.add(dispBonus);
-
 
     // when resize
     new THREEx.WindowResize(DT.renderer, DT.splineCamera);
@@ -494,8 +455,8 @@ window.DT = (function (window, document, undefined) {
 // ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
     DT.listOfModels = [{
-            name: 'bonusH',
-            scale: 0.01,
+            name: 'bonusH1',
+            scale: 0.1,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0xff0000,
         }, {
@@ -508,13 +469,23 @@ window.DT = (function (window, document, undefined) {
             'orange': 0xD0671F,
             'shield': 0xC35020,
         }, {
-            name: 'bonusE',
-            scale: 1,
+            name: 'bonusE1',
+            scale: 0.75,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0x606060,
         }, {
+            name: 'bonusH2',
+            scale: 0.1,
+            rotaion: new THREE.Vector3(0, 0, 0),
+            color: 0xff0000,
+        }, {
             name: 'shield',
             scale: 0.16,
+            rotaion: new THREE.Vector3(0, 0, 0),
+            color: 0x606060,
+        }, {
+            name: 'bonusE2',
+            scale: 0.75,
             rotaion: new THREE.Vector3(0, 0, 0),
             color: 0x606060,
         }
@@ -1198,7 +1169,7 @@ window.DT = (function (window, document, undefined) {
         }
         DT.GameObject.apply(this, arguments);
         // this.material.color = options.player.sphere.material.color;
-        this.tObject.scale.multiplyScalar(DT.listOfModels[3].scale);
+        this.tObject.scale.multiplyScalar(DT.listOfModels[4].scale);
         this.tObject.position = options.player.position;
         this.tObject.material.transparent = true;
         this.tObject.material.opacity = 0.5;
@@ -1213,9 +1184,9 @@ window.DT = (function (window, document, undefined) {
     };
 
 DT.$document.on('externalObjectLoaded', function (e, data) {
-    if (data.index !== 3) return;
+    if (data.index !== 4) return;
     DT.shield = new DT.Shield({
-        tObject: DT.listOfModels[3].object.clone(),
+        tObject: DT.listOfModels[4].object.clone(),
         player: DT.player
     });
 
@@ -1500,9 +1471,29 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-        // this.type = 1;
+        // this.type = 0;
+
+        var tObject;
+
+        if (this.type === 0 || this.type === 2) {
+            var geometry = DT.listOfModels[this.type].object.geometry,
+                material = DT.listOfModels[this.type].object.material;
+
+            material.morphTargets = true;
+
+            var mt1 = DT.listOfModels[this.type].object.geometry.vertices.slice(0),
+                mt2 = DT.listOfModels[this.type + 3].object.geometry.vertices.slice(0);
+
+            geometry.morphTargets.push({name: 'closed', vertices: mt1});
+            geometry.morphTargets.push({name: 'open', vertices: mt2});
+
+            tObject = new THREE.Mesh(geometry, material);
+        } else {
+            tObject = DT.listOfModels[this.type].object.clone();
+        }
+
         DT.GameCollectionObject.apply(this, [{
-            tObject: DT.listOfModels[this.type].object.clone(),
+            tObject: tObject,
             collection: options.collection
         }]);
 
@@ -1520,11 +1511,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
         this.tObject.scale.multiplyScalar(DT.listOfModels[this.type].scale);
         this.createAndAdd();
-        // TODO: сделать расширяемой возможность анимации
-        // if (this.type === 0) {
-        //     this.animation = new THREE.MorphAnimation(this.tObject);
-        //     this.animation.play();
-        // }
+
         this.blink = {
             defColor: new THREE.Color('red'),
             color: new THREE.Color('white'),
@@ -1579,11 +1566,22 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
         var dist = this.tObject.position.distanceTo(options.sphere.position);
 
-        // if (dist < 30.0) {
-        //     if (this.animation) {
-        //         this.animation.update(options.delta);
-        //     }
-        // }
+        if (this.type === 0 && dist < 30) {
+            this.tObject.morphTargetInfluences[1] = 5 - dist/6;
+        }
+
+        if (this.type === 2 && dist < 30) {
+            this.tObject.morphTargetInfluences[1] = 1 - dist/30;
+        }
+
+        if (this.type === 0 && dist > 30) {
+            var step = 120,
+                n = (DT.animate.id % step) / (step - 1);
+                n = n > 0.5 ? 2 * (1 - n) : 2 * n;
+                
+            this.tObject.morphTargetInfluences[0] = n;
+            this.tObject.morphTargetInfluences[1] = 1 - n;
+        }
 
         if (dist < 0.9) {
             this.removeFromScene();

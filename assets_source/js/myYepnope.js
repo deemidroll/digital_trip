@@ -4,7 +4,7 @@ $(function () {
     if (!window.WebGLRenderingContext) {
         // Browser has no idea what WebGL is
         isWebGLSupported = false;
-    } else if (canvas.getContext("webgl") || canvas.getContext("webGlCanvas") || canvas.getContext("moz-webgl") || canvas.getContext("webkit-3d")) {
+    } else if (canvas.getContext("webgl") || canvas.getContext("webGlCanvas") || canvas.getContext("moz-webgl") || canvas.getContext("webkit-3d") || canvas.getContext("experimental-webgl")) {
         // Can't get context
         isWebGLSupported = true;
     } else {

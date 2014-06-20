@@ -36,7 +36,7 @@ window.DT = (function (window, document, undefined) {
                 }
             );
         }();
-    DT.gameOverTime = 3000;
+    DT.gameOverTime = 9000;
     DT.scale = 3;
 
     DT.$document = $(document);
@@ -1284,24 +1284,24 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         this.minDistance = options.sphere.geometry.radius + el.geometry.radius;
             
         if (this.distanceToSphere < this.minDistance) {
-            DT.audio.sounds.stoneDestroy.play();
-            DT.sendSocketMessage({
-                type: 'vibr',
-                time: 200
-            });
             this.removeFromScene();
 
             if (!DT.game.wasOver) {
                 DT.$document.trigger('changeHelth', {delta: -25});
                 DT.$document.trigger('bump', {});
+                DT.audio.sounds.stoneDestroy.play();
+                DT.sendSocketMessage({
+                    type: 'vibr',
+                    time: 200
+                });
             }
-            if (DT.player.isInvulnerability === false) {
+            if (!DT.game.wasOver && DT.player.isInvulnerability === false) {
                 DT.$document.trigger('blink', {color: 0x000000, frames: 60});
                 DT.$document.trigger('hit', {});
             }
             DT.$document.trigger('stopInvulner', {});
         }
-        if (this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.3 && this.t < DT.player.t) {
+        if (!DT.game.wasOver && this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.3 && this.t < DT.player.t) {
             DT.audio.sounds.stoneMiss.play(); 
         }
         var binormal = DT.getBinormalAt(this.t),
@@ -2635,7 +2635,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     // });
     DT.$document.on('gameOver', function (e, data) {
         if (data.cause === 'death') {
-            $('.total_coins').text(DT.player.currentScore);
+            $('.total_coins').text(Math.round(DT.player.currentScore/10));
             $('.game_over').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, DT.gameOverTime);
         }
     });

@@ -1465,7 +1465,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-        this.type = 1;
+        // this.type = 1;
 
         var tObject;
 

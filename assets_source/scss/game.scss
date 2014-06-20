@@ -58,13 +58,17 @@ body {
     text-align: center;
 }
 
-#compare {
+#compare, #overlay {
     z-index: 1;
     display: none;
     position: absolute;
     right: 30px;
     top: 30px;
     border: 2px solid white;
+}
+
+#overlay {
+    z-index: 2;
 }
 
 .hit {

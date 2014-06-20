@@ -3840,7 +3840,7 @@ window.DT = (function (window, document, undefined) {
                 }
             );
         }();
-    DT.gameOverTime = 9000;
+    DT.gameOverTime = 6000;
     DT.scale = 3;
 
     DT.$document = $(document);
@@ -6101,19 +6101,23 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     // get video and canvas
     var videoInput = document.getElementById('vid');
     var canvasInput = document.getElementById('compare');
-    
+    var canvasOverlay = document.getElementById('overlay')
+    // var debugOverlay = document.getElementById('debug');
     var canvasContext = canvasInput.getContext('2d');
+    var overlayContext = canvasOverlay.getContext('2d');
     // set mirror view to canvas
     canvasContext.translate(canvasInput.width, 0);
+    // overlayContext.translate(canvasOverlay.width, 0);
     canvasContext.scale(-1, 1);
+    // overlayContext.scale(1, -1);
 
     DT.enableWebcam = function () {
         if (DT.enableWebcam.satus === undefined) {
             DT.enableWebcam.satus = 'init';
             // Game config
-            var leftBreakThreshold = -5;
+            var leftBreakThreshold = -1;
             var leftTurnThreshold = -10;
-            var rightBreakThreshold = 5;
+            var rightBreakThreshold = 1;
             var rightTurnThreshold = 10;
             
             // Defime lib messages
@@ -6146,12 +6150,12 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 if (event.status === 'camera found') {
                     $('#head').show();
                     $('.webcam_message').html('Tilt your head left and right<br>to steer the sphere');
-                    $('#compare').show();
+                    $('#compare, #overlay').show();
                 }
             };
 
             DT.$document.on('startGame', function (e, data) {
-                $('#compare').hide();
+                // $('#compare, #overlay').hide();
             });
 
             var facetrackingEventHandler = function( event ) {
@@ -6204,19 +6208,34 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             });
             DT.htracker.init(videoInput, canvasInput);
             DT.htracker.start();
+
+            document.addEventListener("facetrackingEvent", function( event ) {
+                // clear canvas
+                overlayContext.clearRect(0,0,320,240);
+                // once we have stable tracking, draw rectangle
+                if (event.detection == "CS") {
+                    overlayContext.translate(event.x, event.y)
+                    overlayContext.rotate(event.angle-(Math.PI/2));
+                    overlayContext.strokeStyle = "#00CC00";
+                    overlayContext.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
+                    overlayContext.rotate((Math.PI/2)-event.angle);
+                    overlayContext.translate(-event.x, -event.y);
+                }
+            });
             
             document.addEventListener('facetrackingEvent', facetrackingEventHandler);
             DT.$document.on('resetGame', function (e, data) {
                 if (data.cause === 'chooseControl') {
                     DT.enableWebcam.satus = 'disabled';
                     DT.htracker.stop();
-                    // DT.enableWebcam.checkLeft = null;
-                    // DT.enableWebcam.checkRight = null;
-                    // DT.enableWebcam.turnToStart = null;
+                    DT.enableWebcam.checkLeft = null;
+                    DT.enableWebcam.checkRight = null;
+                    DT.enableWebcam.turnToStart = null;
+                    $('#left_v_check, #right_v_check').hide();
                 }
             });
         } else if (DT.enableWebcam.satus = 'disabled') {
-            if (!DT.game.wasStarted) DT.$document.trigger('startGame', {});
+            $('#compare, #overlay').show();
             DT.enableWebcam.satus = 'enabled';
             DT.htracker.start();
         }
@@ -6383,6 +6402,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     $('.change_controls.webcam_control').click(function() {
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
         $('.webcam_choosen').fadeOut(250);
+        $('#compare, #overlay').hide();
         DT.$chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
     });
@@ -6439,14 +6459,14 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     });
     DT.$document.on('pauseGame', function () {
         $('.pause').css({'display': 'table'});
-        $('canvas').css({webkitFilter:'blur(10px)'});
+        $(DT.renderer.domElement).css({webkitFilter:'blur(10px)'});
         if ($('.pause')[0].style.webkitFilter !== undefined) {
             $('.pause').css({'background-color': 'transparent'});
         }
     });
     DT.$document.on('resumeGame', function (e, data) {
         $('.pause').css({'display': 'none'});
-        $('canvas').css({webkitFilter:'blur(0px)'});
+        $(DT.renderer.domElement).css({webkitFilter:'blur(0px)'});
     });
     DT.$document.on('showScore', function (e, data) {
         $('.current_coins').text(data.score);
@@ -6473,6 +6493,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         DT.$document.unbind('keyup', DT.handlers.restartOnSpace);
         $('.restart').unbind('click', DT.handlers.restart);
         $('.change_controls.gameover_control').unbind('click', DT.handlers.chooseControlAfterGameOver);
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        $('#compare, #overlay').hide();
     });
     DT.$document.on('paymentCheck', function (e, data) {
         var text = data.checkup ? 'success' : 'fail';

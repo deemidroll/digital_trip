@@ -4957,11 +4957,20 @@ window.DT = (function (window, document, undefined) {
         // this.material.color = options.player.sphere.material.color;
         this.tObject.scale.multiplyScalar(DT.listOfModels[4].scale);
         this.tObject.position = options.player.position;
-        this.tObject.material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true});
+        this.tObject.material = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            refractionRatio: 0,
+            emissive:0xffffff,
+            transparent: true,
+            opacity: 0.05,
+            wireframe: true,
+            wireframeLinewidth: 3,
+            shading: THREE.FlatShading,
+        });
         // this.tObject.material.transparent = true;
         // this.tObject.material.opacity = 0.5;
         // this.tObject.material.shininess = 1000;
-        // this.tObject.material.shading = THREE.No Shading;
+        // this.tObject.material.shading = THREE.NoShading;
         this.player = options.player
     };
     DT.Shield.prototype = Object.create(DT.GameObject.prototype);

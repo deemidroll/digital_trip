@@ -2310,6 +2310,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.enableWebcam = function () {
         if (DT.enableWebcam.satus === undefined) {
             DT.enableWebcam.satus = 'init';
+            $('#compare, #overlay').show();
             // Game config
             var leftBreakThreshold = -1;
             var leftTurnThreshold = -10;
@@ -2334,19 +2335,12 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             var headtrackrStatusHandler = function(event) {
                 if (event.status in supportMessages) {
                     console.log(supportMessages[event.status]);
-                    // $('.turn_to_start span').html(supportMessages[event.status])
                 } else if (event.status in statusMessages) {
                     console.log(statusMessages[event.status]);
-                    // $('.turn_to_start span').html(statusMessages[event.status])
-                }
-                if (event.status === 'found' && !DT.game.wasStarted && DT.enableWebcam.satus === 'init') {
-                    // DT.$document.trigger('startGame', {control: 'webcam'});
-                    // DT.lastControl = 'webcam'
                 }
                 if (event.status === 'camera found') {
                     $('#head').show();
                     $('.webcam_message').html('Tilt your head left and right<br>to steer the sphere');
-                    $('#compare, #overlay').show();
                 }
             };
 
@@ -2356,7 +2350,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
             var facetrackingEventHandler = function( event ) {
                 // once we have stable tracking, draw rectangle
-                if (event.detection == 'CS' && DT.enableWebcam.satus !== 'disabled') {
+                if (event.detection == 'CS' && DT.enableWebcam.satus !== 'disabled' && !DT.game.wasPaused) {
                     var angle = Number(event.angle *(180/ Math.PI)-90);
                     // console.log(angle);
                     if(angle < leftBreakThreshold) {
@@ -2383,7 +2377,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                         }
                     } else {
                         DT.handlers.center();
-                        if (!DT.enableWebcam.turnToStart && DT.enableWebcam.checkLeft && DT.enableWebcam.checkRight) {
+                        if (!DT.game.wasStarted && !DT.enableWebcam.turnToStart && DT.enableWebcam.checkLeft && DT.enableWebcam.checkRight) {
                             DT.enableWebcam.turnToStart = true;
                             DT.enableWebcam.satus = 'enabled';
                             DT.$document.trigger('startGame', {control: 'webcam'});
@@ -2430,7 +2424,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                     $('#left_v_check, #right_v_check').hide();
                 }
             });
-        } else if (DT.enableWebcam.satus = 'disabled') {
+        } else {
             $('#compare, #overlay').show();
             DT.enableWebcam.satus = 'enabled';
             DT.htracker.start();

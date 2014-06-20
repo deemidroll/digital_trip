@@ -45,11 +45,6 @@ window.DT = (function (window, document, undefined) {
     DT.$body = $('body');
     DT.$chooseControl = $('.choose_control');
 
-    DT.frameCounter = 0;
-    DT.$document.on('update', function (e, data) {
-        DT.frameCounter++;
-    });
-
 // ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗    ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
 // ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝    ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
 // ███████╗█████╗  ██████╔╝██║   ██║██║██║     █████╗      █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║
@@ -295,10 +290,6 @@ window.DT = (function (window, document, undefined) {
         // DT.angleSign = t > 0.5 ? 1 : -1;
 
         DT.splineCamera.position = pos;
-        // DT.splineCamera.children.forEach(function (el) {
-        //     el.position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + el.offset;
-        //     el.rotation.z += Math.PI/360/10 * DT.angleSign;
-        // });
 
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
 
@@ -387,39 +378,6 @@ window.DT = (function (window, document, undefined) {
             speed: 0.3,
             rollSpeed: 0.1
         }
-    });
-    DT.$document.on('showHelth', function (e, data) {
-        var mt = (100 - data.helth) / 25,
-            counter = 0;
-        clearInterval(DT.lineChangeInterval);
-        DT.lineChangeInterval = setInterval(function () {
-            var max = 40;
-            counter++
-            DT.player.lines.children.forEach(function (el, ind) {
-                if (ind > 1) return;
-                el.morphTargetInfluences.forEach(function (e, i, a) {
-                    if (e !== 0 && i !== mt) a[i] = Math.max(a[i] - 1/max, 0);
-                });
-                el.morphTargetInfluences[ mt ] = Math.min(el.morphTargetInfluences[ mt ] + 1/max, 1);
-            });
-            if (counter === max) clearInterval(DT.lineChangeInterval);
-        }, 20);
-    });
-    DT.$document.on('resetGame', function (e, data) {
-        clearInterval(DT.lineChangeInterval);
-        DT.player.lines.children.forEach(function (el, ind) {
-            if (ind > 1) return;
-            el.morphTargetInfluences.forEach(function (e, i, a) {
-                a[i] = 0;
-            });
-            el.morphTargetInfluences[ 0 ] = 1;
-        });
-    });
-    DT.$document.on('showInvulner', function (e, data) {
-        DT.handlers.triggerOpacityOnLines(data.invulner);
-    });
-    DT.$document.on('showFun', function (e, data) {
-        DT.handlers.triggerOpacityOnLines(data.isFun);
     });
 
     // change IcosahedronGeometry prototype
@@ -707,26 +665,18 @@ window.DT = (function (window, document, undefined) {
 
         this.lines = new THREE.Object3D();
         this.scene.add(this.lines);
+
         var lineGeom = DT.createGeometry(2),
             limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
             limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true });
+
         this.line = new THREE.Mesh(lineGeom, limeMat);
         this.line2 = new THREE.Mesh(lineGeom, limeMat2);
 
         this.line.position.z = +0.5;
-        // this.line.position.y = -0.03;
-        // this.line.rotation.y = Math.PI;
-        this.line.offset = 0;
-        // this.line.morphTargetInfluences[ 0 ] = 1;
         this.lines.add(this.line);
 
-        // this.line2.position.z = -0.99;
         this.line2.position.z = -0.5;
-        // this.line2.rotation.y = Math.PI;
-        this.line2.offset = 0.05;
-        this.line2.position.x = this.line2.offset;
-        this.line2.position.y = this.line2.offset;
-        // this.line2.morphTargetInfluences[ 0 ] = 1;
         this.lines.add(this.line2);
 
         this.blink = {
@@ -908,8 +858,6 @@ window.DT = (function (window, document, undefined) {
         DT.lookAt(data.t + 0.006, data.tube, this.lines);
 
         this.lines.children.forEach(function (el, i) {
-            // el.position.x = DT.player.destPoint.x/ 7 / 2 * DT.moveIterator + el.offset;
-            // el.rotation.z += Math.PI/360/2 * DT.angleSign;
             DT.angleSign = i === 0 ? 1 : -1;
             el.rotation.z += Math.PI/360/2 * DT.angleSign;
         });
@@ -1033,6 +981,40 @@ window.DT = (function (window, document, undefined) {
     });
     DT.$document.on('resetGame', function (e, data) {
         DT.player.reset();
+    });
+    // lines
+    DT.$document.on('showHelth', function (e, data) {
+        var mt = (100 - data.helth) / 25,
+            counter = 0;
+        clearInterval(DT.lineChangeInterval);
+        DT.lineChangeInterval = setInterval(function () {
+            var max = 40;
+            counter++
+            DT.player.lines.children.forEach(function (el, ind) {
+                if (ind > 1) return;
+                el.morphTargetInfluences.forEach(function (e, i, a) {
+                    if (e !== 0 && i !== mt) a[i] = Math.max(a[i] - 1/max, 0);
+                });
+                el.morphTargetInfluences[ mt ] = Math.min(el.morphTargetInfluences[ mt ] + 1/max, 1);
+            });
+            if (counter === max) clearInterval(DT.lineChangeInterval);
+        }, 20);
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        clearInterval(DT.lineChangeInterval);
+        DT.player.lines.children.forEach(function (el, ind) {
+            if (ind > 1) return;
+            el.morphTargetInfluences.forEach(function (e, i, a) {
+                a[i] = 0;
+            });
+            el.morphTargetInfluences[ 0 ] = 1;
+        });
+    });
+    DT.$document.on('showInvulner', function (e, data) {
+        DT.handlers.triggerOpacityOnLines(data.invulner);
+    });
+    DT.$document.on('showFun', function (e, data) {
+        DT.handlers.triggerOpacityOnLines(data.isFun);
     });
 
  // ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██████╗      ██╗███████╗ ██████╗████████╗
@@ -1553,7 +1535,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
 
         if (this.type === 2) {
-            if (DT.frameCounter % 6 === 0) {
+            if (DT.animate.id % 6 === 0) {
                 var color = new THREE.Color().setRGB(
                     DT.genRandomBetween(0, 3),
                     DT.genRandomBetween(0, 3),

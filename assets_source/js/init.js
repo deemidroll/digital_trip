@@ -2352,7 +2352,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
             var facetrackingEventHandler = function( event ) {
                 // once we have stable tracking, draw rectangle
-                if (event.detection == 'CS' && DT.enableWebcam.satus !== 'disabled' && DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+                if (event.detection == 'CS' && DT.enableWebcam.satus !== 'disabled') {
                     var angle = Number(event.angle *(180/ Math.PI)-90);
                     // console.log(angle);
                     if(angle < leftBreakThreshold) {
@@ -2469,25 +2469,35 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         }
     };
     DT.handlers.toTheLeft = function () {
-        if (DT.player.destPoint.x !== -1) DT.audio.sounds.left.play();
-        DT.player.changeDestPoint(new THREE.Vector3(-1, 0, 0));
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== -1) {
+            DT.audio.sounds.left.play();
+            DT.player.changeDestPoint(new THREE.Vector3(-1, 0, 0));
+        }
     };
     DT.handlers.toTheRight = function () {
-        if (DT.player.destPoint.x !== 1) DT.audio.sounds.right.play();
-        DT.player.changeDestPoint(new THREE.Vector3(1, 0, 0));
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== 1) {
+            DT.audio.sounds.right.play();
+            DT.player.changeDestPoint(new THREE.Vector3(1, 0, 0));
+        }
     };
     DT.handlers.left = function () {
-        if (DT.player.destPoint.x !== -1) DT.audio.sounds.left.play();
-        DT.player.destPoint.x = -1;
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== -1) {
+            DT.audio.sounds.left.play();
+            DT.player.destPoint.x = -1;
+        }
     };
     DT.handlers.right = function () {
-        if (DT.player.destPoint.x !== 1) DT.audio.sounds.right.play();
-        DT.player.destPoint.x = 1;
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== 1) {
+            DT.audio.sounds.right.play();
+            DT.player.destPoint.x = 1;
+        }
     };
     DT.handlers.center = function () {
-        if (DT.player.destPoint.x === -1) DT.audio.sounds.right.play();
-        if (DT.player.destPoint.x === 1) DT.audio.sounds.left.play();
-        DT.player.destPoint.x = 0;
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+            if (DT.player.destPoint.x === -1) DT.audio.sounds.right.play();
+            if (DT.player.destPoint.x === 1) DT.audio.sounds.left.play();
+            DT.player.destPoint.x = 0;
+        }
     };
     DT.handlers.restart = function () {
         DT.$document.trigger('resetGame', {});

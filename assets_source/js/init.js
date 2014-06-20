@@ -1153,8 +1153,11 @@ window.DT = (function (window, document, undefined) {
         // this.material.color = options.player.sphere.material.color;
         this.tObject.scale.multiplyScalar(DT.listOfModels[4].scale);
         this.tObject.position = options.player.position;
-        this.tObject.material.transparent = true;
-        this.tObject.material.opacity = 0.5;
+        this.tObject.material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true});
+        // this.tObject.material.transparent = true;
+        // this.tObject.material.opacity = 0.5;
+        // this.tObject.material.shininess = 1000;
+        // this.tObject.material.shading = THREE.No Shading;
         this.player = options.player
     };
     DT.Shield.prototype = Object.create(DT.GameObject.prototype);
@@ -1301,9 +1304,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             }
             DT.$document.trigger('stopInvulner', {});
         }
-        if (!DT.game.wasOver && this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.3 && this.t < DT.player.t) {
-            DT.audio.sounds.stoneMiss.play(); 
-        }
+        // if (!DT.game.wasOver && this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.3 && this.t < DT.player.t) {
+            // DT.audio.sounds.stoneMiss.play(); 
+        // }
         var binormal = DT.getBinormalAt(this.t),
             estimatedPlayerPosition = options.data.tube.path.getPointAt(this.t)
                 .multiplyScalar(DT.scale)
@@ -1453,7 +1456,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-        // this.type = 0;
+        this.type = 1;
 
         var tObject;
 

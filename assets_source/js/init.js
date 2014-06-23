@@ -1306,7 +1306,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 DT.$document.trigger('blink', {color: 0x000000, frames: 60});
                 DT.$document.trigger('hit', {});
             }
-            DT.$document.trigger('stopInvulner', {});
         }
         if (!DT.game.wasOver && !this.wasMissed && this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.2 && this.t < DT.player.t) {
             DT.audio.sounds.stoneMiss.play();

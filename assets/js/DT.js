@@ -3874,6 +3874,14 @@ window.DT = (function (window, document, undefined) {
         var signVal = Math.random() - 0.5;
         return Math.abs(signVal)/signVal;
     };
+    //faster than Math.min with two args
+    DT.getMin = function (a, b) {
+        return a < b ? a : b;
+    };
+    //faster than Math.max with two args
+    DT.getMax = function (a, b) {
+        return a > b ? a : b;
+    };
     DT.normalizeT = function (t) {
         t = t % 1;
         t = t < 0 ? 1 + t : t;
@@ -3976,7 +3984,7 @@ window.DT = (function (window, document, undefined) {
     DT.animate = function (nowMsec) {
         nowMsec = nowMsec || Date.now();
         DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
-        var deltaMsec = Math.min(100, nowMsec - DT.animate.lastTimeMsec);
+        var deltaMsec = DT.getMin(100, nowMsec - DT.animate.lastTimeMsec);
         // keep looping
         DT.animate.id = requestAnimFrame(DT.animate);
         // change last time
@@ -4065,7 +4073,6 @@ window.DT = (function (window, document, undefined) {
         DT.renderer.render(DT.scene, DT.splineCamera);
         var dtime = data.delta,
             speed0 = DT.game.speed.getSpeed0(),
-            acceleration = DT.game.speed.getAcceleration(),
             path, dpath, t, pos;
         
         dpath = speed0 * dtime;
@@ -4342,19 +4349,27 @@ window.DT = (function (window, document, undefined) {
         };
         this.speed = {
             speed0: 1/60,
-            acceleration: 1/10000,
+            speed: 1/60,
+            acceleration: 1/2500,
             changer: 0,
+            speedIncTimer: 0,
             setChanger: function (changer) {
                 this.changer = changer;
             },
             increaseSpeed: function (dtime) {
-                this.speed0 += this.acceleration * dtime;
+                this.speedIncTimer += 1;
+                this.speed = this.speed0 + this.acceleration * Math.sqrt(this.speedIncTimer);
+                if (DT.animate.id % 60 === 0) console.log(DT.animate.id, this.speed);
+                // this.speed0 += this.acceleration * dtime;
+            },
+            slowDown: function (mult) {
+                this.speedIncTimer *= mult;
             },
             getChanger: function() {
                 return this.changer;
             },
             getSpeed0: function () {
-                return this.speed0 + this.changer;
+                return this.speed + this.changer;
             },
             getAcceleration: function () {
                 return this.acceleration;
@@ -4425,6 +4440,7 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('showFun', function (e, data) {
         if (data.isFun) {
             DT.$document.trigger('changeSpeed', {changer: -DT.game.speed.getSpeed0()/2});
+            DT.game.speed.slowDown(0.5);
         } else {
             DT.$document.trigger('changeSpeed', {changer: 0});
         }
@@ -4799,9 +4815,9 @@ window.DT = (function (window, document, undefined) {
             DT.player.lines.children.forEach(function (el, ind) {
                 if (ind > 1) return;
                 el.morphTargetInfluences.forEach(function (e, i, a) {
-                    if (e !== 0 && i !== mt) a[i] = Math.max(a[i] - 1/max, 0);
+                    if (e !== 0 && i !== mt) a[i] = DT.getMax(a[i] - 1/max, 0);
                 });
-                el.morphTargetInfluences[ mt ] = Math.min(el.morphTargetInfluences[ mt ] + 1/max, 1);
+                el.morphTargetInfluences[ mt ] = DT.getMin(el.morphTargetInfluences[ mt ] + 1/max, 1);
             });
             if (counter === max) clearInterval(DT.lineChangeInterval);
         }, 20);

@@ -1279,6 +1279,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         })
         .createAndAdd();
         this.distanceToSphere = null;
+        this.wasMissed = false;
     };
     DT.Stone.prototype = Object.create(DT.GameCollectionObject.prototype);
     DT.Stone.prototype.constructor = DT.Stone;
@@ -1307,9 +1308,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             }
             DT.$document.trigger('stopInvulner', {});
         }
-        // if (!DT.game.wasOver && this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.3 && this.t < DT.player.t) {
-            // DT.audio.sounds.stoneMiss.play(); 
-        // }
+        if (!DT.game.wasOver && !this.wasMissed && this.distanceToSphere > this.minDistance && this.distanceToSphere < this.minDistance * 1.2 && this.t < DT.player.t) {
+            DT.audio.sounds.stoneMiss.play();
+            this.wasMissed = true;
+        }
         var binormal = DT.getBinormalAt(this.t),
             estimatedPlayerPosition = options.data.tube.path.getPointAt(this.t)
                 .multiplyScalar(DT.scale)

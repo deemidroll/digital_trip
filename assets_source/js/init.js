@@ -72,7 +72,7 @@ window.DT = (function (window, document, undefined) {
     };
     DT.normalizeT = function (t) {
         t = t % 1;
-        t < 0 ? 1 + t : t;
+        t = t < 0 ? 1 + t : t;
         return t;
     };
     DT.getNormalAt = function (t, tube, normals) {

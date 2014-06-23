@@ -2495,7 +2495,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.bind('keyup', function (event) {
         var k = event.keyCode;
         if (k >= 48 && k <= 57) {
-            DT.numKeyPressed = k - 48;
+            DT.numKeyPressed = k - 47;
         }
     });
     DT.handlers.toTheLeft = function () {

@@ -790,6 +790,7 @@ window.DT = (function (window, document, undefined) {
     DT.Player.prototype.changeScore = function(delta) {
         this.currentScore += delta;
         this.currentScore = parseFloat(this.currentScore.toFixed(1));
+        // DT.$document.trigger('showScore', {score: this.currentScore % 1 ? this.currentScore : this.currentScore.toString() + '.0' });
         DT.$document.trigger('showScore', {score: this.currentScore});
         return this;
     };

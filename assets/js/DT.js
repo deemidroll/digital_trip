@@ -4915,8 +4915,8 @@ window.DT = (function (window, document, undefined) {
             this.removeFromScene();
         } 
         var dist = this.tObject.position.distanceTo(options.opacityCoord),
-            far = 15;
-        if (dist < far && this.dontMakeTransparent == undefined) {
+            far = 10;
+        if (dist < far) {
             var opacity = dist / far;
             if (this.tObject.children.length > 0) {
                 this.tObject.children.forEach(function (el) {
@@ -4924,11 +4924,8 @@ window.DT = (function (window, document, undefined) {
                     el.material.opacity = opacity;
                 });
             } else {
-                this.tObject.material = new THREE.MeshLambertMaterial({
-                     shading: THREE.FlatShading,
-                     transparent: true,
-                     opacity: opacity
-                 });
+                this.tObject.material.transparent = true;
+                this.tObject.material.opacity = opacity;
             }
         }
         return this;
@@ -4956,7 +4953,6 @@ window.DT = (function (window, document, undefined) {
             return DT.Shield.__instance;
         }
         DT.GameObject.apply(this, arguments);
-        // this.material.color = options.player.sphere.material.color;
         this.tObject.scale.multiplyScalar(DT.listOfModels[4].scale);
         this.tObject.position = options.player.position;
         this.tObject.material = new THREE.MeshPhongMaterial({
@@ -4969,10 +4965,6 @@ window.DT = (function (window, document, undefined) {
             wireframeLinewidth: 3,
             shading: THREE.FlatShading,
         });
-        // this.tObject.material.transparent = true;
-        // this.tObject.material.opacity = 0.5;
-        // this.tObject.material.shininess = 1000;
-        // this.tObject.material.shading = THREE.NoShading;
         this.player = options.player
     };
     DT.Shield.prototype = Object.create(DT.GameObject.prototype);
@@ -5276,8 +5268,11 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         var tObject;
 
         if (this.type === 0 || this.type === 2) {
-            var geometry = DT.listOfModels[this.type].object.geometry,
-                material = DT.listOfModels[this.type].object.material;
+            var geometry = DT.listOfModels[this.type].object.clone().geometry,
+                material = DT.listOfModels[this.type].object.clone().material;
+
+            material.transparent = false;
+            material.opacity = 1;
 
             material.morphTargets = true;
 
@@ -5290,6 +5285,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             tObject = new THREE.Mesh(geometry, material);
         } else {
             tObject = DT.listOfModels[this.type].object.clone();
+            tObject.children.forEach(function (el) {
+                el.material.transparent = false;
+                el.material.opacity = 1;
+            });
         }
 
         DT.GameCollectionObject.apply(this, [{
@@ -5306,8 +5305,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         this.tObject.position = pos;
 
         DT.lookAt(t - 0.002, options.tube, this.tObject);
-
-        this.dontMakeTransparent = true;
 
         this.tObject.scale.multiplyScalar(DT.listOfModels[this.type].scale);
         this.createAndAdd();
@@ -5486,7 +5483,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             })
             .update({
                 dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),
-                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t + 0.002)).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t)).multiplyScalar(DT.scale),
                 sphere: DT.player.sphere,
                 data: data
             });
@@ -5581,7 +5578,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             })
             .update({
                 dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),
-                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t + 0.002)).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t)).multiplyScalar(DT.scale),
                 sphere: DT.player.sphere,
                 data: data
             });
@@ -5655,7 +5652,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             })
             .update({
                 dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),
-                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t + 0.002)).multiplyScalar(DT.scale),
+                opacityCoord: data.tube.path.getPointAt(DT.normalizeT(data.t)).multiplyScalar(DT.scale),
                 sphere: DT.player.sphere,
                 delta: data.delta * 1000
             });

@@ -1887,6 +1887,16 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             catchBonus2: 'sounds/catchBonus2.',
             left: 'sounds/left.',
             right: 'sounds/right.',
+            muv1: 'sounds/muv1.',
+            muv2: 'sounds/muv2.',
+            muv3: 'sounds/muv3.',
+            muv4: 'sounds/muv4.',
+            muv5: 'sounds/muv5.',
+            muv6: 'sounds/muv6.',
+            muv7: 'sounds/muv7.',
+            muv8: 'sounds/muv8.',
+            muv9: 'sounds/muv9.',
+            muv10: 'sounds/muv10.',
         },
         music: {
             0: 'sounds/main.',
@@ -2481,34 +2491,41 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             DT.game.wasMuted = false;
         }
     };
+    DT.numKeyPressed = 1;
+    DT.$document.bind('keyup', function (event) {
+        var k = event.keyCode;
+        if (k >= 48 && k <= 57) {
+            DT.numKeyPressed = k - 48;
+        }
+    });
     DT.handlers.toTheLeft = function () {
         if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== -1) {
-            DT.audio.sounds.left.play();
+            DT.audio.sounds['muv'+DT.numKeyPressed].play();
             DT.player.changeDestPoint(new THREE.Vector3(-1, 0, 0));
         }
     };
     DT.handlers.toTheRight = function () {
         if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== 1) {
-            DT.audio.sounds.right.play();
+            DT.audio.sounds['muv'+DT.numKeyPressed].play();
             DT.player.changeDestPoint(new THREE.Vector3(1, 0, 0));
         }
     };
     DT.handlers.left = function () {
         if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== -1) {
-            DT.audio.sounds.left.play();
+            DT.audio.sounds['muv'+DT.numKeyPressed].play();
             DT.player.destPoint.x = -1;
         }
     };
     DT.handlers.right = function () {
         if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== 1) {
-            DT.audio.sounds.right.play();
+            DT.audio.sounds['muv'+DT.numKeyPressed].play();
             DT.player.destPoint.x = 1;
         }
     };
     DT.handlers.center = function () {
         if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
-            if (DT.player.destPoint.x === -1) DT.audio.sounds.right.play();
-            if (DT.player.destPoint.x === 1) DT.audio.sounds.left.play();
+            if (DT.player.destPoint.x === -1) DT.audio.sounds['muv'+DT.numKeyPressed].play();
+            if (DT.player.destPoint.x === 1) DT.audio.sounds['muv'+DT.numKeyPressed].play();
             DT.player.destPoint.x = 0;
         }
     };

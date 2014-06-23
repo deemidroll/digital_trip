@@ -331,7 +331,7 @@ a {
   color: #fd5439; }
 
 a:hover {
-  color: red; }
+  color: #fff; }
 
 .button:hover {
   cursor: pointer; }

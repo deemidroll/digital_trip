@@ -5713,18 +5713,12 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             2: 'sounds/intro.',
             3: 'sounds/invulner.',
             started: [],
-            startedAt: [],
-            pausedAt: [],
-            stopped: [],
             paused: []
         }
     };
     DT.audio.reset = function () {
-        DT.audio.music.startedAt.length = 0;
-        DT.audio.music.pausedAt.length = 0;
-        DT.audio.music.stopped.length = 0;
-        DT.audio.music.paused.length = 0;
-        DT.audio.music.started.length = 0;
+        DT.audio.music.paused.forEach(function (el) {el = false});
+        DT.audio.music.started.forEach(function (el) {el = false});
     };
 
     DT.setVolume = function (volume) {
@@ -5768,7 +5762,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('gameOver', function (e, data) {
         DT.stopSound(0);
         DT.stopSound(1);
-        // DT.playSound(2);
     });
     DT.$document.on('gameOver', function (e, data) {
         if (data.cause === 'death') {
@@ -5793,12 +5786,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             alert('Opps.. Your browser do not support audio API');
         }
         DT.stopSound = function(index){
-            if (DT.audio.music.stopped[index] === false) {
-                if (index === 0 || DT.audio.music.paused[index] === false) {
-                    DT.audio.music.pausedAt[index] = Date.now() - DT.audio.music.startedAt[index];
-                } 
+            if (DT.audio.music.started[index] === true) {
                 sources[index].stop(index);
-                DT.audio.music.stopped[index] = true;
                 DT.audio.music.started[index] = false;
             }
         };
@@ -5823,27 +5812,19 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 DT.$document.on('update', function (e, data) {
                     visualize(index);
                 });
-                DT.audio.music.stopped[index] = false;
-                if (DT.audio.music.pausedAt[index]) {
-                    DT.audio.music.startedAt[index] = Date.now() - DT.audio.music.pausedAt[index];
-                    sources[index].start(index, DT.audio.music.pausedAt[index] / 1000);
-                } else {
-                    DT.audio.music.startedAt[index] = Date.now();
-                    sources[index].start(index);
-                }
+                sources[index].start(index);
+                DT.audio.music.started[index] = true;
             }
         };
         DT.stopSoundBeforPause = function() {
-            DT.audio.music.stopped.forEach(function(el, i) {
+            DT.audio.music.started.forEach(function(el, i) {
                 DT.audio.music.paused[i] = el;
                 DT.stopSound(i);
             });
         };
         DT.playSoundAfterPause = function() {
             DT.audio.music.paused.forEach(function(el, i) {
-                if (!el) {
-                    DT.playSound(i);
-                }
+                if (el) DT.playSound(i);
             });
         };
         var initSound = function(arrayBuffer, bufferIndex) {
@@ -6230,9 +6211,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                     overlayContext.rotate((Math.PI/2)-event.angle);
                     overlayContext.translate(-event.x, -event.y);
                 }
-            });
+            }, true);
             
-            document.addEventListener('facetrackingEvent', facetrackingEventHandler);
+            document.addEventListener('facetrackingEvent', facetrackingEventHandler, true);
             DT.$document.on('resetGame', function (e, data) {
                 if (data.cause === 'chooseControl') {
                     DT.enableWebcam.satus = 'disabled';

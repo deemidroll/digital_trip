@@ -61,20 +61,15 @@ module.exports = function(grunt) {
                         // Curves
                         'js/vendor/CurveExtras.js',
                         // Sound
-                        'js/vendor/webaudio.js',
                         'js/vendor/BufferLoader.js',
                         // Webcam control
                         'js/vendor/headtrackr.min.js',
-                        'js/vendor/facetrackr.js',
-                        'js/vendor/headposition.js',
                         // External objects
                         'js/vendor/OBJLoader.js',
                         // Full screen
                         'js/vendor/THREEx.FullScreen.js',
                         // Postprocessing
                         'js/vendor/CopyShader.js',
-                        'js/vendor/DotScreenShader.js',
-                        'js/vendor/RGBShiftShader.js',
                         'js/vendor/EffectComposer.js',
                         'js/vendor/RenderPass.js',
                         'js/vendor/MaskPass.js',

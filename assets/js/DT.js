@@ -3170,6 +3170,7 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('resumeGame', function (e, data) {
         DT.animate.id = requestAnimFrame(DT.animate);
     });
+    // coupling
     DT.$document.on('gameOver', function (e, data) {
         if (data.cause === 'death') {
             setTimeout(function() {
@@ -3236,6 +3237,7 @@ window.DT = (function (window, document, undefined) {
     var binormal = new THREE.Vector3();
     var normal = new THREE.Vector3();
 
+    // coupling
     DT.$document.on('updatePath', function (e, data) {
         DT.renderer.render(DT.scene, DT.splineCamera);
         var dtime = data.delta,
@@ -4051,12 +4053,12 @@ window.DT = (function (window, document, undefined) {
     };
     DT.GameObject.prototype.removeFromScene = function () {
         this.scene.remove(this.tObject);
-        this.tObject.children.forEach(function (el) {
-            if (el.geometry && el.geometry.dispose ) el.geometry.dispose();
+        // this.tObject.children.forEach(function (el) {
+            // if (el.geometry && el.geometry.dispose ) el.geometry.dispose();
         //     if (el.material && el.material.dispose ) el.material.dispose();
         //     if (el.texture && el.texture.dispose ) el.texture.dispose();
-        });
-        if (this.tObject.geometry && this.tObject.geometry.dispose ) this.tObject.geometry.dispose();
+        // });
+        // if (this.tObject.geometry && this.tObject.geometry.dispose ) this.tObject.geometry.dispose();
         // if (this.tObject.material && this.tObject.material.dispose ) this.tObject.material.dispose();
         // if (this.tObject.texture && this.tObject.texture.dispose ) this.tObject.texture.dispose();
         return this;
@@ -4301,7 +4303,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             
         if (this.distanceToSphere < this.minDistance) {
             this.removeFromScene();
-
+            // coupling
             if (!DT.game.wasOver) {
                 DT.$document.trigger('changeHelth', {delta: -25});
                 DT.$document.trigger('bump', {});
@@ -4372,52 +4374,54 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ██║     ██║   ██║██║██║╚██╗██║
 // ╚██████╗╚██████╔╝██║██║ ╚████║
  // ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝
+(function () {
+    var tObject = new THREE.Object3D();
+
+    var r = 0.5, i,
+    coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.05, 32, 1, true ),
+    coin_cap_geo = new THREE.Geometry();
+    for (i = 0; i < 100; i++) {
+        var a = i * 1/100 * Math.PI * 2,
+            z = Math.sin(a),
+            xCosA = Math.cos(a),
+            a1 = (i+1) * 1/100 * Math.PI * 2,
+            z1 = Math.sin(a1),
+            x1 = Math.cos(a1);
+        coin_cap_geo.vertices.push(
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(xCosA*r, 0, z*r),
+            new THREE.Vector3(x1*r, 0, z1*r)
+        );
+        coin_cap_geo.faceVertexUvs[0].push([
+            new THREE.Vector2(0.5, 0.5),
+            new THREE.Vector2(xCosA/2+0.5, z/2+0.5),
+            new THREE.Vector2(x1/2+0.5, z1/2+0.5)
+        ]);
+        coin_cap_geo.faces.push(new THREE.Face3(i*3, i*3+1, i*3+2));
+    }
+    coin_cap_geo.computeCentroids();
+    coin_cap_geo.computeFaceNormals();
+    
+    var coin_cap_texture = THREE.ImageUtils.loadTexture('./img/avers.png'),
+        coin_sides_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b}),
+        coin_sides = new THREE.Mesh( coin_sides_geo, coin_sides_mat ),
+        coin_cap_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b, map: coin_cap_texture}),
+        coin_cap_top = new THREE.Mesh( coin_cap_geo, coin_cap_mat ),
+        coin_cap_bottom = new THREE.Mesh( coin_cap_geo, coin_cap_mat );
+
+    coin_cap_top.position.y = 0.05;
+    coin_cap_bottom.position.y = -0.05;
+    coin_cap_top.rotation.x = Math.PI;
+
+    tObject.add(coin_sides);
+    tObject.add(coin_cap_top);
+    tObject.add(coin_cap_bottom);
 
     DT.Coin = function (options) {
-        var r = 0.5, i,
-            coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.05, 32, 1, true ),
-            coin_cap_geo = new THREE.Geometry();
-        for (i = 0; i < 100; i++) {
-            var a = i * 1/100 * Math.PI * 2,
-                z = Math.sin(a),
-                xCosA = Math.cos(a),
-                a1 = (i+1) * 1/100 * Math.PI * 2,
-                z1 = Math.sin(a1),
-                x1 = Math.cos(a1);
-            coin_cap_geo.vertices.push(
-                new THREE.Vector3(0, 0, 0),
-                new THREE.Vector3(xCosA*r, 0, z*r),
-                new THREE.Vector3(x1*r, 0, z1*r)
-            );
-            coin_cap_geo.faceVertexUvs[0].push([
-                new THREE.Vector2(0.5, 0.5),
-                new THREE.Vector2(xCosA/2+0.5, z/2+0.5),
-                new THREE.Vector2(x1/2+0.5, z1/2+0.5)
-            ]);
-            coin_cap_geo.faces.push(new THREE.Face3(i*3, i*3+1, i*3+2));
-        }
-        coin_cap_geo.computeCentroids();
-        coin_cap_geo.computeFaceNormals();
-        
-        var coin_cap_texture = DT.Coin.texture,
-            coin_sides_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b}),
-            coin_sides = new THREE.Mesh( coin_sides_geo, coin_sides_mat ),
-            coin_cap_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b, map: coin_cap_texture}),
-            coin_cap_top = new THREE.Mesh( coin_cap_geo, coin_cap_mat ),
-            coin_cap_bottom = new THREE.Mesh( coin_cap_geo, coin_cap_mat );
-
-        coin_cap_top.position.y = 0.05;
-        coin_cap_bottom.position.y = -0.05;
-        coin_cap_top.rotation.x = Math.PI;
-
         DT.GameCollectionObject.apply(this, [{
-            THREEConstructor: THREE.Object3D,
+            tObject: tObject.clone(),
             collection: options.collection
         }]);
-        
-        this.tObject.add(coin_sides);
-        this.tObject.add(coin_cap_top);
-        this.tObject.add(coin_cap_bottom);
 
         var t = DT.normalizeT(options.t + 0.25 + options.dt);
         var binormal = DT.getBinormalAt(t);
@@ -4427,18 +4431,17 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             .add(binormal.clone().multiplyScalar(options.offset * DT.scale));
 
         this.tObject.position = pos;
-
+        this.tObject.children.forEach(function (el) {
+            el.material.transparent = false;
+        });
         this.setParam('rotation', {
             x: 1.5,
             y: 0,
             z: options.zAngle
-        })
-            .createAndAdd();
+        }).createAndAdd();
     };
     DT.Coin.prototype = Object.create(DT.GameCollectionObject.prototype);
     DT.Coin.prototype.constructor = DT.Coin;
-
-    DT.Coin.texture = THREE.ImageUtils.loadTexture('./img/avers.png')
 
     DT.Coin.prototype.update = function (options) {
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
@@ -4449,16 +4452,12 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             this.removeFromScene();
             if (!DT.game.wasOver) {
                 DT.$document.trigger('changeScore', {delta: 0.1});
-                DT.audio.sounds.catchCoin.play();
-                DT.sendSocketMessage({
-                    type: 'vibr',
-                    time: 10
-                });
             }
             DT.$document.trigger('blink', {color: 0xcfb53b, frames: 60});
         }
         return this;
     };
+})();
 
 // ██████╗  ██████╗ ███╗   ██╗██╗   ██╗███████╗
 // ██╔══██╗██╔═══██╗████╗  ██║██║   ██║██╔════╝
@@ -4630,15 +4629,15 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.Collection.prototype.reset = function () {
         this.collection.forEach(function (el) {
             el.scene.remove(el.tObject);
-            el.tObject.children.forEach(function (elt) {
-                if (elt.geometry && elt.geometry.dispose ) elt.geometry.dispose();
+            // el.tObject.children.forEach(function (elt) {
+                // if (elt.geometry && elt.geometry.dispose ) elt.geometry.dispose();
                 //     if (elt.material && elt.material.dispose ) elt.material.dispose();
                 //     if (elt.texture && elt.texture.dispose ) elt.texture.dispose();
-            });
-            if (el.tObject.geometry && el.tObject.geometry.dispose ) el.tObject.geometry.dispose();
+            // });
+            // if (el.tObject.geometry && el.tObject.geometry.dispose ) el.tObject.geometry.dispose();
             // if (el.tObject.material && el.tObject.material.dispose ) el.tObject.material.dispose();
             // if (el.tObject.texture && el.tObject.texture.dispose ) el.tObject.texture.dispose();
-            });
+        });
         this.collection.length = 0;
         return this;
     };
@@ -4966,6 +4965,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             DT.audio.sounds.gameover.play();
         }
     });
+    DT.$document.on('changeScore', function (e, data) {
+        DT.audio.sounds.catchCoin.play();
+    });
 
     (function () {
         // MUSIC
@@ -5250,6 +5252,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 DT.$document.trigger('startGame', {control: 'mobile'});
                 DT.lastControl = 'mobile';
             }
+        });
+        DT.$document.on('changeScore', function (e, data) {
+            DT.sendSocketMessage({type: 'vibr', time: 10});
         });
         // socket.on('disconnectController', function(data) {
         //     DT.$document.trigger('pauseGame', {});

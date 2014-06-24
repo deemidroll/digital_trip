@@ -32,6 +32,8 @@ body {
   height: 100%;
   display: none;
   position: absolute;
+  left: 0;
+  top: 0;
   text-align: center; }
 
 .mobile_choosen, .webcam_choosen {
@@ -42,6 +44,8 @@ body {
   width: 100%;
   height: 100%;
   position: absolute;
+  left: 0;
+  top: 0;
   text-align: center; }
 
 #compare, #overlay {

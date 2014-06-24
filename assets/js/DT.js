@@ -6857,7 +6857,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.handlers.restart = function () {
         DT.$document.trigger('resetGame', {});
         $('.game_over').fadeOut(250);
-        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: DT.lastContol});
+        if (!DT.game.wasStarted) DT.$document.trigger('startGame', {control: DT.lastControl});
     };
     DT.handlers.chooseControlAfterGameOver = function () {
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
@@ -7048,6 +7048,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         DT.stats = DT.stats|| new Stats();
         DT.stats.domElement.style.position = 'absolute';
         DT.stats.domElement.style.top = '0px';
+        DT.stats.domElement.style.left = '0px';
         DT.stats.domElement.style.zIndex = 100;
         body.appendChild( DT.stats.domElement );
         DT.stats2 = DT.stats2 || new Stats();

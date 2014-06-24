@@ -228,6 +228,7 @@ window.DT = (function (window, document, undefined) {
     DT.renderer.domElement.style.top = 0;
     DT.renderer.domElement.style.zIndex = -1;
     document.body.appendChild(DT.renderer.domElement);
+    $(DT.renderer.domElement).css({webkitFilter:'blur(0px)'});
 
     DT.scene = new THREE.Scene();
 
@@ -555,7 +556,6 @@ window.DT = (function (window, document, undefined) {
             increaseSpeed: function (dtime) {
                 this.speedIncTimer += 1;
                 this.speed = this.speed0 + this.acceleration * Math.sqrt(this.speedIncTimer);
-                if (DT.animate.id % 60 === 0) console.log(DT.animate.id, this.speed);
                 // this.speed0 += this.acceleration * dtime;
             },
             slowDown: function (mult) {
@@ -604,7 +604,8 @@ window.DT = (function (window, document, undefined) {
         this.speed.speed0 = 1/60;
         this.wasOver = false;
         this.wasPaused = false; // ?
-        DT.game.wasStarted = false;
+        this.game.wasStarted = false;
+        this.speed.speedIncTimer = 0;
     };
     DT.Game.prototype.gameOver = function() {
         this.wasOver = true;
@@ -683,8 +684,28 @@ window.DT = (function (window, document, undefined) {
         this.scene.add(this.lines);
 
         var lineGeom = DT.createGeometry(2),
-            limeMat = new THREE.MeshBasicMaterial({color:"#ff0000", wireframe: false, transparent: true, opacity: 0.6, morphTargets: true }),
-            limeMat2 = new THREE.MeshBasicMaterial({color:"#00ffc6", wireframe: false, transparent: true, opacity: 0.4, morphTargets: true });
+            limeMat = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                // wireframe: true,
+                transparent: true,
+                opacity: 0.6,
+                morphTargets: true,
+                // emissive: 0xff0000,
+                // shading: THREE.FlatShading,
+                // specular: 0x111111,
+                // shininess: 100
+            }),
+            limeMat2 = new THREE.MeshBasicMaterial({
+                color: 0x00ffc6,
+                // wireframe: true,
+                transparent: true,
+                opacity: 0.4,
+                morphTargets: true,
+                // emissive: 0x00ffc6,
+                // shading: THREE.FlatShading,
+                // specular: 0x111111,
+                // shininess: 100
+            });
 
         this.line = new THREE.Mesh(lineGeom, limeMat);
         this.line2 = new THREE.Mesh(lineGeom, limeMat2);
@@ -878,7 +899,11 @@ window.DT = (function (window, document, undefined) {
         this.lines.children.forEach(function (el, i) {
             DT.angleSign = i === 0 ? 1 : -1;
             el.rotation.z += Math.PI/360/2 * DT.angleSign;
+            if (i === 0) el.material.opacity = 1 - DT.audio.valueAudio/256;
+            if (i === 1) el.material.opacity = DT.audio.valueAudio/256;
         });
+
+        console.log(DT.audio.valueAudio/256);
 
         this.particleSystem.position.copy(this.position);
 
@@ -1236,7 +1261,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
     DT.Dust.prototype.updateMaterial = function (options) {
         if (!this.material.visible) {
-            this.material.visible = true;
+            // this.material.visible = true;
         }
         this.material.color = options.isFun ? options.color : new THREE.Color().setRGB(
             options.valueAudio/1/1 || 70/255,
@@ -1887,8 +1912,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     // TODO: рефакторинг
     DT.audio = {
         frequency: { // for audio visualization
-            0: 400,
-            1: 100
+            0: 43,
+            1: 300,
+            2: 200,
+            3: 100,
         },
         valueAudio: 0,
         webaudio: new WebAudio(),

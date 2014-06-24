@@ -4703,8 +4703,7 @@ window.DT = (function (window, document, undefined) {
         this.lines.children.forEach(function (el, i) {
             DT.angleSign = i === 0 ? 1 : -1;
             el.rotation.z += Math.PI/360/2 * DT.angleSign;
-            if (i === 0) el.material.opacity = 1 - DT.audio.valueAudio/256;
-            if (i === 1) el.material.opacity = DT.audio.valueAudio/256;
+            el.scale = new THREE.Vector3(1,1,1).addScalar(DT.audio.valueAudio/256/10);
         });
 
         console.log(DT.audio.valueAudio/256);

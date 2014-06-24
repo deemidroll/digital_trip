@@ -4827,6 +4827,7 @@ window.DT = (function (window, document, undefined) {
             acceleration: 1/2500,
             changer: 0,
             speedIncTimer: 0,
+            divirer: 1,
             setChanger: function (changer) {
                 this.changer = changer;
             },
@@ -4842,7 +4843,7 @@ window.DT = (function (window, document, undefined) {
                 return this.changer;
             },
             getSpeed0: function () {
-                return this.speed + this.changer;
+                return (this.speed + this.changer) / this.divider;
             },
             getAcceleration: function () {
                 return this.acceleration;
@@ -4892,6 +4893,7 @@ window.DT = (function (window, document, undefined) {
 
     DT.$document.on('startGame', function (e, data) {
         DT.game.startGame();
+        DT.game.speed.divider = data.control === 'webcam' ? 2 : 1;
     });
     DT.$document.on('pauseGame', function () {
         DT.game.wasPaused = true;
@@ -6738,19 +6740,19 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             //     mouseY = -e.y*20;
             // }, false);
 
-            // document.addEventListener("facetrackingEvent", function( event ) {
-            //     // clear canvas
-            //     overlayContext.clearRect(0,0,320,240);
-            //     // once we have stable tracking, draw rectangle
-            //     if (event.detection == "CS") {
-            //         overlayContext.translate(event.x, event.y)
-            //         overlayContext.rotate(event.angle-(Math.PI/2));
-            //         overlayContext.strokeStyle = "#00CC00";
-            //         overlayContext.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
-            //         overlayContext.rotate((Math.PI/2)-event.angle);
-            //         overlayContext.translate(-event.x, -event.y);
-            //     }
-            // }, true);
+            document.addEventListener("facetrackingEvent", function( event ) {
+                // clear canvas
+                // overlayContext.clearRect(0,0,320,240);
+                // once we have stable tracking, draw rectangle
+                if (event.detection == "CS") {
+                    overlayContext.translate(event.x, event.y)
+                    overlayContext.rotate(event.angle-(Math.PI/2));
+                    overlayContext.strokeStyle = "#00CC00";
+                    overlayContext.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
+                    overlayContext.rotate((Math.PI/2)-event.angle);
+                    overlayContext.translate(-event.x, -event.y);
+                }
+            }, true);
             
             document.addEventListener('facetrackingEvent', facetrackingEventHandler, true);
             DT.$document.on('resetGame', function (e, data) {
@@ -7025,7 +7027,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         $('.change_controls.gameover_control').unbind('click', DT.handlers.chooseControlAfterGameOver);
     });
     DT.$document.on('resetGame', function (e, data) {
-        $('#compare, #overlay').hide();
+        if (data.cause === 'chooseControl') {
+            $('#compare, #overlay').hide();
+        }
     });
     DT.$document.on('paymentCheck', function (e, data) {
         var text = data.checkup ? 'success' : 'fail';

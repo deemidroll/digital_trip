@@ -4408,7 +4408,7 @@ window.DT = (function (window, document, undefined) {
         this.speed.speed0 = 1/60;
         this.wasOver = false;
         this.wasPaused = false; // ?
-        this.game.wasStarted = false;
+        this.wasStarted = false;
         this.speed.speedIncTimer = 0;
     };
     DT.Game.prototype.gameOver = function() {

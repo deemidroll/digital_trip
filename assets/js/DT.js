@@ -4703,10 +4703,8 @@ window.DT = (function (window, document, undefined) {
         this.lines.children.forEach(function (el, i) {
             DT.angleSign = i === 0 ? 1 : -1;
             el.rotation.z += Math.PI/360/2 * DT.angleSign;
-            el.scale = new THREE.Vector3(1,1,1).addScalar(DT.audio.valueAudio/256/10);
+            el.scale = new THREE.Vector3(1,1,1).addScalar(DT.audio.valueAudio/256/30);
         });
-
-        console.log(DT.audio.valueAudio/256);
 
         this.particleSystem.position.copy(this.position);
 
@@ -5059,18 +5057,17 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             ));
         }
         this.material.visible = false;
+        this.material.transparent = true;
+        this.material.opacity = 0;
         return this;
     };
 
     DT.Dust.prototype.updateMaterial = function (options) {
         if (!this.material.visible) {
-            // this.material.visible = true;
+            this.material.visible = true;
         }
-        this.material.color = options.isFun ? options.color : new THREE.Color().setRGB(
-            options.valueAudio/1/1 || 70/255,
-            options.valueAudio/255/1 || 68/255,
-            options.valueAudio/255/1 || 81/255
-        );
+        this.material.color = options.isFun ? options.color : new THREE.Color().setRGB(1,0,0);
+        this.material.opacity = 0.5 + DT.audio.valueAudio/256;
         return this;
     };
 
@@ -5716,9 +5713,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.audio = {
         frequency: { // for audio visualization
             0: 43,
-            1: 300,
-            2: 200,
-            3: 100,
+            1: 65,
+            2: 43,
+            3: 75,
         },
         valueAudio: 0,
         webaudio: new WebAudio(),

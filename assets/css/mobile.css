@@ -163,18 +163,11 @@ body, html {
   position: absolute;
   top: 0;
   left: 0;
-  background-color: #ffae9b;
+  background-color: #000;
+  background: #000 url(../img/mobilereset.jpg) 0 0 no-repeat;
   width: 100%;
   height: 100%;
   z-index: 1; }
-  #gameover > img {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    margin-top: -280px;
-    margin-left: -300px;
-    width: 727px;
-    height: 740px; }
   #gameover > #restart {
     position: absolute;
     left: 50%;

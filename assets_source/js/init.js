@@ -1837,7 +1837,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
     DT.BonusesCollection.prototype.createObjects = function (options) {
         DT.Collection.prototype.createObjects.apply(this, arguments);
-        if (!this.collection.length) {
+        if (!this.collection.length && DT.animate.id % 900 === 0) {
             for (var i = 0; i < options.number; i++) {
                 new this.constructor(options);
             }
@@ -1882,7 +1882,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             .createObjects({
                 offset: DT.genRandomFloorBetween(-1, 1),
                 tube: data.tube,
-                t: data.t,
+                t: data.t + DT.genRandomBetween(0, 0.1),
             })
             .update({
                 dieCoord: data.tube.path.getPointAt(DT.normalizeT(data.t - 0.008)).multiplyScalar(DT.scale),

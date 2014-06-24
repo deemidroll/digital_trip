@@ -1916,7 +1916,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             3: 75,
         },
         valueAudio: 0,
-        webaudio: new WebAudio(),
         sounds: {
             catchCoin: 'sounds/coin.',
             gameover: 'sounds/gameover.',
@@ -2061,8 +2060,38 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         // SOUNDS
         var ext = canPlayOgg ? 'ogg' : 'mp3';
 
+        function SFX(context, file) {
+          var ctx = this;
+          var loader = new BufferLoader(context, [file], onLoaded);
+        
+          function onLoaded(buffers) {
+            ctx.buffers = buffers;
+          };
+        
+          loader.load();
+        }
+        
+        SFX.prototype.play = function() {
+          var time = context.currentTime;
+          // Make multiple sources using the same buffer and play in quick succession.
+            var source = this.makeSource(this.buffers[0]);
+            source.start(0);
+        }
+        
+        SFX.prototype.makeSource = function(buffer) {
+          var source = context.createBufferSource();
+          var compressor = context.createDynamicsCompressor();
+          var gain = context.createGain();
+          gain.gain.value = DT.game.param.globalVolume;
+          source.buffer = buffer;
+          source.connect(gain);
+          gain.connect(compressor);
+          compressor.connect(context.destination);
+          return source;
+        };
+
         for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
-            DT.audio.sounds[prop] = DT.audio.webaudio.createSound().load(DT.audio.sounds[prop] + ext);
+            DT.audio.sounds[prop] = new SFX(context, DT.audio.sounds[prop] + ext);
         }
 
         var loadSoundFile = function(urlArr, bufferIndex) {
@@ -2086,33 +2115,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             var nyquist = context.sampleRate/2,
                 index = Math.round(frequency/nyquist * freqDomain[bufferIndex].length);
             return freqDomain[bufferIndex][index];
-        };
-        // add update function to webaudio prototype
-        WebAudio.Sound.prototype.update = function() {
-            this.volume(DT.game.param.globalVolume);
-        };
-        WebAudio.Sound.prototype.play = function(time){
-            this.volume(DT.game.param.globalVolume);
-            // handle parameter polymorphism
-            if( time === undefined ) time = 0;
-            // if not yet playable, ignore
-            // - usefull when the sound download isnt yet completed
-            if( this.isPlayable() === false ) return;
-            // clone the bufferSource
-            var clonedNode  = this._chain.cloneBufferSource();
-            // set the noteOn
-            clonedNode.start(time);
-            // create the source object
-            var source  = {
-                node    : clonedNode,
-                stop    : function(time){
-                    if( time ===  undefined )   time    = 0;
-                    this.node.stop(time);
-                    return source;  // for chained API
-                }
-            };
-            // return it
-            return source;
         };
     })();
 

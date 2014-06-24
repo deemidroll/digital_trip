@@ -62,6 +62,7 @@ module.exports = function(grunt) {
                         'js/vendor/CurveExtras.js',
                         // Sound
                         'js/vendor/webaudio.js',
+                        'js/vendor/BufferLoader.js',
                         // Webcam control
                         'js/vendor/headtrackr.min.js',
                         'js/vendor/facetrackr.js',

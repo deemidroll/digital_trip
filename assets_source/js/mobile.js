@@ -110,12 +110,13 @@ $(function() {
 
             });
             socket.on("fail", function() {
-                $status.html("Failed to connect! Reload!");
+                $('#status_fail').html("Failed to connect! Check address and code and reload!");
             });
             $(document).unbind("keyup", connnectOnEnter);
         };
         if (hash) {
             connect(hash.slice(1));
+            $('#socket').hide();
         }
         var connnectOnEnter = function (event) {
             var k = event.keyCode;

@@ -96,11 +96,16 @@ body,html {
     display: table-cell;
 }
 
-#status {
+#status, #status_fail{
     width: 100%;
     text-align: center;
     position: absolute;
     z-index: 3;
+}
+
+#status_fail {
+    top: 10%;
+    color: red;
 }
 
 #preparetostart {

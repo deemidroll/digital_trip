@@ -62,8 +62,9 @@ body {
     z-index: 1;
     display: none;
     position: absolute;
-    right: 30px;
-    top: 30px;
+    left: 50%;
+    top: 10px;
+    margin-left: -61px;
     border: 2px solid white;
 }
 
@@ -461,7 +462,7 @@ a:hover {
 .turn_to_start {
     position: relative;
     width: 100%;
-    height: 300px;
+    height: 260px;
     font-size: 40px;
     >span {
         position: absolute;

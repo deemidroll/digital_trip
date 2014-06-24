@@ -4051,12 +4051,12 @@ window.DT = (function (window, document, undefined) {
     };
     DT.GameObject.prototype.removeFromScene = function () {
         this.scene.remove(this.tObject);
-        // this.tObject.children.forEach(function (el) {
-        //     if (el.geometry && el.geometry.dispose ) el.geometry.dispose();
+        this.tObject.children.forEach(function (el) {
+            if (el.geometry && el.geometry.dispose ) el.geometry.dispose();
         //     if (el.material && el.material.dispose ) el.material.dispose();
         //     if (el.texture && el.texture.dispose ) el.texture.dispose();
-        // });
-        // if (this.tObject.geometry && this.tObject.geometry.dispose ) this.tObject.geometry.dispose();
+        });
+        if (this.tObject.geometry && this.tObject.geometry.dispose ) this.tObject.geometry.dispose();
         // if (this.tObject.material && this.tObject.material.dispose ) this.tObject.material.dispose();
         // if (this.tObject.texture && this.tObject.texture.dispose ) this.tObject.texture.dispose();
         return this;
@@ -4630,7 +4630,15 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.Collection.prototype.reset = function () {
         this.collection.forEach(function (el) {
             el.scene.remove(el.tObject);
-        });
+            el.tObject.children.forEach(function (elt) {
+                if (elt.geometry && elt.geometry.dispose ) elt.geometry.dispose();
+                //     if (elt.material && elt.material.dispose ) elt.material.dispose();
+                //     if (elt.texture && elt.texture.dispose ) elt.texture.dispose();
+            });
+            if (el.tObject.geometry && el.tObject.geometry.dispose ) el.tObject.geometry.dispose();
+            // if (el.tObject.material && el.tObject.material.dispose ) el.tObject.material.dispose();
+            // if (el.tObject.texture && el.tObject.texture.dispose ) el.tObject.texture.dispose();
+            });
         this.collection.length = 0;
         return this;
     };
@@ -5155,9 +5163,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         }
     });
     DT.$document.on('resetGame', function (e, data) {
-        if (data.cause === 'chooseControl') {
+        // if (data.cause === 'chooseControl') {
             DT.$document.unbind('keydown', keydownArrows);
-        }
+        // }
     });
     DT.$document.bind('keydown', function(event) {
         var k = event.keyCode

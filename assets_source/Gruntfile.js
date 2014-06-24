@@ -64,6 +64,8 @@ module.exports = function(grunt) {
                         'js/vendor/webaudio.js',
                         // Webcam control
                         'js/vendor/headtrackr.min.js',
+                        'js/vendor/facetrackr.js',
+                        'js/vendor/headposition.js',
                         // External objects
                         'js/vendor/OBJLoader.js',
                         // Full screen

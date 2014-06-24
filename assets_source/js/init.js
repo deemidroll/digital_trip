@@ -2331,10 +2331,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             DT.enableWebcam.satus = 'init';
             $('#compare, #overlay').show();
             // Game config
-            var leftBreakThreshold = -1;
-            var leftTurnThreshold = -10;
-            var rightBreakThreshold = 1;
-            var rightTurnThreshold = 10;
+            var leftBreakThreshold = 60;
+            var leftTurnThreshold =  50;
+            var rightBreakThreshold =60;
+            var rightTurnThreshold = 70;
             
             // Defime lib messages
             var statusMessages = {
@@ -2370,10 +2370,13 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             var facetrackingEventHandler = function( event ) {
                 // once we have stable tracking, draw rectangle
                 if (event.detection == 'CS' && DT.enableWebcam.satus !== 'disabled' && !DT.game.wasPaused) {
-                    var angle = Number(event.angle *(180/ Math.PI)-90);
-                    // console.log(angle);
-                    if(angle < leftBreakThreshold) {
-                        if(angle > leftTurnThreshold) {
+                    // var angle = Number(event.angle *(180/ Math.PI)-90);
+                    var x = (event.x/120)*canvasInput.width,
+                        y = (event.y/90)*canvasInput.height;
+                    var posX = x;
+                    // console.log(posX);
+                    if(posX < leftBreakThreshold) {
+                        if(posX > leftTurnThreshold) {
                             DT.handlers.center();
                         } else {
                             if (!DT.enableWebcam.checkLeft) {
@@ -2383,8 +2386,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                             }
                             DT.handlers.left();
                         }
-                    } else if (angle > rightBreakThreshold) {
-                        if(angle < rightTurnThreshold) {
+                    } else if (posX > rightBreakThreshold) {
+                        if(posX < rightTurnThreshold) {
                             DT.handlers.center();
                         } else {
                             if (!DT.enableWebcam.checkRight) {
@@ -2410,27 +2413,67 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             
             // Set heastrackr
             DT.htracker = DT.htracker || new headtrackr.Tracker({
-                altVideo : {ogv : '', mp4 : ''},
-                calcAngles : true,
-                ui : false,
-                headPosition : false
+                altVideo : {"ogv" : "/media/facekat/nocamfallback.ogv", "mp4" : "/media/facekat/nocamfallback.mp4"},
+                smoothing : false,
+                fadeVideo : true,
+                ui : false
             });
             DT.htracker.init(videoInput, canvasInput);
             DT.htracker.start();
 
-            document.addEventListener("facetrackingEvent", function( event ) {
-                // clear canvas
-                overlayContext.clearRect(0,0,320,240);
-                // once we have stable tracking, draw rectangle
-                if (event.detection == "CS") {
-                    overlayContext.translate(event.x, event.y)
-                    overlayContext.rotate(event.angle-(Math.PI/2));
-                    overlayContext.strokeStyle = "#00CC00";
-                    overlayContext.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
-                    overlayContext.rotate((Math.PI/2)-event.angle);
-                    overlayContext.translate(-event.x, -event.y);
-                }
-            }, true);
+
+            var drawIdent = function(cContext,x,y) {
+            
+                // normalise values
+                x = (x/120)*canvasInput.width;
+                y = (y/90)*canvasInput.height;
+            
+                // flip horizontally
+                // x = canvasInput.width - x;
+            
+                // clean canvas
+                cContext.clearRect(0,0,canvasInput.width,canvasInput.height);
+            
+                // draw rectangle around canvas
+                cContext.strokeRect(0,0,canvasInput.width,canvasInput.height);
+            
+                // draw marker, from x,y position
+                cContext.strokeStyle = "#00CC00";
+                cContext.beginPath();
+                cContext.moveTo(x-5,y);
+                cContext.lineTo(x+5,y);
+                cContext.closePath();
+                cContext.stroke();
+            
+                cContext.beginPath();
+                cContext.moveTo(x,y-5);
+                cContext.lineTo(x,y+5);
+                cContext.closePath();
+                cContext.stroke();
+            };
+            
+            document.addEventListener("facetrackingEvent", function(e) {
+                drawIdent(overlayContext, e.x, e.y);
+            }, false);
+            
+            // document.addEventListener("headtrackingEvent", function(e) {
+            //     mouseX = e.x*20;
+            //     mouseY = -e.y*20;
+            // }, false);
+
+            // document.addEventListener("facetrackingEvent", function( event ) {
+            //     // clear canvas
+            //     overlayContext.clearRect(0,0,320,240);
+            //     // once we have stable tracking, draw rectangle
+            //     if (event.detection == "CS") {
+            //         overlayContext.translate(event.x, event.y)
+            //         overlayContext.rotate(event.angle-(Math.PI/2));
+            //         overlayContext.strokeStyle = "#00CC00";
+            //         overlayContext.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
+            //         overlayContext.rotate((Math.PI/2)-event.angle);
+            //         overlayContext.translate(-event.x, -event.y);
+            //     }
+            // }, true);
             
             document.addEventListener('facetrackingEvent', facetrackingEventHandler, true);
             DT.$document.on('resetGame', function (e, data) {

@@ -202,16 +202,20 @@ window.DT = (function (window, document, undefined) {
     });
     // coupling
     DT.$document.on('gameOver', function (e, data) {
+        $('.restart').bind('click',DT.handlers.restart);
+        $('.change_controls.gameover_control').bind('click', DT.handlers.chooseControlAfterGameOver);
+        DT.$document.bind('keyup', DT.handlers.restartOnSpace);
         if (data.cause === 'death') {
-            setTimeout(function() {
+            DT.gameOverTimeout = setTimeout(function() {
                 cancelAnimFrame(DT.animate.id);
-                $('.restart').bind('click',DT.handlers.restart);
-                $('.change_controls.gameover_control').bind('click', DT.handlers.chooseControlAfterGameOver);
-                DT.$document.bind('keyup', DT.handlers.restartOnSpace);
             }, DT.gameOverTime);
         } else {
             cancelAnimFrame(DT.animate.id);
         }
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        clearTimeout(DT.gameOverTimeout);
+        cancelAnimFrame(DT.animate.id); 
     });
 
 // ████████╗██╗  ██╗██████╗ ███████╗███████╗    ██╗    ██╗ ██████╗ ██████╗ ██╗     ██████╗ 
@@ -2272,7 +2276,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             }
         });
         socket.on('click', function(click) {
-            DT.handlers[click]();
+            if (DT.enableMobileSatus === 'enabled') DT.handlers[click]();
         });
         socket.on('message', function(data) {
             if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
@@ -2752,7 +2756,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('gameOver', function (e, data) {
         if (data.cause === 'death') {
             $('.total_coins').text(Math.round(DT.player.currentScore));
-            $('.game_over').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, DT.gameOverTime);
+            $('.game_over').css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         }
     });
     DT.$document.on('resetGame', function (e, data) {

@@ -6,17 +6,44 @@
 // ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚═╝ ╚════╝ ╚══════╝
 // Dependencies
 var express = require('express'),
-    http = require('http'),
     io = require('socket.io'),
-    crypto = require('crypto'),
-    mongo = require('mongodb').MongoClient,
+    mongoose = require('mongoose'),
+    // async = require('async'),
+    // mongo = require('mongodb').MongoClient,
     hookshot = require('hookshot');
 
-// Set up our app with Express framework
+// Set up app with Express framework
 var app = express();
 
-// Create our HTTP server
-var server = http.createServer(app);
+// Create server
+var server = app.listen(80, function() {
+    console.log('Listening on port %d', server.address().port);
+});
+
+// Connect DB
+mongoose.connect('mongodb://127.0.0.1:27017/DTdb');
+
+var Schema = mongoose.Schema;
+
+var clientsSchema = new Schema({
+    cookieUID: String,
+    clientId: String,
+    clientIp: String,
+    gameCode: String,
+    timeStart: Number,
+    timeEnd: Number,
+    coinsCollect: Number,
+    maxCoinsCheck: Boolean,
+    checkup: Boolean,
+});
+
+var Client = mongoose.model('Client', clientsSchema);
+
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function callback () {
+    console.log('connected to db', db.name);
+});
 
 // service functions
 var genCookie = function () {
@@ -36,97 +63,51 @@ var genGameCode = function () {
     return code;
 };
 
-// functions for work with DB
-var useDB = function (method, args) {
-    mongo.connect('mongodb://127.0.0.1:27017/DTdb', function(err, db) {
-        if(err) throw err;
-        var collection = db.collection('clients');
-        var oldCallback = args[args.length - 1];
-        args[args.length - 1] = function (err, docs) {
-            oldCallback(err, docs);
-            // db.close();
-        };
-        collection[method].apply(collection, args);
-    });
-};
-var insertDB = function (criteria, set, callback) {
-    useDB('insert',
-        [set, 
-        function(err, docs) {
-            callback && callback(criteria, docs[0]);
-        }]
-    );
-};
-var updateDB = function (criteria, set, callback) {
-    useDB('update',
-        [criteria,
-        {$set: set},
-        {multi: false},
-        function(err, doc) {
-            callback && callback(criteria, doc);
-        }]);
-};
-var getOneFromDB = function (criteria, set, callback) {
-    useDB('findOne',
-        [criteria,
-        function (err, doc) {
-            callback && callback(criteria, doc);
-        }]);
-};
-var getFromDB = function (criteria, set, callback) {
-    useDB('find',
-        [criteria,
-        function (err, docs) {
-            callback && callback(criteria, docs);
-        }]);
-};
 // TODO: rework check function
-var checkClient = function (criteria, docs, chekedDoc) {
-    docs.toArray(function(err, docs) {
-        console.log("Handle docs from Array")
-        var IPcounter = 0,
-            UIDcounter = 0,
-            paymentsCounter = 0,
-            timeCounter = 0,
-            data = {},
-            checkup = null;
+var checkClient = function (clients, currentClient) {
+    console.log("Handle clients from Array[" + clients.length + "]")
+    var IPcounter = 0,
+        UIDcounter = 0,
+        paymentsCounter = 0,
+        timeCounter = 0,
+        data = {},
+        checkup = null;
 
-        docs.forEach(function(doc, i) {
-            if (doc.clientIp === chekedDoc.clientIp) {
-                IPcounter++;
-                if (doc.wasPayed) {
-                    paymentsCounter++;
-                    timeCounter += (chekedDoc.timeEnd - doc.timeEnd);
-                }
+    clients.forEach(function(doc, i) {
+        if (doc.clientIp === currentClient.clientIp) {
+            IPcounter++;
+            if (doc.wasPayed) {
+                paymentsCounter++;
+                timeCounter += (currentClient.timeEnd - doc.timeEnd);
             }
-            if (doc.cookieUID === chekedDoc.cookieUID) {
-                UIDcounter++;
-                if (doc.wasPayed) {
-                    paymentsCounter++;
-                    timeCounter += (chekedDoc.timeEnd - doc.timeEnd);
-                }
+        }
+        if (doc.cookieUID === currentClient.cookieUID) {
+            UIDcounter++;
+            if (doc.wasPayed) {
+                paymentsCounter++;
+                timeCounter += (currentClient.timeEnd - doc.timeEnd);
             }
-            console.log("handle doc #" + i);
-        });
-        if (chekedDoc.maxCoinsCheck === false ||
-            IPcounter > 1000 ||
-            UIDcounter > 100 ||
-            paymentsCounter > 10 ||
-            timeCounter/paymentsCounter < 10 * 60 * 1000) {
-
-            checkup = false;
-        } else {
-            checkup = true;
         }
-        console.log('emit socket message in ' + chekedDoc.gameCode + ' with type paymentCheck, checkup: ' + checkup);
-        if(chekedDoc.gameCode && chekedDoc.gameCode in socketCodes) {
-            socketCodes[chekedDoc.gameCode].emit('message', {type: 'paymentCheck', checkup: checkup});
-        }
+        // console.log("handle doc #" + i);
     });
+    if (currentClient.maxCoinsCheck === false ||
+        IPcounter > 1000 ||
+        UIDcounter > 100 ||
+        paymentsCounter > 10 ||
+        timeCounter/paymentsCounter < 10 * 60 * 1000) {
+        checkup = false;
+    } else {
+        checkup = true;
+    }
+    console.log('emit socket message in ' + currentClient.gameCode + ' with type paymentCheck, checkup: ' + checkup);
+    if(currentClient.gameCode && currentClient.gameCode in socketCodes) {
+        socketCodes[currentClient.gameCode].emit('message', {type: 'paymentCheck', checkup: checkup});
+    }
+    return checkup;
 };
 
-var checkCoins = function (criteria, doc, timeEnd, coinsCollect) {
-    var time = (timeEnd - doc.timeStart)/1000,
+var checkCoins = function (timeStart, timeEnd, coinsCollect) {
+    var time = (timeEnd - timeStart)/1000,
         maxCoins = calcMaxCoins(time);
     // if client recieve more coins than it may
     return coinsCollect <= maxCoins;
@@ -143,7 +124,7 @@ var calcMaxCoins = function (time) {
     path = speedStart * time + acceleration * time * time / 2;
 
     maxCoins = Math.floor(path / (t + dt * (n - 1)) * 10);
-    console.log(time, maxCoins, path);
+    console.log('time:' + time, 'maxCoins:' + maxCoins, 'path:' + path);
     return maxCoins;
 };
 var checkUID = function (uid) {};
@@ -159,10 +140,10 @@ app.configure(function() {
         if (cookie === undefined) {
             // no: gen a new cookie
             cookie = genCookie();
-            console.log('cookie have created successfully');
+            // console.log('cookie have created successfully');
         } else {
             // yes, cookie was already present 
-            console.log('cookie exists', cookie);
+            // console.log('cookie exists', cookie);
         }
         // refresh cookie
         res.cookie('UID', cookie, { maxAge: 900000 });
@@ -176,10 +157,7 @@ app.configure(function() {
 
 
 // Tell Socket.io to pay attention
-io = io.listen(server);
-
-// Tell HTTP Server to begin listening for connections on port 8888
-server.listen(80);
+io = io.listen(server, { log: false });
 
 // Sockets object to save game code -> socked associations
 var socketCodes = {};
@@ -199,32 +177,58 @@ io.sockets.on('connection', function(socket) {
             }
         }
         if (data.type === 'gamestarted') {
-            // update client in clients collection
             var timeStart = Date.now();
-            getOneFromDB({'clientId': data.sessionid}, null, function (criteria, doc) {
-                updateDB(criteria, {
-                    'timeStart': timeStart,
-                    'timeEnd': null,
-                    'coinsCollect': null
-                })
+            // update client in clients collection
+            Client.findOne({'clientId': data.sessionid}).exec(function(err, client) {
+                if (err) {
+                    console.log('Error:', err);
+                    return;
+                }
+                if (client) {
+                    client.timeStart = timeStart;
+                    client.save(function (err) {
+                        if (err) console.log("Error: could not save client timeStart");
+                    });
+                }
             });
         }
         if (data.type === 'gameover') {
             // update client in clients collection
             var timeEnd = Date.now();
-            getOneFromDB({'clientId': data.sessionid}, null, function (criteria, doc) {
-                updateDB(criteria, {
-                    'timeEnd': timeEnd,
-                    'coinsCollect': data.coinsCollect,
-                    'maxCoinsCheck': checkCoins(criteria, doc, timeEnd, data.coinsCollect)
-                })
+            Client.findOne({'clientId': data.sessionid}).exec(function(err, client) {
+                if (err) {
+                    console.log('Error:', err);
+                    return;
+                }
+                if (client) {
+                    client.timeEnd = timeEnd;
+                    client.coinsCollect = data.coinsCollect;
+                    client.maxCoinsCheck = checkCoins(client.timeStart, timeEnd, data.coinsCollect);
+                    client.save(function (err) {
+                        if (err) console.log("Error: could not save client timeEnd data", err);
+                    });
+                }
             });
         }
         if (data.type === 'checkup') {
-            getOneFromDB({'clientId': data.sessionid}, null, function (criteria, doc) {
-                getFromDB({ $or: [{'clientIp': doc.clientIp}, {'cookieUID': doc.cookieUID}]}, null, function (criteria, docs) {
-                    console.log(checkClient(criteria, docs, doc));
-                });
+            Client.findOne({'clientId': data.sessionid}).exec(function(err, client) {
+                if (err) {
+                    console.log('Error:', err);
+                    return;
+                }
+                if (client) {
+                    Client.find({ $or: [{'clientIp': client.clientIp}, {'cookieUID': client.cookieUID}]}).exec(function(err, clients) {
+                        if (err) {
+                            console.log('Error:', err);
+                            return;
+                        }
+                        // if (!clients) return;
+                        client.checkup = checkClient(clients, client);
+                        client.save(function (err) {
+                            if (err) console.log("Error: could not save client checkup");
+                        });
+                    });
+                }
             });
         }
     });
@@ -234,11 +238,9 @@ io.sockets.on('connection', function(socket) {
         // if client is a browser game
         if(data.type == 'game') {
             // Generate a code
-            // var gameCode = crypto.randomBytes(3).toString('hex');
             var gameCode = genGameCode();
             // Ensure uniqueness
             while(gameCode in socketCodes) {
-                // gameCode = crypto.randomBytes(3).toString('hex');
                 gameCode = genGameCode();
             }
             
@@ -250,16 +252,13 @@ io.sockets.on('connection', function(socket) {
             //  and show the game code to the user
             socket.emit('initialize', gameCode);
             // insert data into MongoDB
-            insertDB(null, {
+            new Client({
                 'cookieUID': data.cookieUID,
                 'clientId': socket.id,
                 'clientIp': socket.handshake.address.address,
                 'gameCode': gameCode,
-                'timeStart': null,
-                'timeEnd': null,
-                'coinsCollect': null,
-                'checkup': null
-            });
+            }).save();
+
         } else if(data.type == 'controller') { // if client is a phone controller
             // if game code is valid...
             if(data.gameCode in socketCodes) {

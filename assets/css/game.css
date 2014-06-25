@@ -84,11 +84,33 @@ body {
   font-size: 18px;
   letter-spacing: 0.1em;
   cursor: pointer;
-  z-index: 10; }
+  z-index: 10;
+  -webkit-transition: background-color 0.4s ease-out 0;
+  -moz-transition: background-color 0.4s ease-out 0;
+  -o-transition: background-color 0.4s ease-out 0;
+  transition: background-color 0.4s ease-out 0; }
+  .change_controls:hover {
+    color: #000;
+    background-color: #fff;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
 
 .pause_control {
   background-color: #222;
-  color: #fff; }
+  color: #fff;
+  -webkit-transition: background-color 0.4s ease-out 0;
+  -moz-transition: background-color 0.4s ease-out 0;
+  -o-transition: background-color 0.4s ease-out 0;
+  transition: background-color 0.4s ease-out 0; }
+  .pause_control:hover {
+    color: #000;
+    background-color: #fff;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
 
 .gameover_control {
   background-color: #272727;
@@ -96,7 +118,18 @@ body {
   position: static;
   margin-right: 4px;
   margin-top: 50px;
-  margin-left: 0; }
+  margin-left: 0;
+  -webkit-transition: background-color 0.4s ease-out 0;
+  -moz-transition: background-color 0.4s ease-out 0;
+  -o-transition: background-color 0.4s ease-out 0;
+  transition: background-color 0.4s ease-out 0; }
+  .gameover_control:hover {
+    color: #000;
+    background-color: #fff;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
 
 .resume {
   width: 250px;
@@ -112,7 +145,18 @@ body {
   cursor: pointer;
   z-index: 10;
   margin-bottom: 7px;
-  margin-top: 50px; }
+  margin-top: 50px;
+  -webkit-transition: background-color 0.4s ease-out 0;
+  -moz-transition: background-color 0.4s ease-out 0;
+  -o-transition: background-color 0.4s ease-out 0;
+  transition: background-color 0.4s ease-out 0; }
+  .resume:hover {
+    color: #000;
+    background-color: #fff;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
 
 .restart {
   width: 188px;
@@ -123,7 +167,18 @@ body {
   letter-spacing: 0.1em;
   cursor: pointer;
   z-index: 10;
-  display: inline-block; }
+  display: inline-block;
+  -webkit-transition: background-color 0.4s ease-out 0;
+  -moz-transition: background-color 0.4s ease-out 0;
+  -o-transition: background-color 0.4s ease-out 0;
+  transition: background-color 0.4s ease-out 0; }
+  .restart:hover {
+    color: #000;
+    background-color: #fff;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
 
 .bigfont {
   font-size: 3em; }
@@ -532,4 +587,16 @@ a:hover {
   width: 94px;
   font-family: 'plumbmediumcmediumc';
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale; }
+  -moz-osx-font-smoothing: grayscale;
+  cursor: pointer;
+  -webkit-transition: background-color 0.4s ease-out 0;
+  -moz-transition: background-color 0.4s ease-out 0;
+  -o-transition: background-color 0.4s ease-out 0;
+  transition: background-color 0.4s ease-out 0; }
+  #wow:hover {
+    color: #000;
+    background-color: #fff;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }

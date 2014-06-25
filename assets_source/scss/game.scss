@@ -106,11 +106,51 @@ body {
     letter-spacing: 0.1em;
     cursor: pointer;
     z-index: 10;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0;
+    // -webkit-transition: color 0.4s ease-out 0;
+    // -moz-transition: color 0.4s ease-out 0;
+    // -o-transition: color 0.4s ease-out 0;
+    // transition: color 0.4s ease-out 0;
+    &:hover {
+        color: #000;
+        background-color: #fff;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
+        // -webkit-transition: color 0.4s ease-out 0;
+        // -moz-transition: color 0.4s ease-out 0;
+        // -o-transition: color 0.4s ease-out 0;
+        // transition: color 0.4s ease-out 0;
+    }
 }
 
 .pause_control {
     background-color: #222;
     color: #fff;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0;
+    // -webkit-transition: color 0.4s ease-out 0;
+    // -moz-transition: color 0.4s ease-out 0;
+    // -o-transition: color 0.4s ease-out 0;
+    // transition: color 0.4s ease-out 0;
+    &:hover {
+        color: #000;
+        background-color: #fff;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
+        // -webkit-transition: color 0.4s ease-out 0;
+        // -moz-transition: color 0.4s ease-out 0;
+        // -o-transition: color 0.4s ease-out 0;
+        // transition: color 0.4s ease-out 0;
+    }
 }
 .gameover_control {
     background-color: #272727;
@@ -119,6 +159,26 @@ body {
     margin-right: 4px;
     margin-top: 50px;
     margin-left: 0;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0;
+    // -webkit-transition: color 0.4s ease-out 0;
+    // -moz-transition: color 0.4s ease-out 0;
+    // -o-transition: color 0.4s ease-out 0;
+    // transition: color 0.4s ease-out 0;
+    &:hover {
+        color: #000;
+        background-color: #fff;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
+        // -webkit-transition: color 0.4s ease-out 0;
+        // -moz-transition: color 0.4s ease-out 0;
+        // -o-transition: color 0.4s ease-out 0;
+        // transition: color 0.4s ease-out 0;
+    }
 }
 .resume {
     width: 250px;
@@ -135,6 +195,26 @@ body {
     z-index: 10;
     margin-bottom: 7px;
     margin-top: 50px;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0;
+    // -webkit-transition: color 0.4s ease-out 0;
+    // -moz-transition: color 0.4s ease-out 0;
+    // -o-transition: color 0.4s ease-out 0;
+    // transition: color 0.4s ease-out 0;
+    &:hover {
+        color: #000;
+        background-color: #fff;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
+        // -webkit-transition: color 0.4s ease-out 0;
+        // -moz-transition: color 0.4s ease-out 0;
+        // -o-transition: color 0.4s ease-out 0;
+        // transition: color 0.4s ease-out 0;
+    }
 }
 
 .restart {
@@ -147,6 +227,26 @@ body {
     cursor: pointer;
     z-index: 10;
     display: inline-block;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0;
+    // -webkit-transition: color 0.4s ease-out 0;
+    // -moz-transition: color 0.4s ease-out 0;
+    // -o-transition: color 0.4s ease-out 0;
+    // transition: color 0.4s ease-out 0;
+    &:hover {
+        color: #000;
+        background-color: #fff;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
+        // -webkit-transition: color 0.4s ease-out 0;
+        // -moz-transition: color 0.4s ease-out 0;
+        // -o-transition: color 0.4s ease-out 0;
+        // transition: color 0.4s ease-out 0;
+    }
 }
 
 .bigfont {
@@ -634,4 +734,25 @@ a:hover {
     font-family: 'plumbmediumcmediumc';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    cursor: pointer;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0;
+    // -webkit-transition: color 0.4s ease-out 0;
+    // -moz-transition: color 0.4s ease-out 0;
+    // -o-transition: color 0.4s ease-out 0;
+    // transition: color 0.4s ease-out 0;
+    &:hover {
+        color: #000;
+        background-color: #fff;
+        -webkit-transition: background-color 0.4s ease-out 0;
+        -moz-transition: background-color 0.4s ease-out 0;
+        -o-transition: background-color 0.4s ease-out 0;
+        transition: background-color 0.4s ease-out 0;
+        // -webkit-transition: color 0.4s ease-out 0;
+        // -moz-transition: color 0.4s ease-out 0;
+        // -o-transition: color 0.4s ease-out 0;
+        // transition: color 0.4s ease-out 0;
+    }
 }

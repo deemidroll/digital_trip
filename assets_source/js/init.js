@@ -2785,36 +2785,36 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ███████║   ██║   ██║  ██║   ██║   ███████║
 // ╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝   ╚══════╝
 
-    DT.setStats = function () {
-        var body = document.getElementsByTagName('body')[0];
-        DT.stats = DT.stats|| new Stats();
-        DT.stats.domElement.style.position = 'absolute';
-        DT.stats.domElement.style.top = '0px';
-        DT.stats.domElement.style.left = '0px';
-        DT.stats.domElement.style.zIndex = 100;
-        body.appendChild( DT.stats.domElement );
-        DT.stats2 = DT.stats2 || new Stats();
-        DT.stats2.setMode(1);
-        DT.stats2.domElement.style.position = 'absolute';
-        DT.stats2.domElement.style.top = '0px';
-        DT.stats2.domElement.style.left = '80px';
-        DT.stats2.domElement.style.zIndex = 100;
-        body.appendChild( DT.stats2.domElement );
+    // DT.setStats = function () {
+    //     var body = document.getElementsByTagName('body')[0];
+    //     DT.stats = DT.stats|| new Stats();
+    //     DT.stats.domElement.style.position = 'absolute';
+    //     DT.stats.domElement.style.top = '0px';
+    //     DT.stats.domElement.style.left = '0px';
+    //     DT.stats.domElement.style.zIndex = 100;
+    //     body.appendChild( DT.stats.domElement );
+    //     DT.stats2 = DT.stats2 || new Stats();
+    //     DT.stats2.setMode(1);
+    //     DT.stats2.domElement.style.position = 'absolute';
+    //     DT.stats2.domElement.style.top = '0px';
+    //     DT.stats2.domElement.style.left = '80px';
+    //     DT.stats2.domElement.style.zIndex = 100;
+    //     body.appendChild( DT.stats2.domElement );
 
-        DT.rendererStats  = new THREEx.RendererStats();
-        DT.rendererStats.domElement.style.position = 'absolute';
-        DT.rendererStats.domElement.style.left = '0px';
-        DT.rendererStats.domElement.style.top = '50px';
-        DT.rendererStats.domElement.style.zIndex = 100;
-        DT.rendererStats.domElement.style.width = '90px';
-        body.appendChild(DT.rendererStats.domElement);
-    };
-    DT.setStats();
-    DT.$document.on('update', function (e, data) {
-        DT.stats.update();
-        DT.stats2.update();
-        DT.rendererStats.update(DT.renderer);
-    }); 
+    //     DT.rendererStats  = new THREEx.RendererStats();
+    //     DT.rendererStats.domElement.style.position = 'absolute';
+    //     DT.rendererStats.domElement.style.left = '0px';
+    //     DT.rendererStats.domElement.style.top = '50px';
+    //     DT.rendererStats.domElement.style.zIndex = 100;
+    //     DT.rendererStats.domElement.style.width = '90px';
+    //     body.appendChild(DT.rendererStats.domElement);
+    // };
+    // DT.setStats();
+    // DT.$document.on('update', function (e, data) {
+    //     DT.stats.update();
+    //     DT.stats2.update();
+    //     DT.rendererStats.update(DT.renderer);
+    // }); 
 
 // ████████╗██╗  ██╗███████╗    ███████╗███╗   ██╗██████╗ 
 // ╚══██╔══╝██║  ██║██╔════╝    ██╔════╝████╗  ██║██╔══██╗

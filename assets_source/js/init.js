@@ -2688,16 +2688,14 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     });
     $('#wow').on('click', function () {
         var inputDogeCoin = $('#dogecoin');
-        if (inputDogeCoin.val() === 'YOUR DOGECOIN ID') {
-            inputDogeCoin.css({
-                'border': '2px solid red'
-            });
+        if (inputDogeCoin.val() === '') {
             $('#gameovermessage').html('type your dogecoin id');
         } else {
-            inputDogeCoin.css({
-                'border': '2px solid green'
-            });
             $('#gameovermessage').html('checking...');
+            $('#wow').unbind('click');
+            $('#wow').on('click', function () {
+                $('#gameovermessage').html('you have already sent a request ');
+            })
             DT.$document.trigger('checkUp', {});
         }
     });
@@ -2775,7 +2773,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     });
     DT.$document.on('paymentCheck', function (e, data) {
         var text = data.checkup ? 'success' : 'fail';
-        $('.gameover_message').html(text);
+        $('#gameovermessage').html(text);
     });
 })();
 // ███████╗████████╗ █████╗ ████████╗███████╗

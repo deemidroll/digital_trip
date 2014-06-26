@@ -35,6 +35,8 @@ var clientsSchema = new Schema({
     coinsCollect: Number,
     maxCoinsCheck: Boolean,
     checkup: Boolean,
+    paymentRequest: Number,
+    gamesInSession: Number,
 });
 
 var Client = mongoose.model('Client', clientsSchema);
@@ -68,33 +70,37 @@ var checkClient = function (clients, currentClient) {
     console.log("Handle clients from Array[" + clients.length + "]")
     var IPcounter = 0,
         UIDcounter = 0,
-        paymentsCounter = 0,
-        timeCounter = 0,
+        IPpaymentsCounter = 0,
+        UIDpaymentsCounter = 0,
+        IPtimeCounter = 0,
+        UIDtimeCounter = 0,
         data = {},
         checkup = null;
 
-    clients.forEach(function(doc, i) {
-        if (doc.clientIp === currentClient.clientIp) {
+    clients.forEach(function(client, i) {
+        if (client.clientIp === currentClient.clientIp) {
             IPcounter++;
-            if (doc.wasPayed) {
-                paymentsCounter++;
-                timeCounter += (currentClient.timeEnd - doc.timeEnd);
+            if (client.paymentRequest) {
+                IPpaymentsCounter += client.paymentRequest;
+                IPtimeCounter += (currentClient.timeEnd - client.timeEnd);
             }
         }
-        if (doc.cookieUID === currentClient.cookieUID) {
+        if (client.cookieUID === currentClient.cookieUID) {
             UIDcounter++;
-            if (doc.wasPayed) {
-                paymentsCounter++;
-                timeCounter += (currentClient.timeEnd - doc.timeEnd);
+            if (client.paymentRequest) {
+                UIDpaymentsCounter += client.paymentRequest;
+                UIDtimeCounter += (currentClient.timeEnd - client.timeEnd);
             }
         }
-        // console.log("handle doc #" + i);
+        // console.log("handle client #" + i);
     });
-    if (currentClient.maxCoinsCheck === false ||
+    if (currentClient.checkup === false ||
+        currentClient.maxCoinsCheck === false ||
         IPcounter > 1000 ||
         UIDcounter > 100 ||
-        paymentsCounter > 10 ||
-        timeCounter/paymentsCounter < 10 * 60 * 1000) {
+        IPpaymentsCounter > 20 ||
+        UIDpaymentsCounter > 5 ||
+        IPtimeCounter/IPpaymentsCounter < 10 * 60 * 1000) {
         checkup = false;
     } else {
         checkup = true;
@@ -103,6 +109,14 @@ var checkClient = function (clients, currentClient) {
     if(currentClient.gameCode && currentClient.gameCode in socketCodes) {
         socketCodes[currentClient.gameCode].emit('message', {type: 'paymentCheck', checkup: checkup});
     }
+    console.log(
+        'checkup', currentClient.checkup === false,
+        'maxCoinsCheck', currentClient.maxCoinsCheck === false,
+        'IPcounter', IPcounter > 1000,
+        'UIDcounter', UIDcounter > 100,
+        'IPpaymentsCounter', IPpaymentsCounter > 20,
+        'UIDpaymentsCounter', UIDpaymentsCounter > 5,
+        'IPtimeCounter/IPpaymentsCounter', IPtimeCounter/IPpaymentsCounter < 10 * 60 * 1000);
     return checkup;
 };
 
@@ -115,16 +129,17 @@ var checkCoins = function (timeStart, timeEnd, coinsCollect) {
 
 var calcMaxCoins = function (time) {
     var speedStart = 1/60,
-        acceleration = 1/10000,
-        path = 0,
+        acceleration = 1/2500,
+        maxPath = 0,
         maxCoins = 0, 
         t = 0.25, // coins position in the tube 
         dt = 0.004, // coins position offset
         n = 10; // number of coins in a row
-    path = speedStart * time + acceleration * time * time / 2;
 
-    maxCoins = Math.floor(path / (t + dt * (n - 1)) * 10);
-    console.log('time:' + time, 'maxCoins:' + maxCoins, 'path:' + path);
+    maxPath = (speedStart + acceleration * Math.sqrt(time * 60)) * time;
+
+    maxCoins = Math.floor(maxPath / (t + dt * (n - 1)) * n)/10;
+    console.log('time:' + time, 'maxCoins:' + maxCoins, 'maxPath:' + maxPath);
     return maxCoins;
 };
 var checkUID = function (uid) {};
@@ -186,6 +201,7 @@ io.sockets.on('connection', function(socket) {
                 }
                 if (client) {
                     client.timeStart = timeStart;
+                    client.gamesInSession += 1;
                     client.save(function (err) {
                         if (err) console.log("Error: could not save client timeStart");
                     });
@@ -203,7 +219,7 @@ io.sockets.on('connection', function(socket) {
                 if (client) {
                     client.timeEnd = timeEnd;
                     client.coinsCollect = data.coinsCollect;
-                    client.maxCoinsCheck = checkCoins(client.timeStart, timeEnd, data.coinsCollect);
+                    client.maxCoinsCheck = checkCoins(client.timeStart, client.timeEnd, client.coinsCollect);
                     client.save(function (err) {
                         if (err) console.log("Error: could not save client timeEnd data", err);
                     });
@@ -223,6 +239,7 @@ io.sockets.on('connection', function(socket) {
                             return;
                         }
                         // if (!clients) return;
+                        client.paymentRequest += 1;
                         client.checkup = checkClient(clients, client);
                         client.save(function (err) {
                             if (err) console.log("Error: could not save client checkup");
@@ -252,12 +269,25 @@ io.sockets.on('connection', function(socket) {
             //  and show the game code to the user
             socket.emit('initialize', gameCode);
             // insert data into MongoDB
-            new Client({
-                'cookieUID': data.cookieUID,
-                'clientId': socket.id,
-                'clientIp': socket.handshake.address.address,
-                'gameCode': gameCode,
-            }).save();
+            Client.findOne({'clientId': socket.id}).exec(function(err, client) {
+                if(!err) {
+                    if(!client) {
+                        client = new Client({
+                            cookieUID: data.cookieUID,
+                            clientId: socket.id,
+                            clientIp: socket.handshake.address.address,
+                            gameCode: gameCode,
+                            paymentRequest: 0,
+                            gamesInSession: 0,
+                        });
+                    } else {
+                        client.gamesInSession += 1;
+                    }
+                    client.save(function(err) {
+                        if (err) console.log("Error: could not save client on start");
+                    });
+                }
+            });
 
         } else if(data.type == 'controller') { // if client is a phone controller
             // if game code is valid...

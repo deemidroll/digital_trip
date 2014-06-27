@@ -97,7 +97,51 @@ body {
     -o-transition: background-color 0.4s ease-out 0;
     transition: background-color 0.4s ease-out 0; }
 
+.social {
+  width: 280px;
+  height: 52px;
+  position: relative;
+  left: 50%;
+  margin-left: -140px; }
+  .social > div:first-child {
+    background: #4e68b2 url(../img/fbw.png) 50% 50% no-repeat; }
+    .social > div:first-child:hover {
+      background-image: url(../img/fbb.png); }
+  .social > div:nth-child(2) {
+    background: #4195de url(../img/tww.png) 50% 50% no-repeat; }
+    .social > div:nth-child(2):hover {
+      background-image: url(../img/twb.png); }
+  .social > div:nth-child(3) {
+    background: #38658f url(../img/vkw.png) 50% 50% no-repeat; }
+    .social > div:nth-child(3):hover {
+      background-image: url(../img/vkb.png); }
+  .social > div:last-child {
+    margin: 0;
+    background: #ce2f1c url(../img/gpw.png) 50% 50% no-repeat; }
+    .social > div:last-child:hover {
+      background-image: url(../img/gpb.png); }
+  .social > div {
+    width: 52px;
+    height: 100%;
+    float: left;
+    margin-right: 24px;
+    cursor: pointer;
+    -webkit-transition: background-color 0.4s ease-out 0;
+    -moz-transition: background-color 0.4s ease-out 0;
+    -o-transition: background-color 0.4s ease-out 0;
+    transition: background-color 0.4s ease-out 0; }
+    .social > div:hover {
+      color: #000;
+      background-color: #fff;
+      -webkit-transition: background-color 0.4s ease-out 0;
+      -moz-transition: background-color 0.4s ease-out 0;
+      -o-transition: background-color 0.4s ease-out 0;
+      transition: background-color 0.4s ease-out 0; }
+
 .pause_control {
+  width: 280px;
+  height: 37px;
+  margin-left: -140px;
   background-color: #222;
   color: #fff;
   -webkit-transition: background-color 0.4s ease-out 0;
@@ -132,20 +176,20 @@ body {
     transition: background-color 0.4s ease-out 0; }
 
 .resume {
-  width: 250px;
-  height: 36px;
+  width: 280px;
+  height: 37px;
   background-color: #fd5439;
   color: #000000;
   position: relative;
   left: 50%;
-  margin-left: -125px;
+  margin-left: -140px;
   padding-top: 15px;
   font-size: 18px;
   letter-spacing: 0.1em;
   cursor: pointer;
   z-index: 10;
   margin-bottom: 7px;
-  margin-top: 50px;
+  margin-top: 38px;
   -webkit-transition: background-color 0.4s ease-out 0;
   -moz-transition: background-color 0.4s ease-out 0;
   -o-transition: background-color 0.4s ease-out 0;

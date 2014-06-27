@@ -5672,6 +5672,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     $('#dogecoin').on('keyup', function (e) {
         e.stopPropagation();
     });
+    $('#share-link').on('click', function () {
+        
+    });
     DT.$document.keyup(function(event) {
         var k = event.keyCode;
         if (k === 77) {

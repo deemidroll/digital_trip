@@ -2547,6 +2547,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         }
     };
     DT.handlers.pause = function () {
+        if (!DT.game.wasStarted) return;
+        if (DT.game.wasOver) return;
         if (DT.game.wasPaused) {
             DT.$document.trigger('resumeGame', {});
         } else {
@@ -2607,7 +2609,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         DT.$chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
     };
-    DT.handlers.restartOnSpace = function () {
+    DT.handlers.restartOnSpace = function (event) {
         var k = event.keyCode;
         if (k === 32) {
             DT.handlers.restart();
@@ -2622,6 +2624,28 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             DT.player.lines.children[1].material.opacity = 0.4;
         }
     };
+    DT.handlers.share = function () {
+        if (!DT.game.wasStarted || DT.game.wasOver || DT.shared) {
+            DT.shared = !DT.shared;
+            $('.share').toggleClass('show-table');
+            if ($('.choose_control')[0].style.webkitFilter === 'blur(0px)' || $('.choose_control')[0].style.webkitFilter === '') {
+                $('.choose_control, .game_over, #interface').css({webkitFilter:'blur(10px)'});
+                $(DT.renderer.domElement).css({webkitFilter:'blur(10px)'});
+                if ($('.pause')[0].style.webkitFilter !== undefined) {
+                    $('.pause').css({'background-color': 'transparent'});
+                }
+            } else {
+                $('.choose_control, .game_over, #interface').css({webkitFilter:'blur(0px)'});
+                $(DT.renderer.domElement).css({webkitFilter:'blur(0px)'});
+            }
+        }
+    };
+    DT.$document.on('startGame', function (e, data) {
+        DT.handlers.share();
+    });
+    DT.$document.on('resetGame', function (e, data) {
+        DT.handlers.share();
+    });
 
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
 // ██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝
@@ -2663,8 +2687,11 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             });
         });
     };
-    $('.resume').click(function() {
+    $('.pause .resume').click(function() {
         DT.$document.trigger('resumeGame', {});
+    });
+    $('.share .resume').click(function() {
+        DT.handlers.share();
     });
     $('.change_controls.pause_control').click(function() {
         DT.$document.trigger('gameOver', {cause: 'reset'});
@@ -2702,8 +2729,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     $('#dogecoin').on('keyup', function (e) {
         e.stopPropagation();
     });
-    $('#share-link').on('click', function () {
-        
+    $('#share-link').on('click', function (e) {
+        e.preventDefault()
+        DT.handlers.pause();
+        DT.handlers.share();
     });
     DT.$document.keyup(function(event) {
         var k = event.keyCode;

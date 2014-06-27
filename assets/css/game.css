@@ -103,24 +103,24 @@ body {
   position: relative;
   left: 50%;
   margin-left: -140px; }
-  .social > div:first-child {
+  .social > a:first-child div {
     background: #4e68b2 url(../img/fbw.png) 50% 50% no-repeat; }
-    .social > div:first-child:hover {
+    .social > a:first-child div:hover {
       background-image: url(../img/fbb.png); }
-  .social > div:nth-child(2) {
+  .social > a:nth-child(2) div {
     background: #4195de url(../img/tww.png) 50% 50% no-repeat; }
-    .social > div:nth-child(2):hover {
+    .social > a:nth-child(2) div:hover {
       background-image: url(../img/twb.png); }
-  .social > div:nth-child(3) {
+  .social > a:nth-child(3) div {
     background: #38658f url(../img/vkw.png) 50% 50% no-repeat; }
-    .social > div:nth-child(3):hover {
+    .social > a:nth-child(3) div:hover {
       background-image: url(../img/vkb.png); }
-  .social > div:last-child {
+  .social > a:last-child div {
     margin: 0;
     background: #ce2f1c url(../img/gpw.png) 50% 50% no-repeat; }
-    .social > div:last-child:hover {
+    .social > a:last-child div:hover {
       background-image: url(../img/gpb.png); }
-  .social > div {
+  .social > a div {
     width: 52px;
     height: 100%;
     float: left;
@@ -130,7 +130,7 @@ body {
     -moz-transition: background-color 0.4s ease-out 0;
     -o-transition: background-color 0.4s ease-out 0;
     transition: background-color 0.4s ease-out 0; }
-    .social > div:hover {
+    .social > a div:hover {
       color: #000;
       background-color: #fff;
       -webkit-transition: background-color 0.4s ease-out 0;

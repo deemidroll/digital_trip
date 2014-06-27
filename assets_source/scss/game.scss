@@ -134,32 +134,32 @@ body {
     position: relative;
     left: 50%;
     margin-left: -140px;
-    > div:first-child{
+    > a:first-child div {
         background: #4e68b2 url(../img/fbw.png) 50% 50% no-repeat;
         &:hover {
             background-image: url(../img/fbb.png);
         }
     }
-    > div:nth-child(2) {
+    > a:nth-child(2) div {
         background: #4195de url(../img/tww.png) 50% 50% no-repeat;
         &:hover {
             background-image: url(../img/twb.png);
         }
     }
-    > div:nth-child(3) {
+    > a:nth-child(3) div {
         background: #38658f url(../img/vkw.png) 50% 50% no-repeat;
         &:hover {
             background-image: url(../img/vkb.png);
         }
     }
-    > div:last-child {
+    > a:last-child div {
         margin: 0;
         background: #ce2f1c url(../img/gpw.png) 50% 50% no-repeat;
         &:hover {
             background-image: url(../img/gpb.png);
         }
     }
-    > div {
+    > a div {
         width: 52px;
         height: 100%;
         float: left;

@@ -9,7 +9,7 @@ var express = require('express'),
     io = require('socket.io'),
     mongoose = require('mongoose'),
     // async = require('async'),
-    // mongo = require('mongodb').MongoClient,
+    dogecoin = require('node-dogecoin')(),
     hookshot = require('hookshot');
 
 // Set up app with Express framework
@@ -18,6 +18,31 @@ var app = express();
 // Create server
 var server = app.listen(80, function() {
     console.log('Listening on port %d', server.address().port);
+});
+
+// Configure the app
+app.configure(function() {
+    app.use(express.cookieParser());
+        // set a cookie
+    app.use(function (req, res, next) {
+        // check if client sent cookie
+        var cookie = req.cookies.UID;
+        if (cookie === undefined) {
+            // no: gen a new cookie
+            cookie = genCookie();
+            // console.log('cookie have created successfully');
+        } else {
+            // yes, cookie was already present 
+            // console.log('cookie exists', cookie);
+        }
+        // refresh cookie
+        res.cookie('UID', cookie, { maxAge: 900000 });
+        next(); // <-- important!
+    });
+
+    app.use('/', express.static('assets/'));
+    app.use('/webhook', hookshot('refs/heads/master', 'git pull'));
+    app.use(/\/m\/#\d{6}/, express.static('assets/'));
 });
 
 // Connect DB
@@ -47,6 +72,18 @@ db.once('open', function callback () {
     console.log('connected to db', db.name);
 });
 
+// dogecoin
+// dogecoin.auth('dt', 'dt7085')
+
+// dogecoin.getDifficulty(function() {
+//     console.log(arguments);
+// })
+// dogecoin
+// .auth('MyUserName', 'mypassword')
+// .getNewAddress()
+// .getBalance()
+// service functions
+
 // service functions
 var genCookie = function () {
     var randomNumber=Math.random().toString();
@@ -64,8 +101,6 @@ var genGameCode = function () {
     }
     return code;
 };
-
-// TODO: rework check function
 var checkClient = function (clients, currentClient) {
     console.log("Handle clients from Array[" + clients.length + "]")
     var IPcounter = 0,
@@ -142,33 +177,8 @@ var calcMaxCoins = function (time) {
     console.log('time:' + time, 'maxCoins:' + maxCoins, 'maxPath:' + maxPath);
     return maxCoins;
 };
-var checkUID = function (uid) {};
-var checkIp = function (ip) {};
-
-// Configure the app
-app.configure(function() {
-    app.use(express.cookieParser());
-        // set a cookie
-    app.use(function (req, res, next) {
-        // check if client sent cookie
-        var cookie = req.cookies.UID;
-        if (cookie === undefined) {
-            // no: gen a new cookie
-            cookie = genCookie();
-            // console.log('cookie have created successfully');
-        } else {
-            // yes, cookie was already present 
-            // console.log('cookie exists', cookie);
-        }
-        // refresh cookie
-        res.cookie('UID', cookie, { maxAge: 900000 });
-        next(); // <-- important!
-    });
-
-    app.use('/', express.static('assets/'));
-    app.use('/webhook', hookshot('refs/heads/master', 'git pull'));
-    app.use(/\/m\/#\d{6}/, express.static('assets/'));
-});
+// var checkUID = function (uid) {};
+// var checkIp = function (ip) {};
 
 
 // Tell Socket.io to pay attention

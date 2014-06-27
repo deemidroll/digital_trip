@@ -6,9 +6,9 @@
   "dependencies": {
     "express": "^3.4.8",
     "hookshot": "^0.0.2",
-    "mongodb": "^1.4.0",
-    "socket.io": "^0.9.16",
-    "mongo": "^0.1.0"
+    "mongoose": "^3.8.12",
+    "node-dogecoin": "^0.3.9",
+    "socket.io": "^0.9.16"
   },
   "devDependencies": {},
   "scripts": {

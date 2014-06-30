@@ -1163,7 +1163,7 @@ window.DT = (function (window, document, undefined) {
             if (this.tObject.children.length > 0) {
                 this.tObject.children.forEach(function (el) {
                     el.material.transparent = true;
-                    el.material.opacity = DT.getMin(el.material.opacity, opacity);
+                    if (el.material.opacity > 0) el.material.opacity = opacity;
                 });
             } else {
                 this.tObject.material.transparent = true;
@@ -1331,6 +1331,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 transparent: true,
                 opacity: 1 - new DT.StonesCollection().opacity,
                 wireframe: true,
+                wireframeLinewidth: 2,
             })]);
 
         DT.GameCollectionObject.apply(this, [{

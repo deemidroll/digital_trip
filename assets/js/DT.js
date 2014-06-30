@@ -4177,7 +4177,8 @@ window.DT = (function (window, document, undefined) {
             wireframeLinewidth: 3,
             shading: THREE.FlatShading,
         });
-        this.player = options.player
+        this.player = options.player;
+        this.interval;
     };
     DT.Shield.prototype = Object.create(DT.GameObject.prototype);
     DT.Shield.prototype.constructor = DT.Shield;
@@ -4200,9 +4201,19 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
     DT.$document.on('showInvulner', function (e, data) {
         if (data.invulner) {
+            clearInterval(DT.shield.interval);
+            DT.shield.tObject.material.opacity = 0.05
+            DT.shield.tObject.scale.set(DT.listOfModels[4].scale, DT.listOfModels[4].scale, DT.listOfModels[4].scale);
             DT.shield.addToScene();
         } else {
-            DT.shield.removeFromScene();
+            DT.shield.interval = setInterval(function () {
+                DT.shield.tObject.material.opacity -= 0.0025;
+                DT.shield.tObject.scale.addScalar(DT.listOfModels[4].scale/20);
+                if (DT.shield.tObject.material.opacity < 0) {
+                    DT.shield.removeFromScene();
+                    clearInterval(DT.shield.interval);
+                }
+            }, 20);
         }
     });
 });

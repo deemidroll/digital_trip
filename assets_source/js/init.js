@@ -256,17 +256,17 @@ window.DT = (function (window, document, undefined) {
 
     DT.tube = tube;
 
-    var tubeMesh = THREE.SceneUtils.createMultiMaterialObject( tube, [
-                new THREE.MeshLambertMaterial({
-                    opacity: 0,
-                    transparent: true
-                }),
-                new THREE.MeshBasicMaterial({
-                    opacity: 0,
-                    transparent: true
-            })]);
-    parent.add(tubeMesh);
-    tubeMesh.scale.set( DT.scale, DT.scale, DT.scale );
+    // var tubeMesh = THREE.SceneUtils.createMultiMaterialObject( tube, [
+    //             new THREE.MeshLambertMaterial({
+    //                 opacity: 0,
+    //                 transparent: true
+    //             }),
+    //             new THREE.MeshBasicMaterial({
+    //                 opacity: 0,
+    //                 transparent: true
+    //         })]);
+    // parent.add(tubeMesh);
+    // tubeMesh.scale.set( DT.scale, DT.scale, DT.scale );
 
     var binormal = new THREE.Vector3();
     var normal = new THREE.Vector3();
@@ -1163,7 +1163,7 @@ window.DT = (function (window, document, undefined) {
             if (this.tObject.children.length > 0) {
                 this.tObject.children.forEach(function (el) {
                     el.material.transparent = true;
-                    el.material.opacity = opacity;
+                    el.material.opacity = DT.getMin(el.material.opacity, opacity);
                 });
             } else {
                 this.tObject.material.transparent = true;
@@ -1308,23 +1308,33 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚══════╝
 
     DT.Stone = function (options) {
-        var radius, color, depth, geometry, material;
+        var radius, color, depth, tObject;
 
         radius = DT.genRandomBetween(1, 2);
         depth = DT.genRandomFloorBetween(80, 100) / 255;
         color = new THREE.Color().setRGB(depth, depth, depth);
-        
-        geometry = new THREE.IcosahedronGeometry(radius, 0);
-        material = new THREE.MeshPhongMaterial({
-            shading: THREE.FlatShading,
-            color: color,
-            specular: 0x111111,
-            shininess: 100
-        });
+
+        tObject = THREE.SceneUtils.createMultiMaterialObject( new THREE.IcosahedronGeometry(radius, 0), [
+            new THREE.MeshPhongMaterial({
+                shading: THREE.FlatShading,
+                color: color,
+                specular: 0x111111,
+                shininess: 100,
+                transparent: true,
+                opacity: new DT.StonesCollection().opacity,
+            }),
+            new THREE.MeshPhongMaterial({
+                shading: THREE.FlatShading,
+                color: color,
+                specular: 0x111111,
+                shininess: 100,
+                transparent: true,
+                opacity: 1 - new DT.StonesCollection().opacity,
+                wireframe: true,
+            })]);
+
         DT.GameCollectionObject.apply(this, [{
-            geometry: geometry,
-            material: material,
-            THREEConstructor: THREE.Mesh,
+            tObject: tObject,
             collection: options.collection
         }]);
         this.t = options.t;
@@ -1344,7 +1354,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
         var el = this.tObject;
         this.distanceToSphere = el.position.distanceTo(options.sphere.position);
-        this.minDistance = options.sphere.geometry.radius + el.geometry.radius;
+        this.minDistance = options.sphere.geometry.radius + el.children[0].geometry.radius;
             
         if (this.distanceToSphere < this.minDistance) {
             this.removeFromScene();
@@ -1374,19 +1384,15 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
         if (el.position.distanceTo(estimatedPlayerPosition) < this.minDistance) {
             if (DT.player.isFun) {
-                el.material.emissive = new THREE.Color().setRGB(1,0,0);
-                el.material.wireframe = true;
+                el.children[1].material.emissive = new THREE.Color().setRGB(1,0,0);
             } else {
-                el.material.emissive = new THREE.Color().setRGB(0.5,0,0);
-                el.material.wireframe = false;
+                el.children[0].material.emissive = new THREE.Color().setRGB(0.5,0,0);
             }
         } else {
             if (DT.player.isFun) {
-                el.material.emissive = new THREE.Color().setRGB(0,1,0);
-                el.material.wireframe = true;
+                el.children[1].material.emissive = new THREE.Color().setRGB(0,1,0);
             } else {
-                el.material.emissive = new THREE.Color().setRGB(0,0,0);
-                el.material.wireframe = false;
+                el.children[0].material.emissive = new THREE.Color().setRGB(0,0,0);
             }
         }
 
@@ -1402,11 +1408,9 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 
     DT.StaticStone.prototype.update = function (options) {
         if (DT.player.isFun) {
-            this.tObject.material.emissive = new THREE.Color().setRGB(0,1,0);
-            this.tObject.material.wireframe = true;
+            this.tObject.children[1].material.emissive = new THREE.Color().setRGB(0,1,0);
         } else {
-            this.tObject.material.emissive = new THREE.Color().setRGB(0,0,0);
-            this.tObject.material.wireframe = false;
+            this.tObject.children[0].material.emissive = new THREE.Color().setRGB(0,0,0);
         }
 
         this.updateParam('rotation', {x: 0.007, y: 0.007});
@@ -1649,6 +1653,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.Collection = function (options) {
         this.collection = [];
         this.constructor = options.constructor;
+        this.opacity = 1;
     };
 
     DT.Collection.prototype.createObjects = function (options) {
@@ -1746,6 +1751,33 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 data: data
             });
     });
+    DT.$document.on('showFun', function (e, data) {
+        if (data.isFun) {
+            clearInterval(DT.StonesCollection.transitionInterval);
+            DT.StonesCollection.transitionInterval = setInterval(function () {
+                new DT.StonesCollection().collection.forEach(function (el) {
+                    el.tObject.children[0].material.opacity -= 0.1;
+                    el.tObject.children[1].material.opacity += 0.1;
+                });
+                new DT.StonesCollection().opacity -= 0.1;
+                if (new DT.StonesCollection().opacity < 0) {
+                    clearInterval(DT.StonesCollection.transitionInterval);
+                }
+            }, 50);
+        } else {
+            clearInterval(DT.StonesCollection.transitionInterval);
+            DT.StonesCollection.transitionInterval = setInterval(function () {
+                new DT.StonesCollection().collection.forEach(function (el) {
+                    el.tObject.children[0].material.opacity += 0.1
+                    el.tObject.children[1].material.opacity -= 0.1
+                });
+                new DT.StonesCollection().opacity += 0.1;
+                if (new DT.StonesCollection().opacity > 1) {
+                    clearInterval(DT.StonesCollection.transitionInterval);
+                }
+            }, 50);
+        }
+    });
     DT.$document.on('resetGame', function (e, data) {
         new DT.StonesCollection().reset();
     });
@@ -1799,6 +1831,33 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('update', function (e, data) {
         new DT.StaticStonesCollection()
             .update();
+    });
+    DT.$document.on('showFun', function (e, data) {
+        if (data.isFun) {
+            clearInterval(DT.StaticStonesCollection.transitionInterval);
+            DT.StaticStonesCollection.transitionInterval = setInterval(function () {
+                new DT.StaticStonesCollection().collection.forEach(function (el) {
+                    el.tObject.children[0].material.opacity -= 0.1;
+                    el.tObject.children[1].material.opacity += 0.1;
+                });
+                new DT.StaticStonesCollection().opacity -= 0.1;
+                if (new DT.StaticStonesCollection().opacity < 0) {
+                    clearInterval(DT.StaticStonesCollection.transitionInterval);
+                }
+            }, 50);
+        } else {
+            clearInterval(DT.StaticStonesCollection.transitionInterval);
+            DT.StaticStonesCollection.transitionInterval = setInterval(function () {
+                new DT.StaticStonesCollection().collection.forEach(function (el) {
+                    el.tObject.children[0].material.opacity += 0.1
+                    el.tObject.children[1].material.opacity -= 0.1
+                });
+                new DT.StaticStonesCollection().opacity += 0.1;
+                if (new DT.StaticStonesCollection().opacity > 1) {
+                    clearInterval(DT.StaticStonesCollection.transitionInterval);
+                }
+            }, 50);
+        }
     });
 
     DT.CoinsCollection = function () {

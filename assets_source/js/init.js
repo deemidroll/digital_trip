@@ -1425,11 +1425,11 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ╚██████╗╚██████╔╝██║██║ ╚████║
  // ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝
 (function () {
-    var tObject = new THREE.Object3D();
-
-    var r = 0.5, i,
-    coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.05, 32, 1, true ),
-    coin_cap_geo = new THREE.Geometry();
+    var coin_cap_texture = THREE.ImageUtils.loadTexture('./img/avers.png'),
+        r = 0.5, i,
+        coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.05, 32, 1, true ),
+        coin_cap_geo = new THREE.Geometry();
+        
     for (i = 0; i < 100; i++) {
         var a = i * 1/100 * Math.PI * 2,
             z = Math.sin(a),
@@ -1451,23 +1451,24 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     }
     coin_cap_geo.computeCentroids();
     coin_cap_geo.computeFaceNormals();
-    
-    var coin_cap_texture = THREE.ImageUtils.loadTexture('./img/avers.png'),
-        coin_sides_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b}),
-        coin_sides = new THREE.Mesh( coin_sides_geo, coin_sides_mat ),
-        coin_cap_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b, map: coin_cap_texture}),
-        coin_cap_top = new THREE.Mesh( coin_cap_geo, coin_cap_mat ),
-        coin_cap_bottom = new THREE.Mesh( coin_cap_geo, coin_cap_mat );
-
-    coin_cap_top.position.y = 0.05;
-    coin_cap_bottom.position.y = -0.05;
-    coin_cap_top.rotation.x = Math.PI;
-
-    tObject.add(coin_sides);
-    tObject.add(coin_cap_top);
-    tObject.add(coin_cap_bottom);
 
     DT.Coin = function (options) {
+        var tObject = new THREE.Object3D();
+
+        var coin_sides_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b}),
+            coin_sides = new THREE.Mesh( coin_sides_geo, coin_sides_mat ),
+            coin_cap_mat = new THREE.MeshPhongMaterial({emissive: 0xcfb53b, color: 0xcfb53b, map: coin_cap_texture}),
+            coin_cap_top = new THREE.Mesh( coin_cap_geo, coin_cap_mat ),
+            coin_cap_bottom = new THREE.Mesh( coin_cap_geo, coin_cap_mat );
+
+        coin_cap_top.position.y = 0.05;
+        coin_cap_bottom.position.y = -0.05;
+        coin_cap_top.rotation.x = Math.PI;
+        
+        tObject.add(coin_sides);
+        tObject.add(coin_cap_top);
+        tObject.add(coin_cap_bottom);
+        
         DT.GameCollectionObject.apply(this, [{
             tObject: tObject.clone(),
             collection: options.collection

@@ -50,6 +50,7 @@ body {
 .mobile_choosen, .webcam_choosen {
     /*display: table;*/
     background-color: #000;
+    z-index: 4;
 }
 
 .webcamcontrol {
@@ -63,7 +64,7 @@ body {
 }
 
 #compare, #overlay {
-    z-index: 1;
+    z-index: 4;
     display: none;
     position: absolute;
     left: 50%;
@@ -73,7 +74,7 @@ body {
 }
 
 #overlay {
-    z-index: 2;
+    z-index: 5;
 }
 
 .hit {
@@ -580,8 +581,8 @@ a:hover {
     border: 5px solid white;
 }
 #qrcode {
-    margin-top: 40px;
-    margin-bottom: 40px;
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 .logo {
     // position: absolute;

@@ -2626,13 +2626,13 @@ window.DT = (function (window, document, undefined) {
             DT.shared = !DT.shared;
             DT.$share.toggleClass('show-table');
             if ($('.choose_control')[0].style.webkitFilter === 'blur(0px)' || $('.choose_control')[0].style.webkitFilter === '') {
-                $('.choose_control, .game_over, #interface').css({webkitFilter:'blur(10px)'});
+                $('.choose_control, .game_over, #interface, .mobile_choosen, .webcam_choosen').css({webkitFilter:'blur(10px)'});
                 $(DT.renderer.domElement).css({webkitFilter:'blur(10px)'});
                 if (DT.$share[0].style.webkitFilter !== undefined) {
                     DT.$share.css({'background-color': 'transparent'});
                 }
             } else {
-                $('.choose_control, .game_over, #interface').css({webkitFilter:'blur(0px)'});
+                $('.choose_control, .game_over, #interface, .mobile_choosen, .webcam_choosen').css({webkitFilter:'blur(0px)'});
                 $(DT.renderer.domElement).css({webkitFilter:'blur(0px)'});
             }
         } else if (!DT.game.wasPaused) {

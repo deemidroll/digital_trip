@@ -35,7 +35,7 @@ window.DT = (function (window, document, undefined) {
     }();
 
     // constant
-    DT.gameOverTime = 6000;
+    DT.gameOverTime = 4000;
     DT.scale = 3;
 
     // jQuery chache

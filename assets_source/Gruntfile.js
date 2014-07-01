@@ -45,8 +45,8 @@ module.exports = function(grunt) {
             },
             target: {
                 files: {
-                    // '../assets_source/js/DT.js'
-                    '../assets/js/DT.js': [
+                    '../assets_source/js/DT.js': [
+                    // '../assets/js/DT.js': [
                         // QR code
                         'js/vendor/jquery.qrcode.min.js',
                         // Particle system
@@ -90,7 +90,7 @@ module.exports = function(grunt) {
                     banner: '/* Created by deemidroll | deemidroll@gmail.com | 2014 */',
                 },
                 files: {
-                    // '../assets/js/DT.min.js': ['../assets_source/js/DT.js'],
+                    '../assets/js/DT.min.js': ['../assets_source/js/DT.js'],
                     '../assets/js/myYepnope.min.js': ['js/myYepnope.js'],
                     '../assets/js/mobile.min.js': ['js/mobile.js'],
                 }

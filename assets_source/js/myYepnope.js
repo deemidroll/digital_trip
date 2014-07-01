@@ -53,7 +53,7 @@ $(function () {
         yepnope([{
             load: [
                 "js/vendor/three.min.js",
-                "js/DT.js",
+                "js/DT.min.js",
                 "../socket.io/socket.io.js"
             ],
             callback: {}

@@ -8,7 +8,7 @@
 var express = require('express'),
     io = require('socket.io'),
     mongoose = require('mongoose'),
-    DogeAPI = require('dogeapi'),
+    // DogeAPI = require('dogeapi'),
     hookshot = require('hookshot');
 
 // Set up app with Express framework
@@ -72,42 +72,42 @@ db.once('open', function callback () {
 });
 
 // dogecoin
-var instance = new DogeAPI();
-// Get balance
-instance.getBalance(function (error, balance) {
-    if(error) {
-        // Handle error
-    }
-    console.log(balance);
-});
-// Get addresses
-instance.getAddresses(function (error, addresses) {
-    if(error) {
-        // Handle error
-    }
-    console.log(addresses);
-});
-
-instance.getDifficulty(function (error, difficulty) {
-    if(error) {
-        // Handle error
-    }
-    console.log(difficulty);
-});
-
-// instance.moveToUser(toUserId, fromUserId, amount, function (error, transactionid) {
+// var instance = new DogeAPI();
+// // Get balance
+// instance.getBalance(function (error, balance) {
 //     if(error) {
 //         // Handle error
 //     }
-//     console.log(transactionid);
+//     console.log(balance);
+// });
+// // Get addresses
+// instance.getAddresses(function (error, addresses) {
+//     if(error) {
+//         // Handle error
+//     }
+//     console.log(addresses);
 // });
 
-instance.getInfo(function (error, info) {
-    if(error) {
-        // Handle error
-    }
-    console.log(info);
-});
+// instance.getDifficulty(function (error, difficulty) {
+//     if(error) {
+//         // Handle error
+//     }
+//     console.log(difficulty);
+// });
+
+// // instance.moveToUser(toUserId, fromUserId, amount, function (error, transactionid) {
+// //     if(error) {
+// //         // Handle error
+// //     }
+// //     console.log(transactionid);
+// // });
+
+// instance.getInfo(function (error, info) {
+//     if(error) {
+//         // Handle error
+//     }
+//     console.log(info);
+// });
 
 // service functions
 var genCookie = function () {

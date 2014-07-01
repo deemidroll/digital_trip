@@ -7,38 +7,38 @@
 
 window.DT = (function (window, document, undefined) {
     'use strict';
-    var DT = {},
-        THREE = window.THREE,
-        WebAudio = window.WebAudio,
-        $ = window.$,
-        THREEx = window.THREEx,
-        requestAnimFrame = function () {
-            return (
-                window.requestAnimationFrame       ||
-                window.webkitRequestAnimationFrame ||
-                window.mozRequestAnimationFrame    ||
-                window.oRequestAnimationFrame      ||
-                window.msRequestAnimationFrame     ||
-                function(/* function */ callback){
-                    window.setTimeout(callback, 1000 / 60);
-                }
-            );
-        }(),
-        cancelAnimFrame = function () {
-            return (
-                window.cancelAnimationFrame       ||
-                window.webkitCancelAnimationFrame ||
-                window.mozCancelAnimationFrame    ||
-                window.oCancelAnimationFrame      ||
-                window.msCancelAnimationFrame     ||
-                function(id){
-                    window.clearTimeout(id);
-                }
-            );
-        }();
+    var DT = {};
+
+    window.requestAnimationFrame = function () {
+        return (
+            window.requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            window.oRequestAnimationFrame      ||
+            window.msRequestAnimationFrame     ||
+            function(/* function */ callback){
+                window.setTimeout(callback, 1000 / 60);
+            }
+        );
+    }(),
+    window.cancelAnimationFrame = function () {
+        return (
+            window.cancelAnimationFrame       ||
+            window.webkitCancelAnimationFrame ||
+            window.mozCancelAnimationFrame    ||
+            window.oCancelAnimationFrame      ||
+            window.msCancelAnimationFrame     ||
+            function(id){
+                window.clearTimeout(id);
+            }
+        );
+    }();
+
+    // constant
     DT.gameOverTime = 6000;
     DT.scale = 3;
 
+    // jQuery chache
     DT.$document = $(document);
     DT.$window = $(window);
     DT.$title = $('title');
@@ -53,7 +53,8 @@ window.DT = (function (window, document, undefined) {
 // ╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██║██║     ██╔══╝      ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║
 // ███████║███████╗██║  ██║ ╚████╔╝ ██║╚██████╗███████╗    ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
 // ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚═╝ ╚═════╝╚══════╝    ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-
+;(function () {
+    'use strict';
     DT.getCookie = function (name) {
         var matches = document.cookie.match(
             new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)')
@@ -119,7 +120,6 @@ window.DT = (function (window, document, undefined) {
                     rad * Math.cos((Math.PI / numb) + (i * ((2 * Math.PI)/ numb))),
                     0
                 );
-                // vec3.i = i;
                 vert.push(vec3);
             }
             return vert;
@@ -184,7 +184,7 @@ window.DT = (function (window, document, undefined) {
         DT.animate.lastTimeMsec = DT.animate.lastTimeMsec || nowMsec - 1000 / 60;
         var deltaMsec = DT.getMin(100, nowMsec - DT.animate.lastTimeMsec);
         // keep looping
-        DT.animate.id = requestAnimFrame(DT.animate);
+        DT.animate.id = requestAnimationFrame(DT.animate);
         // change last time
         DT.animate.lastTimeMsec = nowMsec;
         // call each update function
@@ -194,31 +194,28 @@ window.DT = (function (window, document, undefined) {
         });
     };
     DT.$document.on('startGame', function (e, data) {
-        DT.animate.id = requestAnimFrame(DT.animate);
+        DT.animate.id = requestAnimationFrame(DT.animate);
     });
     DT.$document.on('pauseGame', function () {
-        cancelAnimFrame(DT.animate.id);
+        cancelAnimationFrame(DT.animate.id);
     });
     DT.$document.on('resumeGame', function (e, data) {
-        DT.animate.id = requestAnimFrame(DT.animate);
+        DT.animate.id = requestAnimationFrame(DT.animate);
     });
-    // coupling
     DT.$document.on('gameOver', function (e, data) {
-        $('.restart').bind('click',DT.handlers.restart);
-        $('.change_controls.gameover_control').bind('click', DT.handlers.chooseControlAfterGameOver);
-        DT.$document.bind('keyup', DT.handlers.restartOnSpace);
         if (data.cause === 'death') {
             DT.gameOverTimeout = setTimeout(function() {
-                cancelAnimFrame(DT.animate.id);
+                cancelAnimationFrame(DT.animate.id);
             }, DT.gameOverTime);
         } else {
-            cancelAnimFrame(DT.animate.id);
+            cancelAnimationFrame(DT.animate.id);
         }
     });
     DT.$document.on('resetGame', function (e, data) {
         clearTimeout(DT.gameOverTimeout);
-        cancelAnimFrame(DT.animate.id); 
+        cancelAnimationFrame(DT.animate.id); 
     });
+})();
 
 // ████████╗██╗  ██╗██████╗ ███████╗███████╗    ██╗    ██╗ ██████╗ ██████╗ ██╗     ██████╗ 
 // ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔════╝    ██║    ██║██╔═══██╗██╔══██╗██║     ██╔══██╗
@@ -226,7 +223,8 @@ window.DT = (function (window, document, undefined) {
    // ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══╝      ██║███╗██║██║   ██║██╔══██╗██║     ██║  ██║
    // ██║   ██║  ██║██║  ██║███████╗███████╗    ╚███╔███╔╝╚██████╔╝██║  ██║███████╗██████╔╝
    // ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝ 
-
+;(function () {
+    'use strict';
     DT.renderer = new THREE.WebGLRenderer({antialiasing: true});
     DT.renderer.setSize(window.innerWidth, window.innerHeight);
     DT.renderer.physicallyBasedShading = true;
@@ -240,38 +238,21 @@ window.DT = (function (window, document, undefined) {
     DT.scene = new THREE.Scene();
 
     // PATH
-    var parent = new THREE.Object3D();
-    DT.scene.add(parent);
+    DT.parent = new THREE.Object3D();
+    DT.scene.add(DT.parent);
     DT.splineCamera = new THREE.PerspectiveCamera( 84, window.innerWidth / window.innerHeight, 0.01, 1000 );
-    parent.add(DT.splineCamera);
+    DT.parent.add(DT.splineCamera);
 
     // when resize
     new THREEx.WindowResize(DT.renderer, DT.splineCamera);
 
-    // var extrudePath = new THREE.Curves.GrannyKnot(); 
-    // var extrudePath = new THREE.Curves.KnotCurve();
-    // var extrudePath = new THREE.Curves.TrefoilKnot();
-    var extrudePath = new THREE.Curves.TorusKnot();
-    // var extrudePath = new THREE.Curves.CinquefoilKnot();
-
-    var tube = new THREE.TubeGeometry(extrudePath, 100, 3, 8, true, true);
+    var extrudePath = new THREE.Curves.TorusKnot(),
+        tube = new THREE.TubeGeometry(extrudePath, 100, 3, 8, true, true);
 
     DT.tube = tube;
 
-    // var tubeMesh = THREE.SceneUtils.createMultiMaterialObject( tube, [
-    //             new THREE.MeshLambertMaterial({
-    //                 opacity: 0,
-    //                 transparent: true
-    //             }),
-    //             new THREE.MeshBasicMaterial({
-    //                 opacity: 0,
-    //                 transparent: true
-    //         })]);
-    // parent.add(tubeMesh);
-    // tubeMesh.scale.set( DT.scale, DT.scale, DT.scale );
-
-    var binormal = new THREE.Vector3();
-    var normal = new THREE.Vector3();
+    var binormal = new THREE.Vector3(),
+        normal = new THREE.Vector3();
 
     // coupling
     DT.$document.on('updatePath', function (e, data) {
@@ -303,8 +284,6 @@ window.DT = (function (window, document, undefined) {
 
         normal.copy( binormal ).cross( dir );
 
-        // DT.angleSign = t > 0.5 ? 1 : -1;
-
         DT.splineCamera.position = pos;
 
         var lookAt = new THREE.Vector3().copy( pos ).add( dir );
@@ -312,7 +291,7 @@ window.DT = (function (window, document, undefined) {
         DT.splineCamera.matrix.lookAt(DT.splineCamera.position, lookAt, normal);
         DT.splineCamera.rotation.setFromRotationMatrix( DT.splineCamera.matrix, DT.splineCamera.rotation.order );
 
-        parent.rotation.y += ( -parent.rotation.y ) * 0.05;
+        DT.parent.rotation.y += ( -DT.parent.rotation.y ) * 0.05;
 
         data.tube = tube;
         data.t = t;
@@ -420,14 +399,15 @@ window.DT = (function (window, document, undefined) {
         THREE.PolyhedronGeometry.call(this, vertices, faces, radius, detail);
     };
     THREE.IcosahedronGeometry.prototype = Object.create(THREE.Geometry.prototype);
-
+})();
 // ███████╗██╗  ██╗████████╗███████╗██████╗ ███╗   ██╗ █████╗ ██╗         ███╗   ███╗ ██████╗ ██████╗ ███████╗██╗     ███████╗
 // ██╔════╝╚██╗██╔╝╚══██╔══╝██╔════╝██╔══██╗████╗  ██║██╔══██╗██║         ████╗ ████║██╔═══██╗██╔══██╗██╔════╝██║     ██╔════╝
 // █████╗   ╚███╔╝    ██║   █████╗  ██████╔╝██╔██╗ ██║███████║██║         ██╔████╔██║██║   ██║██║  ██║█████╗  ██║     ███████╗
 // ██╔══╝   ██╔██╗    ██║   ██╔══╝  ██╔══██╗██║╚██╗██║██╔══██║██║         ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ██║     ╚════██║
 // ███████╗██╔╝ ██╗   ██║   ███████╗██║  ██║██║ ╚████║██║  ██║███████╗    ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗███████╗███████║
 // ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
-
+;(function () {
+    'use strict';
     DT.listOfModels = [{
             name: 'bonusH1',
             scale: 0.1,
@@ -492,48 +472,8 @@ window.DT = (function (window, document, undefined) {
             DT.$document.trigger('externalObjectLoaded', {index: i});
         });
     });
+})();
 
-// ███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗
-// ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
-// █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ███████╗
-// ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ╚════██║
-// ███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ███████║
-// ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
-                                                    
-    DT.events = {
-        'startGame'     : 'custom',
-        'pauseGame'     : 'custom',
-        'resumeGame'    : 'custom',
-        'gameOver'      : 'custom',
-        'resetGame'     : 'custom',
-
-        'update'        : 'custom',
-        'updatePath'    : 'custom',
-
-        'changeSpeed'   : 'custom',
-
-        'makeFun'       : 'custom',
-        'stopFun'       : 'custom',
-        'showFun'       : 'custom',
-
-        'makeInvulner'  : 'custom',
-        'stopInvulner'  : 'custom',
-        'showInvulner'  : 'custom',
-
-        'changeHelth'   : 'custom',
-        'showHelth'     : 'custom',
-
-        'changeScore'   : 'custom',
-        'showScore'     : 'custom',
-
-        'catchBonus'    : 'custom',
-
-        'blink'         : 'custom',
-        'bump'          : 'custom',
-
-        'focus'         : 'native',
-        'blur'          : 'native',
-    };
 
  // ██████╗  █████╗ ███╗   ███╗███████╗
 // ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
@@ -541,7 +481,8 @@ window.DT = (function (window, document, undefined) {
 // ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  
 // ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗
  // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
-                                    
+;(function () {
+    'use strict';
     DT.Game = function () {
         this.param = {
             spacing: 3,
@@ -652,21 +593,22 @@ window.DT = (function (window, document, undefined) {
             DT.$document.trigger('changeSpeed', {changer: 0});
         }
     });
-
+})();
 // ██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗ 
 // ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔════╝██╔══██╗
 // ██████╔╝██║     ███████║ ╚████╔╝ █████╗  ██████╔╝
 // ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██╔══╝  ██╔══██╗
 // ██║     ███████╗██║  ██║   ██║   ███████╗██║  ██║
 // ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
-
+;(function () {
+    'use strict';
     DT.Player = function (options) {
         if (!DT.Player.__instance) {
             DT.Player.__instance = this;
         } else {
             return DT.Player.__instance;
         }
-        var self = this;
+        var _this = this;
         this.scene = options.scene || DT.scene;
         this.currentHelth = options.currentHelth || 100;
         this.currentScore = options.currentScore || 0;
@@ -696,25 +638,15 @@ window.DT = (function (window, document, undefined) {
         var lineGeom = DT.createGeometry(2),
             limeMat = new THREE.MeshBasicMaterial({
                 color: 0xff0000,
-                // wireframe: true,
                 transparent: true,
                 opacity: 0.6,
-                morphTargets: true,
-                // emissive: 0xff0000,
-                // shading: THREE.FlatShading,
-                // specular: 0x111111,
-                // shininess: 100
+                morphTargets: true
             }),
             limeMat2 = new THREE.MeshBasicMaterial({
                 color: 0x00ffc6,
-                // wireframe: true,
                 transparent: true,
                 opacity: 0.4,
                 morphTargets: true,
-                // emissive: 0x00ffc6,
-                // shading: THREE.FlatShading,
-                // specular: 0x111111,
-                // shininess: 100
             });
 
         this.line = new THREE.Mesh(lineGeom, limeMat);
@@ -771,11 +703,11 @@ window.DT = (function (window, document, undefined) {
                     // init colors
                     geometry.colors = new Array(emitter.nParticles());
                     for(i = 0; i < emitter.nParticles(); i++){
-                        geometry.colors[i]  = self.sphere.material.color;
+                        geometry.colors[i]  = _this.sphere.material.color;
                     }
                     
-                    parent.add(particleSystem);
-                    self.particleSystem = particleSystem;
+                    DT.parent.add(particleSystem);
+                    _this.particleSystem = particleSystem;
                     return particleSystem;
                 }
             }).back()
@@ -837,7 +769,6 @@ window.DT = (function (window, document, undefined) {
     DT.Player.prototype.changeScore = function(delta) {
         this.currentScore += delta;
         this.currentScore = parseFloat(this.currentScore.toFixed(1));
-        // DT.$document.trigger('showScore', {score: this.currentScore % 1 ? this.currentScore : this.currentScore.toString() + '.0' });
         DT.$document.trigger('showScore', {score: this.currentScore});
         return this;
     };
@@ -887,10 +818,10 @@ window.DT = (function (window, document, undefined) {
     };
 
     DT.Player.prototype.update = function (data) {
-        // var self = this;
         this.t = DT.normalizeT(data.t + 0.004);
-        var pos = data.tube.path.getPointAt(this.t);
-        var posPlayer = pos.clone().multiplyScalar(DT.scale);
+        var pos = data.tube.path.getPointAt(this.t),
+            binormal = DT.getBinormalAt(this.t),
+            posPlayer = pos.clone().multiplyScalar(DT.scale);
         data.normalPos = posPlayer.clone();
 
         posPlayer.add(binormal.multiplyScalar(DT.scale * this.destPoint.x));
@@ -914,10 +845,7 @@ window.DT = (function (window, document, undefined) {
 
         this.particleSystem.position.copy(this.position);
 
-        // visualize audio
-        // var dt = DT.audio.valueAudio/10;
-        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale * 2)
-            // .setLength(3 + dt);
+        var posVel = data.tube.path.getTangentAt(data.t).negate().multiplyScalar(DT.scale * 2);
 
         this.emitter.update(data.delta).render();
         this.emitter._particles.forEach(function(el) {
@@ -975,9 +903,7 @@ window.DT = (function (window, document, undefined) {
         
         this.position.add(offsetSide);
 
-        if (!normalPos.equals(actualPos)) {
-            this.prevActualPos = actualPos;
-        }
+        if (!normalPos.equals(actualPos)) this.prevActualPos = actualPos;
 
         this.light.position = this.sphere.position = this.position;
 
@@ -1066,14 +992,15 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('showFun', function (e, data) {
         DT.handlers.triggerOpacityOnLines(data.isFun);
     });
-
+})();
  // ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██████╗      ██╗███████╗ ██████╗████████╗
 // ██╔════╝ ██╔══██╗████╗ ████║██╔════╝    ██╔═══██╗██╔══██╗     ██║██╔════╝██╔════╝╚══██╔══╝
 // ██║  ███╗███████║██╔████╔██║█████╗      ██║   ██║██████╔╝     ██║█████╗  ██║        ██║   
 // ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      ██║   ██║██╔══██╗██   ██║██╔══╝  ██║        ██║   
 // ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    ╚██████╔╝██████╔╝╚█████╔╝███████╗╚██████╗   ██║   
  // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝ ╚═════╝  ╚════╝ ╚══════╝ ╚═════╝   ╚═╝   
-
+;(function () {
+    'use strict';
     DT.GameObject = function (options) {
         this.tObject = options.tObject || new options.THREEConstructor(
             options.geometry,
@@ -1134,14 +1061,15 @@ window.DT = (function (window, document, undefined) {
         }
         return this;
     };
-
+})();
  // ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██████╗ ██╗     ██╗          ██████╗ ██████╗      ██╗
 // ██╔════╝ ██╔══██╗████╗ ████║██╔════╝    ██╔════╝██╔═══██╗██║     ██║         ██╔═══██╗██╔══██╗     ██║
 // ██║  ███╗███████║██╔████╔██║█████╗      ██║     ██║   ██║██║     ██║         ██║   ██║██████╔╝     ██║
 // ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      ██║     ██║   ██║██║     ██║         ██║   ██║██╔══██╗██   ██║
 // ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    ╚██████╗╚██████╔╝███████╗███████╗    ╚██████╔╝██████╔╝╚█████╔╝
  // ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚══════╝╚══════╝     ╚═════╝ ╚═════╝  ╚════╝ 
-
+;(function () {
+    'use strict';
     DT.GameCollectionObject = function (options) {
         DT.GameObject.apply(this, arguments);
         this.collection = options.collection;
@@ -1183,6 +1111,7 @@ window.DT = (function (window, document, undefined) {
         }
         return this;
     };
+})();
 
 // ███████╗██╗  ██╗██╗███████╗██╗     ██████╗ 
 // ██╔════╝██║  ██║██║██╔════╝██║     ██╔══██╗
@@ -1190,6 +1119,8 @@ window.DT = (function (window, document, undefined) {
 // ╚════██║██╔══██║██║██╔══╝  ██║     ██║  ██║
 // ███████║██║  ██║██║███████╗███████╗██████╔╝
 // ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═════╝ 
+;(function () {
+    'use strict';
     DT.Shield = function (options) {
         if (!DT.Shield.__instance) {
             DT.Shield.__instance = this;
@@ -1220,35 +1151,36 @@ window.DT = (function (window, document, undefined) {
         DT.lookAt(DT.player.t - 0.004, DT.tube, this.tObject);
     };
 
-DT.$document.on('externalObjectLoaded', function (e, data) {
-    if (data.index !== 4) return;
-    DT.shield = new DT.Shield({
-        tObject: DT.listOfModels[4].object.clone(),
-        player: DT.player
+    DT.$document.on('externalObjectLoaded', function (e, data) {
+        if (data.index !== 4) return;
+        DT.shield = new DT.Shield({
+            tObject: DT.listOfModels[4].object.clone(),
+            player: DT.player
+        });
+    
+        DT.$document.on('update', function (e, data) {
+            DT.shield.update();
+        });
+    
+        DT.$document.on('showInvulner', function (e, data) {
+            if (data.invulner) {
+                clearInterval(DT.shield.interval);
+                DT.shield.tObject.material.opacity = 0.05
+                DT.shield.tObject.scale.set(DT.listOfModels[4].scale, DT.listOfModels[4].scale, DT.listOfModels[4].scale);
+                DT.shield.addToScene();
+            } else {
+                DT.shield.interval = setInterval(function () {
+                    DT.shield.tObject.material.opacity -= 0.0025;
+                    DT.shield.tObject.scale.addScalar(DT.listOfModels[4].scale/20);
+                    if (DT.shield.tObject.material.opacity < 0) {
+                        DT.shield.removeFromScene();
+                        clearInterval(DT.shield.interval);
+                    }
+                }, 20);
+            }
+        });
     });
-
-    DT.$document.on('update', function (e, data) {
-        DT.shield.update();
-    });
-
-    DT.$document.on('showInvulner', function (e, data) {
-        if (data.invulner) {
-            clearInterval(DT.shield.interval);
-            DT.shield.tObject.material.opacity = 0.05
-            DT.shield.tObject.scale.set(DT.listOfModels[4].scale, DT.listOfModels[4].scale, DT.listOfModels[4].scale);
-            DT.shield.addToScene();
-        } else {
-            DT.shield.interval = setInterval(function () {
-                DT.shield.tObject.material.opacity -= 0.0025;
-                DT.shield.tObject.scale.addScalar(DT.listOfModels[4].scale/20);
-                if (DT.shield.tObject.material.opacity < 0) {
-                    DT.shield.removeFromScene();
-                    clearInterval(DT.shield.interval);
-                }
-            }, 20);
-        }
-    });
-});
+})();
 
 // ██████╗ ██╗   ██╗███████╗████████╗
 // ██╔══██╗██║   ██║██╔════╝╚══██╔══╝
@@ -1256,7 +1188,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ██║  ██║██║   ██║╚════██║   ██║   
 // ██████╔╝╚██████╔╝███████║   ██║   
 // ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   
-
+;(function () {
+    'use strict';
     DT.Dust = function (options) {
         DT.GameObject.apply(this, arguments);
         this.number = options.number || 2000;
@@ -1301,14 +1234,15 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             color: DT.player.sphere.material.color
         });
     });
-
+})();
 // ███████╗████████╗ ██████╗ ███╗   ██╗███████╗
 // ██╔════╝╚══██╔══╝██╔═══██╗████╗  ██║██╔════╝
 // ███████╗   ██║   ██║   ██║██╔██╗ ██║█████╗  
 // ╚════██║   ██║   ██║   ██║██║╚██╗██║██╔══╝  
 // ███████║   ██║   ╚██████╔╝██║ ╚████║███████╗
 // ╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-
+;(function () {
+    'use strict';
     DT.Stone = function (options) {
         var radius, color, depth, tObject;
 
@@ -1419,14 +1353,15 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         this.updateParam('rotation', {x: 0.007, y: 0.007});
         return this;
     };
-
+})();
  // ██████╗ ██████╗ ██╗███╗   ██╗
 // ██╔════╝██╔═══██╗██║████╗  ██║
 // ██║     ██║   ██║██║██╔██╗ ██║
 // ██║     ██║   ██║██║██║╚██╗██║
 // ╚██████╗╚██████╔╝██║██║ ╚████║
  // ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝
-(function () {
+;(function () {
+    'use strict';
     var coin_cap_texture = THREE.ImageUtils.loadTexture('./img/avers.png'),
         r = 0.5, i,
         coin_sides_geo = new THREE.CylinderGeometry( r, r, 0.05, 32, 1, true ),
@@ -1518,7 +1453,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ██╔══██╗██║   ██║██║╚██╗██║██║   ██║╚════██║
 // ██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝███████║
 // ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝
-
+;(function () {
+    'use strict';
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
         // this.type = 1;
@@ -1586,7 +1522,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.Bonus.prototype.constructor = DT.Bonus;
 
     DT.Bonus.prototype.updateBlink = function () {
-        // TODO: refactor
         if (this.blink.framesLeft === 0) {
             return this;
         }
@@ -1604,7 +1539,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     };
 
     DT.Bonus.prototype.update = function (options) {
-        var self = this;
+        var _this = this;
         DT.GameCollectionObject.prototype.update.apply(this, arguments);
 
         if (this.type === 2) {
@@ -1641,11 +1576,12 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         if (dist < 0.9) {
             this.removeFromScene();
             if (!DT.game.wasOver) {
-                DT.$document.trigger('catchBonus', {type: self.type});
+                DT.$document.trigger('catchBonus', {type: _this.type});
                 DT.$document.trigger('blink', {color: 0xff2222, frames: 60});
             }
         }
     };
+})();
 
  // ██████╗ ██████╗ ██╗     ██╗     ███████╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
 // ██╔════╝██╔═══██╗██║     ██║     ██╔════╝██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
@@ -1653,7 +1589,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ██║     ██║   ██║██║     ██║     ██╔══╝  ██║        ██║   ██║██║   ██║██║╚██╗██║
 // ╚██████╗╚██████╔╝███████╗███████╗███████╗╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
  // ╚═════╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-
+;(function () {
+    'use strict';
     DT.Collection = function (options) {
         this.collection = [];
         this.constructor = options.constructor;
@@ -1683,19 +1620,14 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.Collection.prototype.reset = function () {
         this.collection.forEach(function (el) {
             el.scene.remove(el.tObject);
-            // el.tObject.children.forEach(function (elt) {
-                // if (elt.geometry && elt.geometry.dispose ) elt.geometry.dispose();
-                //     if (elt.material && elt.material.dispose ) elt.material.dispose();
-                //     if (elt.texture && elt.texture.dispose ) elt.texture.dispose();
-            // });
-            // if (el.tObject.geometry && el.tObject.geometry.dispose ) el.tObject.geometry.dispose();
-            // if (el.tObject.material && el.tObject.material.dispose ) el.tObject.material.dispose();
-            // if (el.tObject.texture && el.tObject.texture.dispose ) el.tObject.texture.dispose();
         });
         this.collection.length = 0;
         return this;
     };
+})();
 
+;(function () {
+    'use strict';
     DT.StonesCollection = function () {
         if (!DT.StonesCollection.__instance) {
             DT.StonesCollection.__instance = this;
@@ -1785,7 +1717,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('resetGame', function (e, data) {
         new DT.StonesCollection().reset();
     });
+})();
 
+;(function () {
+    'use strict';
     DT.StaticStonesCollection = function () {
         if (!DT.StaticStonesCollection.__instance) {
             DT.StaticStonesCollection.__instance = this;
@@ -1863,7 +1798,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             }, 50);
         }
     });
+})();
 
+;(function () {
+    'use strict';
     DT.CoinsCollection = function () {
         if (!DT.CoinsCollection.__instance) {
             DT.CoinsCollection.__instance = this;
@@ -1907,7 +1845,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('resetGame', function (e, data) {
         new DT.CoinsCollection().reset()
     });
+})();
 
+;(function () {
+    'use strict';
     DT.BonusesCollection = function (options) {
         if (!DT.BonusesCollection.__instance) {
             DT.BonusesCollection.__instance = this;
@@ -1942,13 +1883,13 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     };
 
     DT.BonusesCollection.prototype.catchBonus = function (type) {
-        var self = this;
+        var _this = this;
         if (!this.caughtBonuses.length || this.caughtBonuses[0] === type) {
             this.caughtBonuses.push(type);
             if (this.caughtBonuses.length === 1) {
                 this.useBonuses(type);
                 var refreshBonus = setTimeout(function() {
-                    self.caughtBonuses.length = 0;
+                    _this.caughtBonuses.length = 0;
                     clearTimeout(refreshBonus);
                 }, 100);
             }
@@ -1984,7 +1925,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('resetGame', function (e, data) {
         new DT.BonusesCollection().reset(); 
     });
-
+})();
  // █████╗ ██╗   ██╗██████╗ ██╗ ██████╗ 
 // ██╔══██╗██║   ██║██╔══██╗██║██╔═══██╗
 // ███████║██║   ██║██║  ██║██║██║   ██║
@@ -1992,7 +1933,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ██║  ██║╚██████╔╝██████╔╝██║╚██████╔╝
 // ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝ ╚═════╝ 
 
-    // TODO: рефакторинг
+;(function () {
+    'use strict';
     DT.audio = {
         frequency: { // for audio visualization
             0: 43,
@@ -2077,15 +2019,16 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         DT.audio.sounds.catchCoin.play();
     });
 
-    (function () {
+    ;(function () {
         // MUSIC
-        var context,
-            counter = 0,
-            buffers = [], sources=[], destination, analysers = [],
-            freqDomain = [];
-        var audio = new Audio();
-        var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs=\'vorbis\'') !== '';
-        console.info('canPlayOgg', canPlayOgg);
+        var counter = 0,
+            buffers = [], sources=[], analysers = [], freqDomain = [],
+            audio = new Audio(),
+            canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs=\'vorbis\'') !== '',
+            ext = canPlayOgg ? 'ogg' : 'mp3',
+            destination,
+            context;
+
         try {
             window.AudioContext = window.AudioContext || window.webkitAudioContext;
             context = new AudioContext();
@@ -2135,7 +2078,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 if (el) DT.playSound(i);
             });
         };
-        var initSound = function(arrayBuffer, bufferIndex) {
+        function initSound(arrayBuffer, bufferIndex) {
             context.decodeAudioData(arrayBuffer, function(decodedArrayBuffer) {
                 buffers[bufferIndex] = decodedArrayBuffer;
                 console.info('ready sound ' + bufferIndex);
@@ -2145,9 +2088,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 console.warn('Error decoding file', e);
             });
         };
-        // SOUNDS
-        var ext = canPlayOgg ? 'ogg' : 'mp3';
 
+        // SOUNDS
         function SFX(context, file) {
           var ctx = this;
           var loader = new BufferLoader(context, [file], onLoaded);
@@ -2232,7 +2174,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             DT.playSound(0);
         }
     });
-
+})();
 // ██╗  ██╗███████╗██╗   ██╗██████╗  ██████╗  █████╗ ██████╗ ██████╗ 
 // ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔══██╗██╔═══██╗██╔══██╗██╔══██╗██╔══██╗
 // █████╔╝ █████╗   ╚████╔╝ ██████╔╝██║   ██║███████║██████╔╝██║  ██║
@@ -2240,7 +2182,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ██║  ██╗███████╗   ██║   ██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝
 // ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ 
 
-(function () {
+;(function () {
+    'use strict';
     var keydownArrows = function(event) {
         var k = event.keyCode
         if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
@@ -2277,19 +2220,20 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             DT.$document.unbind('keydown', keydownArrows);
         // }
     });
-    DT.$document.bind('keydown', function(event) {
-        var k = event.keyCode
-        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
-            // speedUp
-            if (k === 16) { //shift
-                DT.$document.trigger('stopFun', {});
-                DT.$document.trigger('changeSpeed', {changer: DT.game.speed.getSpeed0()});
-            }
-            if (k === 17) {
-                DT.$document.trigger('makeFun', {});
-            }
-        }
-    });
+    // test fun mone and speen change
+    // DT.$document.bind('keydown', function(event) {
+    //     var k = event.keyCode
+    //     if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+    //         // speedUp
+    //         if (k === 16) { //shift
+    //             DT.$document.trigger('stopFun', {});
+    //             DT.$document.trigger('changeSpeed', {changer: DT.game.speed.getSpeed0()});
+    //         }
+    //         if (k === 17) {
+    //             DT.$document.trigger('makeFun', {});
+    //         }
+    //     }
+    // });
     DT.$document.bind('keyup', keyupHandler);
     DT.$document.on('startGame', function (e, data) {
         DT.$document.bind('keyup', DT.handlers.pauseOnSpace);
@@ -2305,7 +2249,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ╚════██║██║   ██║██║     ██╔═██╗ ██╔══╝     ██║   
 // ███████║╚██████╔╝╚██████╗██║  ██╗███████╗   ██║   
 // ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   
-
+;(function () {
+    'use strict';
     DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://192.168.1.44';
     DT.initSocket = function() {
         // Game config
@@ -2364,9 +2309,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         DT.$document.on('changeScore', function (e, data) {
             DT.sendSocketMessage({type: 'vibr', time: 10});
         });
-        // socket.on('disconnectController', function(data) {
-        //     DT.$document.trigger('pauseGame', {});
-        // });
     };
     DT.sendSocketMessage = function (options) {
         var data = {
@@ -2399,14 +2341,15 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('resetGame', function (e, data) {
         DT.sendSocketMessage({type: 'resetGame'});
     });
-
+})();
 // ██╗    ██╗███████╗██████╗  ██████╗ █████╗ ███╗   ███╗
 // ██║    ██║██╔════╝██╔══██╗██╔════╝██╔══██╗████╗ ████║
 // ██║ █╗ ██║█████╗  ██████╔╝██║     ███████║██╔████╔██║
 // ██║███╗██║██╔══╝  ██╔══██╗██║     ██╔══██║██║╚██╔╝██║
 // ╚███╔███╔╝███████╗██████╔╝╚██████╗██║  ██║██║ ╚═╝ ██║
  // ╚══╝╚══╝ ╚══════╝╚═════╝  ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝
-(function () {
+;(function () {
+    'use strict';
     // headtracker realization
     // get video and canvas
     var videoInput = document.getElementById('vid');
@@ -2417,9 +2360,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     var overlayContext = canvasOverlay.getContext('2d');
     // set mirror view to canvas
     canvasContext.translate(canvasInput.width, 0);
-    // overlayContext.translate(canvasOverlay.width, 0);
     canvasContext.scale(-1, 1);
-    // overlayContext.scale(1, -1);
 
     DT.enableWebcam = function () {
         if (DT.enableWebcam.satus === undefined) {
@@ -2458,18 +2399,11 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 }
             };
 
-            DT.$document.on('startGame', function (e, data) {
-                // $('#compare, #overlay').hide();
-            });
-
             var facetrackingEventHandler = function( event ) {
                 // once we have stable tracking, draw rectangle
                 if (event.detection == 'CS' && DT.enableWebcam.satus !== 'disabled' && !DT.game.wasPaused) {
-                    // var angle = Number(event.angle *(180/ Math.PI)-90);
-                    var x = (event.x/120)*canvasInput.width,
-                        y = (event.y/90)*canvasInput.height;
-                    var posX = x;
-                    // console.log(posX);
+                    var posX = (event.x/120)*canvasInput.width;
+
                     if(posX < leftBreakThreshold) {
                         if(posX > leftTurnThreshold) {
                             DT.handlers.center();
@@ -2523,9 +2457,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 x = (x/120)*canvasInput.width;
                 y = (y/90)*canvasInput.height;
             
-                // flip horizontally
-                // x = canvasInput.width - x;
-            
                 // clean canvas
                 cContext.clearRect(0,0,canvasInput.width,canvasInput.height);
             
@@ -2550,15 +2481,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             document.addEventListener("facetrackingEvent", function(e) {
                 drawIdent(overlayContext, e.x, e.y);
             }, false);
-            
-            // document.addEventListener("headtrackingEvent", function(e) {
-            //     mouseX = e.x*20;
-            //     mouseY = -e.y*20;
-            // }, false);
 
             document.addEventListener("facetrackingEvent", function( event ) {
-                // clear canvas
-                // overlayContext.clearRect(0,0,320,240);
                 // once we have stable tracking, draw rectangle
                 if (event.detection == "CS") {
                     overlayContext.translate(event.x, event.y)
@@ -2595,7 +2519,8 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ██╔══██║██╔══██║██║╚██╗██║██║  ██║██║     ██╔══╝  ██╔══██╗╚════██║
 // ██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
 // ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
-
+;(function () {
+    'use strict';
     DT.handlers = {};
     DT.handlers.startOnSpace = function(event) {
         var k = event.keyCode;
@@ -2639,7 +2564,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             DT.game.wasMuted = false;
         }
     };
-
     DT.handlers.toTheLeft = function () {
         if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver && DT.player.destPoint.x !== -1) {
             DT.audio.sounds['muv8'].play();
@@ -2724,14 +2648,15 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('resetGame', function (e, data) {
         if (DT.shared) DT.handlers.share();
     });
-
+})();
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
 // ██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝
 // ██║██╔██╗ ██║   ██║   █████╗  ██████╔╝█████╗  ███████║██║     █████╗  
 // ██║██║╚██╗██║   ██║   ██╔══╝  ██╔══██╗██╔══╝  ██╔══██║██║     ██╔══╝  
 // ██║██║ ╚████║   ██║   ███████╗██║  ██║██║     ██║  ██║╚██████╗███████╗
 // ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝
-(function () {
+;(function () {
+    'use strict';
     DT.runApp = function () {
         DT.initSocket();
         if (!document.hasFocus()) {
@@ -2883,6 +2808,11 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         var text = data.checkup ? 'success' : 'fail';
         $('#gameovermessage').html(text);
     });
+    DT.$document.on('gameOver', function (e, data) {
+        $('.restart').bind('click',DT.handlers.restart);
+        $('.change_controls.gameover_control').bind('click', DT.handlers.chooseControlAfterGameOver);
+        DT.$document.bind('keyup', DT.handlers.restartOnSpace);
+    });
 })();
 // ███████╗████████╗ █████╗ ████████╗███████╗
 // ██╔════╝╚══██╔══╝██╔══██╗╚══██╔══╝██╔════╝
@@ -2890,44 +2820,39 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
 // ╚════██║   ██║   ██╔══██║   ██║   ╚════██║
 // ███████║   ██║   ██║  ██║   ██║   ███████║
 // ╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝   ╚══════╝
+// ;(function () {
+//     'use strict';
+//     DT.setStats = function () {
+//         var body = document.getElementsByTagName('body')[0];
+//         DT.stats = DT.stats|| new Stats();
+//         DT.stats.domElement.style.position = 'absolute';
+//         DT.stats.domElement.style.top = '0px';
+//         DT.stats.domElement.style.left = '0px';
+//         DT.stats.domElement.style.zIndex = 100;
+//         body.appendChild( DT.stats.domElement );
+//         DT.stats2 = DT.stats2 || new Stats();
+//         DT.stats2.setMode(1);
+//         DT.stats2.domElement.style.position = 'absolute';
+//         DT.stats2.domElement.style.top = '0px';
+//         DT.stats2.domElement.style.left = '80px';
+//         DT.stats2.domElement.style.zIndex = 100;
+//         body.appendChild( DT.stats2.domElement );
 
-    // DT.setStats = function () {
-    //     var body = document.getElementsByTagName('body')[0];
-    //     DT.stats = DT.stats|| new Stats();
-    //     DT.stats.domElement.style.position = 'absolute';
-    //     DT.stats.domElement.style.top = '0px';
-    //     DT.stats.domElement.style.left = '0px';
-    //     DT.stats.domElement.style.zIndex = 100;
-    //     body.appendChild( DT.stats.domElement );
-    //     DT.stats2 = DT.stats2 || new Stats();
-    //     DT.stats2.setMode(1);
-    //     DT.stats2.domElement.style.position = 'absolute';
-    //     DT.stats2.domElement.style.top = '0px';
-    //     DT.stats2.domElement.style.left = '80px';
-    //     DT.stats2.domElement.style.zIndex = 100;
-    //     body.appendChild( DT.stats2.domElement );
-
-    //     DT.rendererStats  = new THREEx.RendererStats();
-    //     DT.rendererStats.domElement.style.position = 'absolute';
-    //     DT.rendererStats.domElement.style.left = '0px';
-    //     DT.rendererStats.domElement.style.top = '50px';
-    //     DT.rendererStats.domElement.style.zIndex = 100;
-    //     DT.rendererStats.domElement.style.width = '90px';
-    //     body.appendChild(DT.rendererStats.domElement);
-    // };
-    // DT.setStats();
-    // DT.$document.on('update', function (e, data) {
-    //     DT.stats.update();
-    //     DT.stats2.update();
-    //     DT.rendererStats.update(DT.renderer);
-    // }); 
-
-// ████████╗██╗  ██╗███████╗    ███████╗███╗   ██╗██████╗ 
-// ╚══██╔══╝██║  ██║██╔════╝    ██╔════╝████╗  ██║██╔══██╗
-   // ██║   ███████║█████╗      █████╗  ██╔██╗ ██║██║  ██║
-   // ██║   ██╔══██║██╔══╝      ██╔══╝  ██║╚██╗██║██║  ██║
-   // ██║   ██║  ██║███████╗    ███████╗██║ ╚████║██████╔╝
-   // ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═══╝╚═════╝ 
+//         DT.rendererStats  = new THREEx.RendererStats();
+//         DT.rendererStats.domElement.style.position = 'absolute';
+//         DT.rendererStats.domElement.style.left = '0px';
+//         DT.rendererStats.domElement.style.top = '50px';
+//         DT.rendererStats.domElement.style.zIndex = 100;
+//         DT.rendererStats.domElement.style.width = '90px';
+//         body.appendChild(DT.rendererStats.domElement);
+//     };
+//     DT.setStats();
+//     DT.$document.on('update', function (e, data) {
+//         DT.stats.update();
+//         DT.stats2.update();
+//         DT.rendererStats.update(DT.renderer);
+//     });  
+// })();
 
     return DT;
 }(this, this.document));

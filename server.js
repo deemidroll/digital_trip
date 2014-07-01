@@ -8,8 +8,7 @@
 var express = require('express'),
     io = require('socket.io'),
     mongoose = require('mongoose'),
-    // async = require('async'),
-    dogecoin = require('node-dogecoin')(),
+    DogeAPI = require('dogeapi'),
     hookshot = require('hookshot');
 
 // Set up app with Express framework
@@ -73,16 +72,42 @@ db.once('open', function callback () {
 });
 
 // dogecoin
-// dogecoin.auth('dt', 'dt7085')
+var instance = new DogeAPI();
+// Get balance
+instance.getBalance(function (error, balance) {
+    if(error) {
+        // Handle error
+    }
+    console.log(balance);
+});
+// Get addresses
+instance.getAddresses(function (error, addresses) {
+    if(error) {
+        // Handle error
+    }
+    console.log(addresses);
+});
 
-// dogecoin.getDifficulty(function() {
-//     console.log(arguments);
-// })
-// dogecoin
-// .auth('MyUserName', 'mypassword')
-// .getNewAddress()
-// .getBalance()
-// service functions
+instance.getDifficulty(function (error, difficulty) {
+    if(error) {
+        // Handle error
+    }
+    console.log(difficulty);
+});
+
+// instance.moveToUser(toUserId, fromUserId, amount, function (error, transactionid) {
+//     if(error) {
+//         // Handle error
+//     }
+//     console.log(transactionid);
+// });
+
+instance.getInfo(function (error, info) {
+    if(error) {
+        // Handle error
+    }
+    console.log(info);
+});
 
 // service functions
 var genCookie = function () {

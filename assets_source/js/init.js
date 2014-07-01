@@ -44,6 +44,8 @@ window.DT = (function (window, document, undefined) {
     DT.$title = $('title');
     DT.$body = $('body');
     DT.$chooseControl = $('.choose_control');
+    DT.$pause = $('.pause');
+    DT.$share = $('.share');
 
 // ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗    ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
 // ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝    ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
@@ -2618,13 +2620,12 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
             THREEx.FullScreen.request(document.body);
         }
     };
-    DT.handlers.pause = function () {
-        if (!DT.game.wasStarted) return;
-        if (DT.game.wasOver) return;
+    DT.handlers.pause = function (isShare) {
+        if (!DT.game.wasStarted || DT.game.wasOver) return;
         if (DT.game.wasPaused) {
             DT.$document.trigger('resumeGame', {});
         } else {
-            DT.$document.trigger('pauseGame', {});
+            DT.$document.trigger('pauseGame', {isShare: isShare});
         }
     };
     DT.handlers.mute = function() {
@@ -2699,12 +2700,12 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.handlers.share = function () {
         if (!DT.game.wasStarted || DT.game.wasOver || DT.shared) {
             DT.shared = !DT.shared;
-            $('.share').toggleClass('show-table');
+            DT.$share.toggleClass('show-table');
             if ($('.choose_control')[0].style.webkitFilter === 'blur(0px)' || $('.choose_control')[0].style.webkitFilter === '') {
                 $('.choose_control, .game_over, #interface').css({webkitFilter:'blur(10px)'});
                 $(DT.renderer.domElement).css({webkitFilter:'blur(10px)'});
-                if ($('.pause')[0].style.webkitFilter !== undefined) {
-                    $('.pause').css({'background-color': 'transparent'});
+                if (DT.$share[0].style.webkitFilter !== undefined) {
+                    DT.$share.css({'background-color': 'transparent'});
                 }
             } else {
                 $('.choose_control, .game_over, #interface').css({webkitFilter:'blur(0px)'});
@@ -2713,10 +2714,10 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         }
     };
     DT.$document.on('startGame', function (e, data) {
-        DT.handlers.share();
+        if (DT.shared) DT.handlers.share();
     });
     DT.$document.on('resetGame', function (e, data) {
-        DT.handlers.share();
+        if (DT.shared) DT.handlers.share();
     });
 
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
@@ -2768,7 +2769,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     $('.change_controls.pause_control').click(function() {
         DT.$document.trigger('gameOver', {cause: 'reset'});
         DT.$document.trigger('resetGame', {cause: 'chooseControl'});
-        $('.pause').fadeOut(250);
+        DT.$pause.fadeOut(250);
         DT.$chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace); 
     });
@@ -2803,7 +2804,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     });
     $('#share-link').on('click', function (e) {
         e.preventDefault()
-        DT.handlers.pause();
+        DT.handlers.pause(true);
         DT.handlers.share();
     });
     DT.$document.keyup(function(event) {
@@ -2833,15 +2834,22 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
         $('.mobile_message span').html(address);
         $('#qrcode').html('').qrcode(address);
     });
-    DT.$document.on('pauseGame', function () {
-        $('.pause').css({'display': 'table'});
+    DT.$document.on('pauseGame', function (e, data) {
+        if (data.isShare) {
+            DT.$pause.find('.social').show();
+            DT.$pause.find('.change_controls').hide();
+        } else {
+            DT.$pause.find('.social').hide();
+            DT.$pause.find('.change_controls').show();
+        }
+        DT.$pause.css({'display': 'table'});
         $(DT.renderer.domElement).css({webkitFilter:'blur(10px)'});
-        if ($('.pause')[0].style.webkitFilter !== undefined) {
-            $('.pause').css({'background-color': 'transparent'});
+        if (DT.$pause[0].style.webkitFilter !== undefined) {
+            DT.$pause.css({'background-color': 'transparent'});
         }
     });
     DT.$document.on('resumeGame', function (e, data) {
-        $('.pause').css({'display': 'none'});
+        DT.$pause.css({'display': 'none'});
         $(DT.renderer.domElement).css({webkitFilter:'blur(0px)'});
     });
     DT.$document.on('showScore', function (e, data) {

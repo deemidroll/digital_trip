@@ -2438,7 +2438,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 'hints' : 'Something wrong. Try move your head',
                 'redetecting' : 'Head lost, search',
                 'lost' : 'Head lost',
-                'found' : 'Now turn to start'
+                'found' : 'Now move to start'
             };
             
             var supportMessages = {
@@ -2454,7 +2454,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 }
                 if (event.status === 'camera found') {
                     $('#head').show();
-                    $('.webcam_message').html('Tilt your head left and right<br>to steer the sphere');
+                    $('.webcam_message').html('Move your head left and right<br>to steer the sphere');
                 }
             };
 
@@ -2477,7 +2477,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                             if (!DT.enableWebcam.checkLeft) {
                                 DT.enableWebcam.checkLeft = true;
                                 $('#left_v_check').show();
-                                if (DT.enableWebcam.checkRight) $('.turn_to_start span').html('Now turn to start')
+                                if (DT.enableWebcam.checkRight) $('.turn_to_start span').html('Now move to start')
                             }
                             DT.handlers.left();
                         }
@@ -2488,7 +2488,7 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                             if (!DT.enableWebcam.checkRight) {
                                 DT.enableWebcam.checkRight = true;
                                 $('#right_v_check').show();
-                                if (DT.enableWebcam.checkLeft) $('.turn_to_start span').html('Now turn to start')
+                                if (DT.enableWebcam.checkLeft) $('.turn_to_start span').html('Now move to start')
                             }
                             DT.handlers.right();
                         }

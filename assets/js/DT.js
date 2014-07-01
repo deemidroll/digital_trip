@@ -5681,6 +5681,11 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
                 $('.choose_control, .game_over, #interface').css({webkitFilter:'blur(0px)'});
                 $(DT.renderer.domElement).css({webkitFilter:'blur(0px)'});
             }
+        } else if (!DT.game.wasPaused) {
+            DT.handlers.pause(true);
+        } else if (DT.game.wasPaused) {
+            DT.$pause.find('.social').show();
+            DT.$pause.find('.change_controls').hide();
         }
     };
     DT.$document.on('startGame', function (e, data) {
@@ -5774,7 +5779,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     });
     $('#share-link').on('click', function (e) {
         e.preventDefault()
-        DT.handlers.pause(true);
         DT.handlers.share();
     });
     DT.$document.keyup(function(event) {
@@ -5825,14 +5829,6 @@ DT.$document.on('externalObjectLoaded', function (e, data) {
     DT.$document.on('showScore', function (e, data) {
         $('.current_coins').text(data.score);
     });
-    // DT.$document.on('showBonuses', function (e, data) {
-    //     $('.bonus').text(data.caughtBonuses.join(' '));
-    //     if (data.caughtBonuses.length === 1) {
-    //         $('.bonus').fadeOut(300, function(){
-    //             $('.bonus').text('').fadeIn(100);
-    //         });
-    //     }
-    // });
     DT.$document.on('gameOver', function (e, data) {
         if (data.cause === 'death') {
             $('.total_coins').text(Math.round(DT.player.currentScore));

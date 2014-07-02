@@ -46,6 +46,8 @@ window.DT = (function (window, document, undefined) {
     DT.$chooseControl = $('.choose_control');
     DT.$pause = $('.pause');
     DT.$share = $('.share');
+    DT.$dogecoin = $('#dogecoin');
+    DT.$gameovermessage = $('#gameovermessage');
 
 // ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗
 // ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝
@@ -98,7 +100,6 @@ window.DT = (function (window, document, undefined) {
         if (pick < 0) pick = 0;
 
         tube = tube || DT.tube;
-        if (!tube[normals][ pickNext ] || !tube[normals][ pick ]) console.log(pickNext, pick);
         normal.subVectors( tube[normals][ pickNext ], tube[normals][ pick ] );
         normal.multiplyScalar( pickt - pick ).add( tube[normals][ pick ] );
         return normal;
@@ -2301,11 +2302,9 @@ window.DT = (function (window, document, undefined) {
         //     if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
         // });
         socket.on('paymentMessage', function(data) {
-            console.log('catch paymentMessage 1');
             DT.$document.trigger('paymentMessage', data);
         });
         socket.on('transactionMessage', function(data) {
-            console.log('catch transactionMessage 1');
             DT.$document.trigger('transactionMessage', data);
         });
         socket.on('start', function(data) {
@@ -2345,7 +2344,6 @@ window.DT = (function (window, document, undefined) {
         DT.sendSocketMessage({type: 'gameover'});
     });
     DT.$document.on('checkup', function (e, data) {
-        console.log('checkup');
         DT.sendSocketMessage({type: 'checkup', dogecoinId: data.dogecoinId});
     });
     DT.$document.on('resetGame', function (e, data) {
@@ -2652,11 +2650,32 @@ window.DT = (function (window, document, undefined) {
             DT.$pause.find('.change_controls').hide();
         }
     };
+    DT.handlers.wowClick = function () {
+        var dogecoinId = DT.$dogecoin.val();
+        if (dogecoinId === '') {
+            DT.$gameovermessage.html('type your dogecoin id');
+        } else {
+            DT.$gameovermessage.html('checking...');
+            DT.$document.trigger('checkup', {dogecoinId: dogecoinId});
+            $('#wow').unbind('click');
+            $('#wow').on('click', function () {
+                var oldText = DT.$gameovermessage.html();
+                DT.$gameovermessage.html('you have already sent a request');
+                DT.gameovermessageTimeout = setTimeout(function () {
+                    DT.$gameovermessage.html(oldText);
+                }, 3000);
+            })
+        }
+    };
     DT.$document.on('startGame', function (e, data) {
         if (DT.shared) DT.handlers.share();
+        $('#wow').bind('click', DT.handlers.wowClick);
     });
     DT.$document.on('resetGame', function (e, data) {
         if (DT.shared) DT.handlers.share();
+        $('#wow').unbind('click', DT.handlers.wowClick);
+        DT.$gameovermessage.html('');
+        DT.$dogecoin.val('');
     });
 })();
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
@@ -2725,20 +2744,6 @@ window.DT = (function (window, document, undefined) {
         $('.mobile_choosen').fadeOut(250);
         DT.$chooseControl.css({'display': 'table', 'opacity': '0'}).animate({'opacity': '1'}, 250);
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
-    });
-    $('#wow').on('click', function () {
-        var inputDogeCoin = $('#dogecoin'),
-            dogecoinId = inputDogeCoin.val();
-        if (dogecoinId === '') {
-            $('#gameovermessage').html('type your dogecoin id');
-        } else {
-            $('#gameovermessage').html('checking...');
-            DT.$document.trigger('checkup', {dogecoinId: dogecoinId});
-            $('#wow').unbind('click');
-            $('#wow').on('click', function () {
-                $('#gameovermessage').html('you have already sent a request ');
-            })
-        }
     });
     $('#dogecoin').on('keyup', function (e) {
         e.stopPropagation();
@@ -2815,19 +2820,28 @@ window.DT = (function (window, document, undefined) {
             $('#compare, #overlay').hide();
         }
     });
-    // DT.$document.on('paymentCheck', function (e, data) {
-    //     var text = data.checkup ? 'verification success' : 'verification failed';
-    //     $('#gameovermessage').html(text);
-    // });
     DT.$document.on('paymentMessage', function (e, data) {
-        console.log('catch paymentMessage 2', data.type);
         var text = data.type === 'transactionStart' ? 'transaction started. wait for complete...' : 'transaction denied. it seems like you tried to cheat';
-        $('#gameovermessage').html(text);
+        clearTimeout(DT.gameovermessageTimeout);
+        DT.$gameovermessage.html(text);
     });
     DT.$document.on('transactionMessage', function (e, data) {
-        console.log('catch transactionMessage 2');
-        var text = data.type === 'transactionComplete' ? 'transaction complete. id: ' + data.transactionid : 'transaction failed. error: ' + data.error;
-        $('#gameovermessage').html(text);
+        var transactionid, error;
+        try {
+            transactionid = JSON.parse(data.transactionid).data.txid;
+        }
+        catch (e) {
+            transactionid = data.transactionid;
+        }
+        try {
+            error = JSON.parse(data.error).error;
+        }
+        catch (e) {
+            error = data.error;
+        }
+        var text = data.type === 'transactionComplete' ? 'transaction complete. id: ' + transactionid : 'transaction failed. error: ' + error;
+        clearTimeout(DT.gameovermessageTimeout);
+        DT.$gameovermessage.html(text);
     });
     DT.$document.on('gameOver', function (e, data) {
         $('.restart').bind('click',DT.handlers.restart);

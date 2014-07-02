@@ -111,7 +111,7 @@ var checkClient = function (clients, currentClient) {
         UIDcounter = 0,
         IPpaymentsCounter = 0,
         UIDpaymentsCounter = 0,
-        IPtimeCounter = 0,
+        IPtimeCounter = 60 * 1000,
         UIDtimeCounter = 0,
         data = {},
         checkup = null;
@@ -120,26 +120,28 @@ var checkClient = function (clients, currentClient) {
         if (client.clientIp === currentClient.clientIp) {
             IPcounter++;
             if (client.paymentRequest) {
-                IPpaymentsCounter += client.paymentRequest;
-                IPtimeCounter += (currentClient.timeEnd - client.timeEnd);
+                IPpaymentsCounter += client.paymentRequest; 
+                if (currentClient.timeEnd && currentClient.cientId !== client.cientId) {
+                    Math.min(IPtimeCounter, currentClient.timeEnd - client.timeEnd);
+                }
             }
         }
         if (client.cookieUID === currentClient.cookieUID) {
             UIDcounter++;
             if (client.paymentRequest) {
                 UIDpaymentsCounter += client.paymentRequest;
-                UIDtimeCounter += (currentClient.timeEnd - client.timeEnd);
             }
         }
         // console.log("handle client #" + i);
     });
+    console.log('IPtimeCounter', IPtimeCounter);
     if (currentClient.checkup === false ||
         currentClient.maxCoinsCheck === false ||
-        IPcounter > 1000 ||
-        UIDcounter > 100 ||
-        IPpaymentsCounter > 20 ||
-        UIDpaymentsCounter > 5 ||
-        IPtimeCounter/IPpaymentsCounter < 10 * 60 * 1000) {
+        IPcounter > 10000 ||
+        UIDcounter > 1000 ||
+        IPpaymentsCounter > 1000 ||
+        UIDpaymentsCounter > 100 ||
+        IPtimeCounter < 60 * 1000) {
         checkup = false;
     } else {
         checkup = true;
@@ -155,7 +157,8 @@ var checkClient = function (clients, currentClient) {
         'UIDcounter', UIDcounter > 100,
         'IPpaymentsCounter', IPpaymentsCounter > 20,
         'UIDpaymentsCounter', UIDpaymentsCounter > 5,
-        'IPtimeCounter/IPpaymentsCounter', IPtimeCounter/IPpaymentsCounter < 10 * 60 * 1000);
+        'IPtimeCounter', IPtimeCounter < 60 * 1000,
+        'IPtimeCounter', IPtimeCounter);
     return checkup;
 };
 
@@ -241,37 +244,32 @@ io.sockets.on('connection', function(socket) {
             });
         }
         if (data.type === 'checkup') {
-                console.log('chekup start', data.dogecoinId);
             Client.findOne({'clientId': data.sessionid}).exec(function(err, client) {
                 if (err) {
                     console.log('Error:', err);
                     return;
                 }
                 if (client) {
-                    // console.log('client found');
                     Client.find({ $or: [{'clientIp': client.clientIp}, {'cookieUID': client.cookieUID}]}).exec(function(err, clients) {
                         if (err) {
                             console.log('Error:', err);
                             return;
                         }
-                        // if (!clients) return;
                         client.paymentRequest += 1;
                         client.checkup = checkClient(clients, client);
                         client.save(function (err) {
                             if (err) console.log("Error: could not save client checkup");
                         });
                         if (client.checkup) {
-                            console.log('checkup yep', data.dogecoinId);
                             socketCodes[client.gameCode].emit('paymentMessage', {type: 'transactionStart'});
-                            instance.withdraw(client.coinsCollect, data.dogecoinId, 7085, function (error, transactionid) {
-                                console.log(client.coinsCollect, data.dogecoinId);
+                            instance.withdraw(client.coinsCollect, data.dogecoinId, 7085, function (error, transaction) {
                                 if(error) {
                                     // Handle error
                                     console.log(error, client.gameCode);
                                     socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionFail', error: error});
                                 } else {
-                                    console.log(transactionid);
-                                    socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionComplete', transactionid: transactionid});
+                                    console.log(transaction);
+                                    socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionComplete', transactionid: transaction});
                                 }
                             });
                         } else {

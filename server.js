@@ -8,7 +8,7 @@
 var express = require('express'),
     io = require('socket.io'),
     mongoose = require('mongoose'),
-    // DogeAPI = require('dogeapi'),
+    DogeAPI = require('dogeapi'),
     hookshot = require('hookshot');
 
 // Set up app with Express framework
@@ -72,42 +72,21 @@ db.once('open', function callback () {
 });
 
 // dogecoin
-// var instance = new DogeAPI();
-// // Get balance
-// instance.getBalance(function (error, balance) {
-//     if(error) {
-//         // Handle error
-//     }
-//     console.log(balance);
-// });
-// // Get addresses
-// instance.getAddresses(function (error, addresses) {
-//     if(error) {
-//         // Handle error
-//     }
-//     console.log(addresses);
-// });
-
-// instance.getDifficulty(function (error, difficulty) {
-//     if(error) {
-//         // Handle error
-//     }
-//     console.log(difficulty);
-// });
-
-// // instance.moveToUser(toUserId, fromUserId, amount, function (error, transactionid) {
-// //     if(error) {
-// //         // Handle error
-// //     }
-// //     console.log(transactionid);
-// // });
-
-// instance.getInfo(function (error, info) {
-//     if(error) {
-//         // Handle error
-//     }
-//     console.log(info);
-// });
+var instance = new DogeAPI();
+// Get balance
+instance.getBalance(function (error, balance) {
+    if(error) {
+        // Handle error
+    }
+    console.log(balance);
+});
+// Get addresses
+instance.getAddresses(function (error, addresses) {
+    if(error) {
+        // Handle error
+    }
+    console.log(addresses);
+});
 
 // service functions
 var genCookie = function () {
@@ -165,10 +144,10 @@ var checkClient = function (clients, currentClient) {
     } else {
         checkup = true;
     }
-    console.log('emit socket message in ' + currentClient.gameCode + ' with type paymentCheck, checkup: ' + checkup);
-    if(currentClient.gameCode && currentClient.gameCode in socketCodes) {
-        socketCodes[currentClient.gameCode].emit('message', {type: 'paymentCheck', checkup: checkup});
-    }
+    // console.log('emit socket message in ' + currentClient.gameCode + ' with type paymentCheck, checkup: ' + checkup);
+    // if(currentClient.gameCode && currentClient.gameCode in socketCodes) {
+    //     socketCodes[currentClient.gameCode].emit('message', {type: 'paymentCheck', checkup: checkup});
+    // }
     console.log(
         'checkup', currentClient.checkup === false,
         'maxCoinsCheck', currentClient.maxCoinsCheck === false,
@@ -262,12 +241,14 @@ io.sockets.on('connection', function(socket) {
             });
         }
         if (data.type === 'checkup') {
+                console.log('chekup start', data.dogecoinId);
             Client.findOne({'clientId': data.sessionid}).exec(function(err, client) {
                 if (err) {
                     console.log('Error:', err);
                     return;
                 }
                 if (client) {
+                    // console.log('client found');
                     Client.find({ $or: [{'clientIp': client.clientIp}, {'cookieUID': client.cookieUID}]}).exec(function(err, clients) {
                         if (err) {
                             console.log('Error:', err);
@@ -279,6 +260,24 @@ io.sockets.on('connection', function(socket) {
                         client.save(function (err) {
                             if (err) console.log("Error: could not save client checkup");
                         });
+                        if (client.checkup) {
+                            console.log('checkup yep', data.dogecoinId);
+                            socketCodes[client.gameCode].emit('paymentMessage', {type: 'transactionStart'});
+                            instance.withdraw(client.coinsCollect, data.dogecoinId, 7085, function (error, transactionid) {
+                                console.log(client.coinsCollect, data.dogecoinId);
+                                if(error) {
+                                    // Handle error
+                                    console.log(error, client.gameCode);
+                                    socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionFail', error: error});
+                                } else {
+                                    console.log(transactionid);
+                                    socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionComplete', transactionid: transactionid});
+                                }
+                            });
+                        } else {
+                            console.log('checkup nope');
+                            socketCodes[client.gameCode].emit('paymentMessage', {type: 'transactionDenied'});
+                        }
                     });
                 }
             });

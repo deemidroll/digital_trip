@@ -2297,8 +2297,16 @@ window.DT = (function (window, document, undefined) {
         socket.on('click', function(click) {
             if (DT.enableMobileSatus === 'enabled') DT.handlers[click]();
         });
-        socket.on('message', function(data) {
-            if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
+        // socket.on('message', function(data) {
+        //     if (data.type === 'paymentCheck') DT.$document.trigger('paymentCheck', data);
+        // });
+        socket.on('paymentMessage', function(data) {
+            console.log('catch paymentMessage 1');
+            DT.$document.trigger('paymentMessage', data);
+        });
+        socket.on('transactionMessage', function(data) {
+            console.log('catch transactionMessage 1');
+            DT.$document.trigger('transactionMessage', data);
         });
         socket.on('start', function(data) {
             if (!DT.game.wasStarted) {
@@ -2314,6 +2322,7 @@ window.DT = (function (window, document, undefined) {
         var data = {
             'type': options.type,
             'time': options.time,
+            'dogecoinId': options.dogecoinId,
             'gameCode': DT.initSocket.socket.gameCode,
             'sessionid': DT.initSocket.socket.socket.sessionid,
             'coinsCollect': DT.player.currentScore
@@ -2335,8 +2344,9 @@ window.DT = (function (window, document, undefined) {
     DT.$document.on('gameOver', function (e, data) {
         DT.sendSocketMessage({type: 'gameover'});
     });
-    DT.$document.on('checkUp', function (e, data) {
-        DT.sendSocketMessage({type: 'checkup'});
+    DT.$document.on('checkup', function (e, data) {
+        console.log('checkup');
+        DT.sendSocketMessage({type: 'checkup', dogecoinId: data.dogecoinId});
     });
     DT.$document.on('resetGame', function (e, data) {
         DT.sendSocketMessage({type: 'resetGame'});
@@ -2717,16 +2727,17 @@ window.DT = (function (window, document, undefined) {
         DT.$document.bind('keyup', DT.handlers.startOnSpace);
     });
     $('#wow').on('click', function () {
-        var inputDogeCoin = $('#dogecoin');
-        if (inputDogeCoin.val() === '') {
+        var inputDogeCoin = $('#dogecoin'),
+            dogecoinId = inputDogeCoin.val();
+        if (dogecoinId === '') {
             $('#gameovermessage').html('type your dogecoin id');
         } else {
             $('#gameovermessage').html('checking...');
+            DT.$document.trigger('checkup', {dogecoinId: dogecoinId});
             $('#wow').unbind('click');
             $('#wow').on('click', function () {
                 $('#gameovermessage').html('you have already sent a request ');
             })
-            DT.$document.trigger('checkUp', {});
         }
     });
     $('#dogecoin').on('keyup', function (e) {
@@ -2804,8 +2815,18 @@ window.DT = (function (window, document, undefined) {
             $('#compare, #overlay').hide();
         }
     });
-    DT.$document.on('paymentCheck', function (e, data) {
-        var text = data.checkup ? 'success' : 'fail';
+    // DT.$document.on('paymentCheck', function (e, data) {
+    //     var text = data.checkup ? 'verification success' : 'verification failed';
+    //     $('#gameovermessage').html(text);
+    // });
+    DT.$document.on('paymentMessage', function (e, data) {
+        console.log('catch paymentMessage 2', data.type);
+        var text = data.type === 'transactionStart' ? 'transaction started. wait for complete...' : 'transaction denied. it seems like you tried to cheat';
+        $('#gameovermessage').html(text);
+    });
+    DT.$document.on('transactionMessage', function (e, data) {
+        console.log('catch transactionMessage 2');
+        var text = data.type === 'transactionComplete' ? 'transaction complete. id: ' + data.transactionid : 'transaction failed. error: ' + data.error;
         $('#gameovermessage').html(text);
     });
     DT.$document.on('gameOver', function (e, data) {

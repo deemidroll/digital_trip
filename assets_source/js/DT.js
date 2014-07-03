@@ -3356,10 +3356,10 @@ window.DT = (function (window, document, undefined) {
             badTVPass.uniforms[ "speed" ].value = badTVParams.speed;
             badTVPass.uniforms[ "rollSpeed" ].value = badTVParams.rollSpeed;
             DT.effectComposer.render();
-                badTVParams.distortion+=0.3;
-                badTVParams.distortion2+=0.1;
-                badTVParams.speed+=0.03;
-                badTVParams.rollSpeed+=0.01;
+                badTVParams.distortion+=0.15;
+                badTVParams.distortion2+=0.05;
+                badTVParams.speed+=0.015;
+                badTVParams.rollSpeed+=0.005;
         };
     });
     DT.$document.on('gameOver', function (e, data) {

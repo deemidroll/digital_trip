@@ -25,7 +25,6 @@ $(function () {
             isWebkitBlurSupported = true;
             $body[0].style.webkitFilter = 'blur(' + maxBlur + 'px)';
         }
-        if (navigator.userAgent.indexOf("MSIE") !== -1) $body[0].style.opacity = 0.1;
         $('#loader').css({display: 'table'});
         $cc.css({display: 'table'});
         yepnope.loadCounter = 0;
@@ -43,7 +42,6 @@ $(function () {
                     if (current === 100) {
                         $("title").html("digital trip");
                         if (!isWebkitBlurSupported && current % 20 === 0) $cc.css({filter: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"blur-overlay\"><feGaussianBlur stdDeviation=\"" + 0 + "\"/></filter></svg>#blur-overlay')"});
-                        if (navigator.userAgent.indexOf("MSIE") !== -1) $body[0].style.opacity = 1;
                     }
                 },
                 complete: function () {

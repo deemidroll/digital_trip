@@ -49,6 +49,13 @@ window.DT = (function (window, document, undefined) {
     DT.$dogecoin = $('#dogecoin');
     DT.$gameovermessage = $('#gameovermessage');
 
+    // favicon
+    DT.$document.on('update', function (e, data) {
+        if (DT.player.isFun && DT.animate.id % 10 === 0) $('#fav').attr('href', 'img/' + (DT.animate.id % 18 + 1) + '.png');
+    });
+    DT.$document.on('showFun', function (e, data) {
+        if (!data.isFun) $('#fav').attr('href', 'img/0.png');
+    });
 // ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗
 // ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝
 // ███████╗█████╗  ██████╔╝██║   ██║██║██║     █████╗  
@@ -2692,6 +2699,7 @@ window.DT = (function (window, document, undefined) {
         '425', '426', '428', '429', '431', '434', '449', '451', '456', '499', '500',
         '501', '502', '503', '504', '505', '506', '507', '508', '509', '510', '511'],
         errorsLen = errors.length;
+
     DT.runApp = function () {
         DT.initSocket();
         if (!document.hasFocus()) {

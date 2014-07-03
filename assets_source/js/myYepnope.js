@@ -16,6 +16,7 @@ $(function () {
             maxBlur = 100,
             steps = 4;
             isWebkitBlurSupported;
+
         // if ($body[0].style.webkitFilter === undefined || $body[0].style.filter === undefined) $('#loader').css({'background-color': 'rgba(0,0,0,0.8)'});
         if ($body[0].style.webkitFilter === undefined) {
             isWebkitBlurSupported = false;

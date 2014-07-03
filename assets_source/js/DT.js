@@ -3018,14 +3018,36 @@ window.DT = (function (window, document, undefined) {
     DT.$share = $('.share');
     DT.$dogecoin = $('#dogecoin');
     DT.$gameovermessage = $('#gameovermessage');
-
     // favicon
+;(function () {
+    var favicon = document.getElementsByTagName('link')[1],
+        giffav = document.createElement('link'),
+        head = document.getElementsByTagName('head')[0],
+        isChrome = navigator.userAgent.indexOf('Chrome') !== -1;
+
+    giffav.setAttribute('rel', 'icon');
+    giffav.setAttribute('type', 'image/gif');
+    giffav.setAttribute('href', 'img/fav.gif');
+
     DT.$document.on('update', function (e, data) {
-        if (DT.player.isFun && DT.animate.id % 10 === 0) $('#fav').attr('href', 'img/' + (DT.animate.id % 18 + 1) + '.png');
+        if (isChrome && DT.player.isFun && DT.animate.id % 10 === 0) favicon.setAttribute('href', 'img/' + (DT.animate.id % 18 + 1) + '.png');
     });
     DT.$document.on('showFun', function (e, data) {
-        if (!data.isFun) $('#fav').attr('href', 'img/0.png');
+        if (!data.isFun) { 
+            if (isChrome) {
+                favicon.setAttribute('href', 'img/0.png');
+            } else {
+                head.removeChild(giffav);
+                head.appendChild(favicon);
+            }
+        } else {
+            if (!isChrome) {
+                head.removeChild(favicon );
+                head.appendChild(giffav);
+            }
+        }
     });
+})();
 // ███████╗███████╗██████╗ ██╗   ██╗██╗ ██████╗███████╗
 // ██╔════╝██╔════╝██╔══██╗██║   ██║██║██╔════╝██╔════╝
 // ███████╗█████╗  ██████╔╝██║   ██║██║██║     █████╗  
@@ -4435,7 +4457,7 @@ window.DT = (function (window, document, undefined) {
     'use strict';
     DT.Bonus = function (options) {
         this.type = DT.genRandomFloorBetween(0, 2);
-        // this.type = 1;
+        // this.type = 2;
 
         var tObject;
 

@@ -67,12 +67,12 @@ window.DT = (function (window, document, undefined) {
             if (isChrome) {
                 favicon.setAttribute('href', 'img/0.png');
             } else {
-                head.removeChild(giffav);
+                $(giffav).remove();
                 head.appendChild(favicon);
             }
         } else {
             if (!isChrome) {
-                head.removeChild(favicon );
+                $(favicon).remove();
                 head.appendChild(giffav);
             }
         }
@@ -1993,12 +1993,25 @@ window.DT = (function (window, document, undefined) {
             paused: []
         }
     };
+    DT.isAudioCtxSupp;
+
+    try {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        DT.audio.context = new AudioContext();
+        DT.isAudioCtxSupp = true;
+    }
+    catch(e) {
+        alert('Opps.. Your browser do not support audio API');
+        DT.isAudioCtxSupp = false;
+    }
     DT.audio.reset = function () {
+        if (!DT.isAudioCtxSupp) return;
         DT.audio.music.paused.forEach(function (el) {el = false});
         DT.audio.music.started.forEach(function (el) {el = false});
     };
 
     DT.setVolume = function (volume) {
+        if (!DT.isAudioCtxSupp) return;
         DT.game.param.globalVolume = volume;
         if (DT.game.param.prevGlobalVolume !== DT.game.param.globalVolume) {
             DT.gainNodes.forEach(function(el) {
@@ -2051,22 +2064,16 @@ window.DT = (function (window, document, undefined) {
 
     ;(function () {
         // MUSIC
+
         var counter = 0,
             buffers = [], sources=[], analysers = [], freqDomain = [],
             audio = new Audio(),
             canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs=\'vorbis\'') !== '',
             ext = canPlayOgg ? 'ogg' : 'mp3',
-            destination,
-            context;
+            destination;
 
-        try {
-            window.AudioContext = window.AudioContext || window.webkitAudioContext;
-            context = new AudioContext();
-        }
-        catch(e) {
-            alert('Opps.. Your browser do not support audio API');
-        }
         DT.stopSound = function(index){
+            if (!DT.isAudioCtxSupp) return;
             if (DT.audio.music.started[index] === true) {
                 sources[index].stop(index);
                 DT.audio.music.started[index] = false;
@@ -2074,16 +2081,17 @@ window.DT = (function (window, document, undefined) {
         };
         DT.gainNodes = [];
         DT.playSound = function(index){
+            if (!DT.isAudioCtxSupp) return;
             var gainNodes = DT.gainNodes;
             if (!DT.audio.music.started[index]) {
                 DT.audio.music.started[index] = true;
-                sources[index] = context.createBufferSource();
+                sources[index] = DT.audio.context.createBufferSource();
                 sources[index].loop = true;
                 sources[index].buffer = buffers[index];
-                destination = context.destination;
-                gainNodes[index] = context.createGain();
+                destination = DT.audio.context.destination;
+                gainNodes[index] = DT.audio.context.createGain();
                 gainNodes[index].gain.value = DT.game.param.globalVolume;
-                analysers[index] = context.createAnalyser();
+                analysers[index] = DT.audio.context.createAnalyser();
                 analysers[index].fftSize = 2048;
                 analysers[index].minDecibels = -50;
                 analysers[index].maxDecibels = -20;
@@ -2109,7 +2117,12 @@ window.DT = (function (window, document, undefined) {
             });
         };
         function initSound(arrayBuffer, bufferIndex) {
-            context.decodeAudioData(arrayBuffer, function(decodedArrayBuffer) {
+            if (!DT.isAudioCtxSupp) {
+                counter += 1;
+                yepnope.showLoading(counter);
+                return;
+            }
+            DT.audio.context.decodeAudioData(arrayBuffer, function(decodedArrayBuffer) {
                 buffers[bufferIndex] = decodedArrayBuffer;
                 console.info('ready sound ' + bufferIndex);
                 counter += 1;
@@ -2121,37 +2134,40 @@ window.DT = (function (window, document, undefined) {
 
         // SOUNDS
         function SFX(context, file) {
-          var ctx = this;
-          var loader = new BufferLoader(context, [file], onLoaded);
+            if (!DT.isAudioCtxSupp) return;
+            var ctx = this;
+            var loader = new BufferLoader(context, [file], onLoaded);
         
-          function onLoaded(buffers) {
-            ctx.buffers = buffers;
-          };
+            function onLoaded(buffers) {
+                ctx.buffers = buffers;
+            };
         
-          loader.load();
+            loader.load();
         }
         
         SFX.prototype.play = function() {
-          var time = context.currentTime;
-          // Make multiple sources using the same buffer and play in quick succession.
+            if (!DT.isAudioCtxSupp) return;
+            var time = DT.audio.context.currentTime;
+            // Make multiple sources using the same buffer and play in quick succession.
             var source = this.makeSource(this.buffers[0]);
             source.start(0);
         }
         
         SFX.prototype.makeSource = function(buffer) {
-          var source = context.createBufferSource();
-          var compressor = context.createDynamicsCompressor();
-          var gain = context.createGain();
-          gain.gain.value = DT.game.param.globalVolume;
-          source.buffer = buffer;
-          source.connect(gain);
-          gain.connect(compressor);
-          compressor.connect(context.destination);
-          return source;
+            if (!DT.isAudioCtxSupp) return;
+            var source = DT.audio.context.createBufferSource();
+            var compressor = DT.audio.context.createDynamicsCompressor();
+            var gain = DT.audio.context.createGain();
+            gain.gain.value = DT.game.param.globalVolume;
+            source.buffer = buffer;
+            source.connect(gain);
+            gain.connect(compressor);
+            compressor.connect(DT.audio.context.destination);
+            return source;
         };
 
         for (var prop in DT.audio.sounds) if (DT.audio.sounds.hasOwnProperty(prop)) {
-            DT.audio.sounds[prop] = new SFX(context, DT.audio.sounds[prop] + ext);
+            DT.audio.sounds[prop] = new SFX(DT.audio.context, DT.audio.sounds[prop] + ext);
         }
 
         var loadSoundFile = function(urlArr, bufferIndex) {
@@ -2167,12 +2183,14 @@ window.DT = (function (window, document, undefined) {
             loadSoundFile(DT.audio.music, i);
         }
         var visualize = function(index) {
+            if (!DT.isAudioCtxSupp) return;
             freqDomain[index] = new Uint8Array(analysers[index].frequencyBinCount);
             analysers[index].getByteFrequencyData(freqDomain[index]);
             DT.audio.valueAudio = getFrequencyValue(DT.audio.frequency[index], index);
         };
         var getFrequencyValue = function(frequency, bufferIndex) {
-            var nyquist = context.sampleRate/2,
+            if (!DT.isAudioCtxSupp) return;
+            var nyquist = DT.audio.context.sampleRate/2,
                 index = Math.round(frequency/nyquist * freqDomain[bufferIndex].length);
             return freqDomain[bufferIndex][index];
         };

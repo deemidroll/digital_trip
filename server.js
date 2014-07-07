@@ -285,7 +285,7 @@ io.sockets.on('connection', function(socket) {
                                     console.log(error, client.gameCode);
                                     socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionFail', error: error});
                                 } else {
-                                    console.log(transaction);
+                                    console.log(client.coinsCollect, transaction);
                                     socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionComplete', transactionid: transaction});
                                 }
                             })

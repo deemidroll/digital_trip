@@ -2893,7 +2893,7 @@ window.DT = (function (window, document, undefined) {
         catch (e) {
             error = data.error;
         }
-        console.log(data);
+        console.log(JSON.parse(data.error));
         var text = data.type === 'transactionComplete' ? '<a href="http://dogechain.info/tx/' + transactionid + '" target="_blank">transaction complete</a>' : 'transaction failed. error: ' + error;
         clearTimeout(DT.gameovermessageTimeout);
         DT.$gameovermessage.html(text);

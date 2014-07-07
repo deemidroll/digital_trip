@@ -279,7 +279,7 @@ io.sockets.on('connection', function(socket) {
                             //     }
                             // });
                             dogecoin.sendtoaddress(data.dogecoinId, client.coinsCollect)
-                            dogecoin.exec('sendtoaddress', data.dogecoinId, client.coinsCollect, 'Digital Trip payment', 'from Digital Trip', function(err, transaction) {
+                            dogecoin.exec('sendtoaddress', data.dogecoinId, client.coinsCollect, 'Digital Trip payment', 'from Digital Trip', function(error, transaction) {
                                 console.log(error, transaction);
                                 if(error) {
                                     // Handle error

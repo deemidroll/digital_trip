@@ -5857,13 +5857,11 @@ window.DT = (function (window, document, undefined) {
         catch (e) {
             transactionid = data.transactionid;
         }
-        try {
-            error = JSON.parse(data.error).error;
-        }
-        catch (e) {
+        if (data.error === -5) {
+            error = 'invalid address';
+        } else {
             error = data.error;
         }
-        console.log(data.error);
         var text = data.type === 'transactionComplete' ? '<a href="http://dogechain.info/tx/' + transactionid + '" target="_blank">transaction complete</a>' : 'transaction failed. error: ' + error;
         clearTimeout(DT.gameovermessageTimeout);
         DT.$gameovermessage.html(text);

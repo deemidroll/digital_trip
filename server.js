@@ -282,9 +282,6 @@ io.sockets.on('connection', function(socket) {
                             //         socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionComplete', transactionid: transaction});
                             //     }
                             // });
-                            dogecoin.exec('validateaddress', data.dogecoinId, function (error, data) {
-                                console.log(error, data);
-                            });
                             dogecoin.exec('sendtoaddress', data.dogecoinId, client.coinsCollect, 'Digital Trip payment', 'from Digital Trip', function(error, transaction) {
                                 console.log(error, transaction);
                                 if(error) {

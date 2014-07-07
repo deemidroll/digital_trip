@@ -143,8 +143,8 @@ var checkClient = function (clients, currentClient) {
     console.log('IPtimeCounter', IPtimeCounter);
     if (currentClient.checkup === false ||
         currentClient.maxCoinsCheck === false ||
-        IPcounter > 10000 ||
-        UIDcounter > 1000 ||
+        // IPcounter > 10000 ||
+        // UIDcounter > 1000 ||
         IPpaymentsCounter > 1000 ||
         UIDpaymentsCounter > 100 ||
         IPtimeCounter < 20 * 1000) {

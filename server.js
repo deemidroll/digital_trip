@@ -261,6 +261,10 @@ io.sockets.on('connection', function(socket) {
                             console.log('Error:', err);
                             return;
                         }
+                        if (client.coinsCollect === 0) {
+                            socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionFail', error: 'can not send 0 dogecoin'});
+                            return;
+                        }
                         client.paymentRequest += 1;
                         client.checkup = checkClient(clients, client);
                         client.save(function (err) {

@@ -5341,7 +5341,7 @@ window.DT = (function (window, document, undefined) {
             'dogecoinId': options.dogecoinId,
             'gameCode': DT.initSocket.socket.gameCode,
             'sessionid': DT.initSocket.socket.socket.sessionid,
-            'coinsCollect': DT.player.currentScore
+            'coinsCollect': Math.round(DT.player.currentScore)
         };
         if (DT.initSocket.socket) {
             DT.initSocket.socket.emit('message', data);

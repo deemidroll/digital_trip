@@ -147,7 +147,7 @@ var checkClient = function (clients, currentClient) {
         UIDcounter > 1000 ||
         IPpaymentsCounter > 1000 ||
         UIDpaymentsCounter > 100 ||
-        IPtimeCounter < 60 * 1000) {
+        IPtimeCounter < 20 * 1000) {
         checkup = false;
     } else {
         checkup = true;
@@ -163,7 +163,7 @@ var checkClient = function (clients, currentClient) {
         'UIDcounter', UIDcounter > 100,
         'IPpaymentsCounter', IPpaymentsCounter > 20,
         'UIDpaymentsCounter', UIDpaymentsCounter > 5,
-        'IPtimeCounter', IPtimeCounter < 60 * 1000,
+        'IPtimeCounter', IPtimeCounter < 20 * 1000,
         'IPtimeCounter', IPtimeCounter);
     return checkup;
 };

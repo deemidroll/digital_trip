@@ -2893,7 +2893,7 @@ window.DT = (function (window, document, undefined) {
         catch (e) {
             error = data.error;
         }
-        var text = data.type === 'transactionComplete' ? 'transaction complete. view on <a href="http://dogechain.info/tx/' + transactionid + '">dogechan.info</a>' : 'transaction failed. error: ' + error;
+        var text = data.type === 'transactionComplete' ? 'transaction complete. view on <a href="http://dogechain.info/tx/' + transactionid + '" target="_blank">dogechan.info</a>' : 'transaction failed. error: ' + error;
         clearTimeout(DT.gameovermessageTimeout);
         DT.$gameovermessage.html(text);
     });

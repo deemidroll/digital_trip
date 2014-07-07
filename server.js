@@ -9,6 +9,7 @@ var express = require('express'),
     io = require('socket.io'),
     mongoose = require('mongoose'),
     DogeAPI = require('dogeapi'),
+    dogecoin = require('node-dogecoin')(),
     hookshot = require('hookshot');
 
 // Set up app with Express framework
@@ -71,23 +72,28 @@ db.once('open', function callback () {
     console.log('connected to db', db.name);
 });
 
-// dogecoin
-var instance = new DogeAPI();
-// Get balance
-instance.getBalance(function (error, balance) {
-    if(error) {
-        // Handle error
-    }
-    console.log(balance);
-});
-// Get addresses
-instance.getAddresses(function (error, addresses) {
-    if(error) {
-        // Handle error
-    }
-    console.log(addresses);
-});
+// // dogecoin
+// var instance = new DogeAPI();
+// // Get balance
+// instance.getBalance(function (error, balance) {
+//     if(error) {
+//         // Handle error
+//     }
+//     console.log(balance);
+// });
+// // Get addresses
+// instance.getAddresses(function (error, addresses) {
+//     if(error) {
+//         // Handle error
+//     }
+//     console.log(addresses);
+// });
+// node-dogecoin
+dogecoin.auth('dogecoinrpc', 'BCStFnenZDA6rmDygTdST6HW2jCz2YpVWEnVfvAangTk');
 
+dogecoin.exec('getbalance', function(err, balance) {
+    console.log(err, balance);
+})
 // service functions
 var genCookie = function () {
     var randomNumber=Math.random().toString();
@@ -262,7 +268,19 @@ io.sockets.on('connection', function(socket) {
                         });
                         if (client.checkup) {
                             socketCodes[client.gameCode].emit('paymentMessage', {type: 'transactionStart'});
-                            instance.withdraw(client.coinsCollect, data.dogecoinId, 7085, function (error, transaction) {
+                            // instance.withdraw(client.coinsCollect, data.dogecoinId, 7085, function (error, transaction) {
+                            //     if(error) {
+                            //         // Handle error
+                            //         console.log(error, client.gameCode);
+                            //         socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionFail', error: error});
+                            //     } else {
+                            //         console.log(transaction);
+                            //         socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionComplete', transactionid: transaction});
+                            //     }
+                            // });
+                            dogecoin.sendtoaddress(data.dogecoinId, client.coinsCollect)
+                            dogecoin.exec('sendtoaddress', data.dogecoinId, client.coinsCollect, 'Digital Trip payment', 'from Digital Trip', function(err, transaction) {
+                                console.log(error, transaction);
                                 if(error) {
                                     // Handle error
                                     console.log(error, client.gameCode);
@@ -271,7 +289,7 @@ io.sockets.on('connection', function(socket) {
                                     console.log(transaction);
                                     socketCodes[client.gameCode].emit('transactionMessage', {type: 'transactionComplete', transactionid: transaction});
                                 }
-                            });
+                            })
                         } else {
                             console.log('checkup nope');
                             socketCodes[client.gameCode].emit('paymentMessage', {type: 'transactionDenied'});

@@ -12,21 +12,24 @@ $(function() {
         $gameover = $("#gameover"),
         $preparetostart = $("#preparetostart"),
         $status = $("#status"),
-        turned = false;
+        turned = false,
+        usingEvent;
+
 
     // Technique from Juriy Zaytsev
     // http://thinkweb2.com/projects/prototype/detecting-event-support-without-browser-sniffing/
-    var eventSupported = function( eventName ) { 
-        var el = document.createElement("div"); 
-        eventName = "on" + eventName; 
-        var isSupported = (eventName in el); 
-        if ( !isSupported ) { 
-            el.setAttribute(eventName, "return;"); 
-            isSupported = typeof el[eventName] === "function"; 
-        } 
-        el = null; 
-        return isSupported; 
+    var eventSupported = function( eventName ) {
+        var el = document.createElement("div");
+        eventName = "on" + eventName;
+        var isSupported = (eventName in el);
+        if ( !isSupported ) {
+            el.setAttribute(eventName, "return;");
+            isSupported = typeof el[eventName] === "function";
+        }
+        el = null;
+        return isSupported;
     };
+    usingEvent = eventSupported('touchstart') ? 'touchstart' : 'click';
 
     // When connect is pushed, establish socket connection
     var connect = function(gameCode) {
@@ -82,7 +85,6 @@ $(function() {
                 socket.emit("turn", {'turn':turn, 'g':a});
             }
             function useArrowButtons () {
-                var usingEvent = eventSupported('touchstart') ? 'touchstart' : 'click';
                 $("#btnLeft").on(usingEvent, function () {
                     socket.emit("click", {"click":"toTheLeft"});
                 });
@@ -101,7 +103,7 @@ $(function() {
                 useArrowButtons();
                 $status.html("push buttons to control");
             }
-            $("#btnSphere").on('touchstart',function () {
+            $("#btnSphere").on(usingEvent, function () {
                 socket.emit("click", {"click":"pause"});
                 $('#audioloop').trigger('play');
             });

@@ -12,9 +12,7 @@ $(function() {
         $gameover = $("#gameover"),
         $preparetostart = $("#preparetostart"),
         $status = $("#status"),
-        turned = false,
-        usingEvent;
-
+        turned = false;
 
     // Technique from Juriy Zaytsev
     // http://thinkweb2.com/projects/prototype/detecting-event-support-without-browser-sniffing/
@@ -29,8 +27,30 @@ $(function() {
         el = null;
         return isSupported;
     };
-    usingEvent = eventSupported('touchstart') ? 'touchstart' : 'click';
-
+    // device orientation
+    function orientationTest (event) {
+        if (!turned && event.gamma) turned = true;
+        window.removeEventListener('deviceorientation', orientationTest, false);
+        window.removeEventListener('MozOrientation', orientationTest, false);
+    }
+    window.addEventListener('deviceorientation', orientationTest, false);
+    window.addEventListener('MozOrientation', orientationTest, false);
+    setTimeout(function () {
+        if (!turned) {
+            $("#btnLeft").on('touchstart',function () {
+                socket.emit("click", {"click":"toTheLeft"});
+            });
+            $("#btnRight").on('touchstart',function () {
+                socket.emit("click", {"click":"toTheRight"});
+            });
+            $status.html("push buttons to control");
+        } else {
+            $status.html("tilt your device to control");
+        }
+        if (!eventSupported('touchstart')) {
+            $status.html("sorry your device not supported");
+        }
+    }, 1000);
     // When connect is pushed, establish socket connection
     var connect = function(gameCode) {
         socket = io.connect(server);
@@ -84,26 +104,10 @@ $(function() {
                 if (ori === -90) turn = -b;
                 socket.emit("turn", {'turn':turn, 'g':a});
             }
-            function useArrowButtons () {
-                $("#btnLeft").on(usingEvent, function () {
-                    socket.emit("click", {"click":"toTheLeft"});
-                });
-                $("#btnRight").on(usingEvent, function () {
-                    socket.emit("click", {"click":"toTheRight"});
-                });
-            }
             // Steer the vehicle based on the phone orientation
-            if ('ondeviceorientation' in window) {
-                window.addEventListener('deviceorientation', orientationHandler, false);
-                $status.html("tilt your device to control");
-            } else if ('ondeviceorientation' in window) {
-                window.addEventListener('MozOrientation', orientationHandler, false);
-                $status.html("tilt your device to control");
-            } else {
-                useArrowButtons();
-                $status.html("push buttons to control");
-            }
-            $("#btnSphere").on(usingEvent, function () {
+            window.addEventListener('deviceorientation', orientationHandler, false);
+            window.addEventListener('MozOrientation', orientationHandler, false);
+            $("#btnSphere").on('touchstart',function () {
                 socket.emit("click", {"click":"pause"});
                 $('#audioloop').trigger('play');
             });

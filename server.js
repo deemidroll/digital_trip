@@ -8,7 +8,7 @@
 var express = require('express'),
     io = require('socket.io'),
     mongoose = require('mongoose'),
-    DogeAPI = require('dogeapi'),
+    // DogeAPI = require('dogeapi'),
     dogecoin = require('node-dogecoin')(),
     hookshot = require('hookshot');
 

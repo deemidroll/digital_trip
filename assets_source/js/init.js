@@ -49,6 +49,38 @@ window.DT = (function (window, document, undefined) {
     DT.$dogecoin = $('#dogecoin');
     DT.$gameovermessage = $('#gameovermessage');
     // favicon
+
+    // events
+    DT.events = {
+        'updatePath': 'custom',
+        'update': 'custom',
+        'externalObjectLoaded': 'custom',
+        'changeSpeed': 'custom',
+        'gameOver': 'custom',
+        'showHelth': 'custom',
+        'showInvulner': 'custom',
+        'showScore': 'custom',
+        'showFun': 'custom',
+        'changeHelth': 'custom',
+        'bump': 'custom',
+        'blink': 'custom',
+        'hit': 'custom',
+        'changeScore': 'custom',
+        'catchBonus': 'custom',
+        'makeInvulner': 'custom',
+        'makeFun': 'custom',
+        'showBonuses': 'custom',
+        'pauseGame': 'custom',
+        'stopFun': 'custom',
+        'socketInitialized': 'custom',
+        'paymentCheck': 'custom',
+        'paymentMessage': 'custom',
+        'transactionMessage': 'custom',
+        'startGame': 'custom',
+        'resumeGame': 'custom',
+        'resetGame': 'custom',
+        'checkup': 'custom'
+    }
 ;(function () {
     var favicon = document.getElementsByTagName('link')[1],
         giffav = document.createElement('link'),
@@ -2777,10 +2809,10 @@ window.DT = (function (window, document, undefined) {
             });
         });
     };
-    $('.pause .resume').click(function() {
+    $('.pause .resume, .pause .back').click(function() {
         DT.$document.trigger('resumeGame', {});
     });
-    $('.share .resume').click(function() {
+    $('.share .resume, .share .back').click(function(e) {
         DT.handlers.share();
     });
     $('.change_controls.pause_control').click(function() {

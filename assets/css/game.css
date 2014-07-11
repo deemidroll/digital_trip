@@ -203,6 +203,14 @@ body {
     -o-transition: background-color 0.4s ease-out 0;
     transition: background-color 0.4s ease-out 0; }
 
+.back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; }
+
 .restart {
   width: 188px;
   height: 36px;

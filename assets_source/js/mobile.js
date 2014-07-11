@@ -6,23 +6,23 @@ $(function() {
         leftTurnThreshold = -20,
         rightBreakThreshold = 3,
         rightTurnThreshold = 20,
-        controller = $("#controller"),
-        $gameCodeInput = $("#gameCodeInput"),
-        $wheel = $("#wheel"),
-        $gameover = $("#gameover"),
-        $preparetostart = $("#preparetostart"),
-        $status = $("#status"),
+        controller = $('#controller'),
+        $gameCodeInput = $('#gameCodeInput'),
+        $wheel = $('#wheel'),
+        $gameover = $('#gameover'),
+        $preparetostart = $('#preparetostart'),
+        $status = $('#status'),
         turned = false;
 
     // Technique from Juriy Zaytsev
     // http://thinkweb2.com/projects/prototype/detecting-event-support-without-browser-sniffing/
     var eventSupported = function( eventName ) {
-        var el = document.createElement("div");
-        eventName = "on" + eventName;
+        var el = document.createElement('div');
+        eventName = 'on' + eventName;
         var isSupported = (eventName in el);
         if ( !isSupported ) {
-            el.setAttribute(eventName, "return;");
-            isSupported = typeof el[eventName] === "function";
+            el.setAttribute(eventName, 'return;');
+            isSupported = typeof el[eventName] === 'function';
         }
         el = null;
         return isSupported;
@@ -37,18 +37,18 @@ $(function() {
     window.addEventListener('MozOrientation', orientationTest, false);
     setTimeout(function () {
         if (!turned) {
-            $("#btnLeft").on('touchstart',function () {
-                socket.emit("click", {"click":"toTheLeft"});
+            $('#btnLeft').on('touchstart',function () {
+                socket.emit('click', {'click':'toTheLeft'});
             });
-            $("#btnRight").on('touchstart',function () {
-                socket.emit("click", {"click":"toTheRight"});
+            $('#btnRight').on('touchstart',function () {
+                socket.emit('click', {'click':'toTheRight'});
             });
-            $status.html("push buttons to control");
+            $status.html('push buttons to control');
         } else {
-            $status.html("tilt your device to control");
+            $status.html('tilt your device to control');
         }
         if (!eventSupported('touchstart')) {
-            $status.html("sorry your device not supported");
+            $status.html('sorry your device not supported');
         }
     }, 1000);
     // When connect is pushed, establish socket connection
@@ -57,30 +57,30 @@ $(function() {
         // When server replies with initial welcome...
         socket.on('welcome', function(data) {
             // Send 'controller' device type with our entered game code
-            socket.emit("device", {"type":"controller", "gameCode":gameCode});
+            socket.emit('device', {'type':'controller', 'gameCode':gameCode});
         });
-        socket.on("message", function(data) {
-            if (data.type === "vibr") {
-                // console.log("vibtare", data.time);
+        socket.on('message', function(data) {
+            if (data.type === 'vibr') {
+                // console.log('vibtare', data.time);
                 navigator.vibrate(data.time);
             }
-            if (data.type === "gameover") {
-                // console.log("gameover");
+            if (data.type === 'gameover') {
+                // console.log('gameover');
                 $wheel.css({display: 'none'});
                 $gameover.css({display: 'table-cell'});
             }
-            if (data.type === "resetGame") {
-                // console.log("resetGame");
+            if (data.type === 'resetGame') {
+                // console.log('resetGame');
                 $gameover.css({display: 'none'});
                 $wheel.css({display: 'table-cell'});
             }
         });
         // When game code is validated, we can begin playing...
-        socket.on("connected", function(data) {
+        socket.on('connected', function(data) {
             // css {display: 'none'}game code input, and css {display: 'table-cell'}the vehicle $wheel UI
-            $("#socket").css({display: 'none'});
+            $('#socket').css({display: 'none'});
             $preparetostart.css({display: 'table-cell'});
-            $("#start").click(function () {
+            $('#start').click(function () {
                 socket.emit('start', {});
                 $(this).unbind('click');
                 $preparetostart.css({display: 'none'});
@@ -89,12 +89,12 @@ $(function() {
                 $('#audioloop').trigger('play');
             });
             // Prevent touchmove event from cancelling the 'touchend' event above
-            document.addEventListener("touchmove", function(event) {
+            document.addEventListener('touchmove', function(event) {
                 event.preventDefault();
             }, false);
             
             function orientationHandler (event) {
-                var a = event.alpha, // "direction"
+                var a = event.alpha, // 'direction'
                     b = event.beta,  // left/right 'tilt'
                     g = event.gamma; // forward/back 'tilt'
                 var turn,
@@ -102,26 +102,26 @@ $(function() {
                 if (ori === 0) turn = g;
                 if (ori === 90) turn = b;
                 if (ori === -90) turn = -b;
-                socket.emit("turn", {'turn':turn, 'g':a});
+                socket.emit('turn', {'turn':turn, 'g':a});
             }
             // Steer the vehicle based on the phone orientation
             window.addEventListener('deviceorientation', orientationHandler, false);
             window.addEventListener('MozOrientation', orientationHandler, false);
-            $("#btnSphere").on('touchstart',function () {
-                socket.emit("click", {"click":"pause"});
+            $('#btnSphere').on('touchstart',function () {
+                socket.emit('click', {'click':'pause'});
                 $('#audioloop').trigger('play');
             });
-            $("#restart").click(function () {
-                socket.emit("click", {"click":"restart"});
+            $('#restart').click(function () {
+                socket.emit('click', {'click':'restart'});
                 $gameover.css({display: 'none'});
                 $wheel.css({display: 'table-cell'});
                 $('#audioloop').trigger('play');
             });
         });
-        socket.on("fail", function() {
-            $('#status_fail').html("Failed to connect! Check address and code and reload!");
+        socket.on('fail', function() {
+            $('#status_fail').html('Failed to connect! Check address and code and reload!');
         });
-        $(document).unbind("keyup", connnectOnEnter);
+        $(document).unbind('keyup', connnectOnEnter);
     };
     if (hash) {
         connect(hash.slice(1));
@@ -133,8 +133,8 @@ $(function() {
             connect($gameCodeInput.val());
         }
     };
-    $("#connect").click(function () {
+    $('#connect').click(function () {
         connect($gameCodeInput.val());
     });
-    $(document).bind("keyup", connnectOnEnter);
+    $(document).bind('keyup', connnectOnEnter);
 });

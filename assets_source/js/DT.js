@@ -3319,8 +3319,8 @@ window.DT = (function (window, document, undefined) {
     });
 
     // BACKGROUND
-    var geomBG = new THREE.SphereGeometry(500, 32, 32);
-    var matBG = new THREE.MeshBasicMaterial({
+    var geomBG = new THREE.SphereGeometry(500, 32, 32),
+        matBG = new THREE.MeshBasicMaterial({
             map: THREE.ImageUtils.loadTexture('img/background5.jpg'),
         });
     var worldBG = new THREE.Mesh(geomBG, matBG);
@@ -5271,13 +5271,8 @@ window.DT = (function (window, document, undefined) {
     'use strict';
     DT.server = window.location.origin !== 'http://localhost' ? window.location.origin : 'http://192.168.1.44';
     DT.initSocket = function() {
-        // Game config
-        var leftBreakThreshold = -3,
-            leftTurnThreshold = -20,
-            rightBreakThreshold = 3,
-            rightTurnThreshold = 20,
-            // set socket
-            socket = DT.initSocket.socket = io.connect(DT.server);
+        // set socket
+        var socket = DT.initSocket.socket = io.connect(DT.server);
         // When initial welcome message, reply with 'game' device type
         socket.on('welcome', function(data) {
             socket.emit('device', {'type':'game', 'cookieUID': DT.getCookie('UID')});
@@ -5294,23 +5289,7 @@ window.DT = (function (window, document, undefined) {
         });
         // When the phone is turned, change destPoint
         socket.on('turn', function(turn) {
-            if (DT.enableMobileSatus === 'enabled' && DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
-                if(turn < leftBreakThreshold) {
-                    if(turn > leftTurnThreshold) {
-                        DT.handlers.center();
-                    } else {
-                        DT.handlers.left();
-                    }
-                } else if (turn > rightBreakThreshold) {
-                    if(turn < rightTurnThreshold) {
-                        DT.handlers.center();
-                    } else {
-                        DT.handlers.right();
-                    }
-                } else {
-                    DT.handlers.center();
-                }
-            }
+            if (DT.enableMobileSatus === 'enabled') DT.handlers.turnHandler(turn);;
         });
         socket.on('click', function(click) {
             if (DT.enableMobileSatus === 'enabled') DT.handlers[click]();
@@ -5684,6 +5663,34 @@ window.DT = (function (window, document, undefined) {
             })
         }
     };
+    DT.handlers.orientationHandler = function (event) {
+        if (DT.lastControl === 'keyboard') DT.handlers.turnHandler(event.gamma*3);
+    };
+
+    DT.handlers.turnHandler = function(turn) {
+        var leftBreakThreshold = -3,
+            leftTurnThreshold = -20,
+            rightBreakThreshold = 3,
+            rightTurnThreshold = 20;
+
+        if (DT.game.wasStarted && !DT.game.wasPaused && !DT.game.wasOver) {
+            if(turn < leftBreakThreshold) {
+                if(turn > leftTurnThreshold) {
+                    DT.handlers.center();
+                } else {
+                    DT.handlers.left();
+                }
+            } else if (turn > rightBreakThreshold) {
+                if(turn < rightTurnThreshold) {
+                    DT.handlers.center();
+                } else {
+                    DT.handlers.right();
+                }
+            } else {
+                DT.handlers.center();
+            }
+        }
+    };
     DT.$document.on('startGame', function (e, data) {
         if (DT.shared) DT.handlers.share();
         $('#wow').bind('click', DT.handlers.wowClick);
@@ -5694,6 +5701,7 @@ window.DT = (function (window, document, undefined) {
         DT.$gameovermessage.html('');
         DT.$dogecoin.val('');
     });
+    window.addEventListener('deviceorientation', DT.handlers.orientationHandler, false);
 })();
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
 // ██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝

@@ -8,7 +8,6 @@
 var express = require('express'),
     io = require('socket.io'),
     mongoose = require('mongoose'),
-    // DogeAPI = require('dogeapi'),
     dogecoin = require('node-dogecoin')(),
     hookshot = require('hookshot');
 
@@ -72,22 +71,6 @@ db.once('open', function callback () {
     console.log('connected to db', db.name);
 });
 
-// // dogecoin
-// var instance = new DogeAPI();
-// // Get balance
-// instance.getBalance(function (error, balance) {
-//     if(error) {
-//         // Handle error
-//     }
-//     console.log(balance);
-// });
-// // Get addresses
-// instance.getAddresses(function (error, addresses) {
-//     if(error) {
-//         // Handle error
-//     }
-//     console.log(addresses);
-// });
 // node-dogecoin
 dogecoin.auth('dogecoinrpc', 'BCStFnenZDA6rmDygTdST6HW2jCz2YpVWEnVfvAangTk');
 

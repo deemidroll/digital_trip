@@ -2693,9 +2693,6 @@ window.DT = (function (window, document, undefined) {
             })
         }
     };
-    DT.handlers.orientationHandler = function (event) {
-        if (DT.lastControl === 'keyboard') DT.handlers.turnHandler(event.gamma*3);
-    };
 
     DT.handlers.turnHandler = function(turn) {
         var leftBreakThreshold = -3,
@@ -2731,7 +2728,6 @@ window.DT = (function (window, document, undefined) {
         DT.$gameovermessage.html('');
         DT.$dogecoin.val('');
     });
-    window.addEventListener('deviceorientation', DT.handlers.orientationHandler, false);
 })();
 // ██╗███╗   ██╗████████╗███████╗██████╗ ███████╗ █████╗  ██████╗███████╗
 // ██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝

@@ -666,3 +666,14 @@ a:hover {
 
 .show-table {
   display: table; }
+
+a.chromeexperiments {
+  display: block;
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  margin: 0;
+  padding: 0; }
+  a.chromeexperiments img {
+    margin: 0;
+    padding: 0; }

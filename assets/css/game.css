@@ -670,8 +670,8 @@ a:hover {
 a.chromeexperiments {
   display: block;
   position: absolute;
-  bottom: 80px;
-  left: 0;
+  bottom: 70px;
+  left: 25px;
   margin: 0;
   padding: 0; }
   a.chromeexperiments img {

@@ -16,7 +16,7 @@ Tecnology
 
 - <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">Web Audio API</a> (JavaScript API which gives full control over sound)
 
-- <a href="http://ru.wikipedia.org/wiki/WebSocket">WebSoket</a> (a protocol providing full-duplex communications channels over a single TCP connection)
+- <a href="http://ru.wikipedia.org/wiki/WebSocket">WebSocket</a> (a protocol providing full-duplex communications channels over a single TCP connection)
 - <a href="http://socket.io/">socket.io</a> (a JavaScript library for realtime web applications)
 
 - <a href="http://dev.w3.org/2011/webrtc/editor/getusermedia.html">getUserMedia</a> (a JavaScript API, which permits web applications access the user’s webcam and microphone)

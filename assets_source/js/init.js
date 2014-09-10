@@ -2711,7 +2711,7 @@ window.DT = (function (window, document, undefined) {
     DT.handlers.wowClick = function () {
         var dogecoinId = DT.$dogecoin.val();
         if (dogecoinId === '') {
-            DT.$gameovermessage.html('type your dogecoin id');
+            DT.$gameovermessage.html('type your dogecoin address');
         } else {
             DT.$gameovermessage.html('checking...');
             DT.$document.trigger('checkup', {dogecoinId: dogecoinId});
